@@ -3,6 +3,7 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 import { SHARED_ENUMS } from '../names.js';
 import {
+  chillwhalesNfts,
   eventFacts,
   indexedHeads,
   metadataJobs,
@@ -15,11 +16,12 @@ import {
 describe('v3 database schema inventory', () => {
   it('registers every mutable application table for Pipes rollback', () => {
     const names = rollbackTables.map(getTableName);
-    expect(names).toHaveLength(15);
+    expect(names).toHaveLength(16);
     expect(new Set(names).size).toBe(names.length);
     expect(names).not.toContain(getTableName(networkConfig));
     expect(names).not.toContain(getTableName(sqdCursor));
     expect(names).toContain(getTableName(metadataJobs));
+    expect(names).toContain(getTableName(chillwhalesNfts));
 
     for (const table of rollbackTables) {
       const config = getTableConfig(table);
@@ -30,10 +32,11 @@ describe('v3 database schema inventory', () => {
 
   it('exposes only public read models through API views', () => {
     const names = publicTables.map(getTableName);
-    expect(names).toHaveLength(14);
+    expect(names).toHaveLength(15);
     expect(names).not.toContain(getTableName(metadataJobs));
     expect(names).not.toContain(getTableName(sqdCursor));
     expect(names).not.toContain(getTableName(networkConfig));
+    expect(names).toContain(getTableName(chillwhalesNfts));
   });
 
   it('defines the immutable shared enum catalog', () => {

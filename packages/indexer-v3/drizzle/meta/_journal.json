@@ -57,6 +57,20 @@
       "when": 1787576115395,
       "tag": "0007_windy_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787579251676,
+      "tag": "0008_amused_paladin",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787581689490,
+      "tag": "0009_shocking_vin_gonzales",
+      "breakpoints": true
     }
   ]
 }

@@ -35,6 +35,7 @@ import {
 
 const defaultMigrationsDirectory = fileURLToPath(new URL('../../drizzle', import.meta.url));
 const MIGRATION_LOCK_KEY = 'lsp-indexer-v3:database-migration';
+const DESTRUCTIVE_REPLAY_MARKER = '-- lsp-indexer-v3: destructive-replay';
 const RESERVED_MIGRATION_SCHEMAS = new Set([
   API_SCHEMA,
   SHARED_SCHEMA,
@@ -1021,6 +1022,7 @@ async function assertSnapshotEvolutionSafe(
   networkSchema: string,
   hasAppliedMigrations: boolean,
   hasPendingMigrations: boolean,
+  hasDestructiveReplayMigration: boolean,
 ): Promise<void> {
   if (!hasAppliedMigrations || !hasPendingMigrations) return;
   const tables = await client.query<TableNameRow>(
@@ -1030,11 +1032,19 @@ async function assertSnapshotEvolutionSafe(
      ORDER BY tablename`,
     [networkSchema],
   );
-  if (tables.rows.length > 0) {
+  if (tables.rows.length > 0 && !hasDestructiveReplayMigration) {
     throw new Error(
       `Pending schema migrations cannot run in "${networkSchema}" while rollback snapshot artifacts exist. Rebuild the alpha database or use an owner-approved snapshot-preserving procedure.`,
     );
   }
+}
+
+function containsDestructiveReplayMigration(
+  migrations: ReturnType<typeof readMigrationFiles>,
+): boolean {
+  return migrations.some(({ sql: statements }) =>
+    statements.some((statement) => statement.trimStart().startsWith(DESTRUCTIVE_REPLAY_MARKER)),
+  );
 }
 
 function findDuplicates(values: readonly (number | string)[]): string[] {
@@ -1181,17 +1191,20 @@ async function migrateNetwork(
     }
   }
 
+  const pendingMigrations = migrations.slice(appliedResult.rows.length);
+
   await assertSnapshotEvolutionSafe(
     client,
     network.schema,
     appliedResult.rows.length > 0,
-    appliedResult.rows.length < migrations.length,
+    pendingMigrations.length > 0,
+    containsDestructiveReplayMigration(pendingMigrations),
   );
 
   await db.execute(
     sql`SELECT pg_advisory_xact_lock(hashtext(${`lsp-indexer-v3:migrations:${network.schema}`})::bigint)`,
   );
-  for (const migration of migrations.slice(appliedResult.rows.length)) {
+  for (const migration of pendingMigrations) {
     for (const statement of migration.sql) {
       if (statement.trim().length > 0) await db.execute(sql.raw(statement));
     }

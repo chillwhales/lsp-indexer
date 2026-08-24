@@ -75,10 +75,13 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 | Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                                          |
 | Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                                           |
 | Collection Attributes | —                                    | `fetchCollectionAttributes`                                                              |
+| Chillwhales NFTs (v3) | —                                    | —                                                                                        |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.
-
 Additional: `fetchEncryptedAssetsBatch` — batch-fetches multiple encrypted assets by `(address, contentId, revision)` tuples.
+
+`chillwhales_nfts` is currently a LUKSO Mainnet-only v3 alpha projection. A public Node fetch
+contract is intentionally unavailable until the v3 package-contract goal lands.
 
 **Mutual follow queries** are intersection queries across the follow graph:
 

@@ -66,7 +66,7 @@ export async function assertConfiguredContracts(
   ];
 
   const [multicallCode, contracts] = await Promise.all([
-    rpc.getCode({ address: runtime.network.multicallAddress }),
+    rpc.getCode({ address: runtime.network.multicall.address }),
     Promise.all(
       deployments.map(
         async ([name, deployment]): Promise<ConfiguredContractReadiness | undefined> => {
@@ -91,7 +91,7 @@ export async function assertConfiguredContracts(
 
   if (!multicallCode || multicallCode === '0x') {
     throw new Error(
-      `Configured Multicall3 contract ${runtime.network.multicallAddress} has no code on ${runtime.network.key}`,
+      `Configured Multicall3 contract ${runtime.network.multicall.address} has no code on ${runtime.network.key}`,
     );
   }
 

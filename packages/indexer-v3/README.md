@@ -4,9 +4,9 @@ Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 
 > **Alpha implementation:** this package provides the typed network catalog, validated
 > single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
-> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, and a bounded source probe. It
-> does not yet build verified domain projections or expose the final v3 GraphQL contract, so it is
-> not a replacement for the production v2 indexer.
+> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
+> deterministic LSP domain projections. It does not yet run the external metadata workers or expose
+> the final v3 GraphQL/package contract, so it is not a replacement for the production v2 indexer.
 
 ## Requirements
 
@@ -39,13 +39,14 @@ The Pipes `devRunner` wrapper is available for local multi-network development o
 must keep network processes isolated so a crash, CPU spike, or provider failure on one chain does
 not stop another.
 
-Each chain schema contains the same 17-table Drizzle model: canonical blocks and raw event facts;
+Each chain schema contains the same 18-table Drizzle model: canonical blocks and raw event facts;
 profiles, digital assets, NFTs, ownership, followers, creators, issued assets, permissions,
-ERC725Y data, metadata revisions, metadata jobs, indexed head, and the Pipes cursor. Fifteen
+ERC725Y data, the network-gated Chillwhales extension, metadata revisions, metadata jobs, indexed
+head, and the Pipes cursor. Sixteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
-Creator and issued-asset ERC725Y array indexes retain their complete unsigned 128-bit range as
-PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
+Creator, issued-asset, and controller ERC725Y array indexes retain their complete unsigned 128-bit
+range as PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
 identity. Before advancing the head, the target verifies every parent link after the previously
 indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected
@@ -94,12 +95,64 @@ fails. Unknown topics, wrong singleton addresses, pre-deployment singleton logs,
 network capabilities are excluded. Invalid fundamental provenance fails the atomic batch instead of
 advancing the cursor.
 
+## Domain projections
+
+The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
+exact block number and hash, interface category, and address; executes current and legacy
+LSP0/LSP7/LSP8 interface checks through bounded direct reads before the configured Multicall3
+deployment and bounded Multicall3 batches afterward; and pins every read to its triggering block.
+The actual `eth_call` in either path uses the Portal block hash through EIP-1898 with canonical
+membership required. The RPC block hash is also checked before and after the read, so a provider
+reorg or load-balanced backend cannot commit results from the wrong fork. The configured endpoint
+must support EIP-1898 block identifiers. Decimals are accepted only for verified LSP7 assets.
+
+The reducer applies only newly inserted facts in block/transaction/log order. Existing rows are
+loaded through bounded state-query chunks so large Pipes batches stay below PostgreSQL's parameter
+limit. It atomically writes:
+
+- Universal Profiles and digital assets, including owner, standard, decimals, supply, and LSP4/LSP8
+  scalar state
+- NFTs with raw and formatted token IDs, mint/burn state, owner, and derived base-URI location
+- UP-scoped asset balances and token ownership
+- Follower tombstones, creators, issued assets, controllers, permissions, and raw ERC725Y values
+- The LUKSO-only Chillwhales extension for claim flags and Orb level, cooldown, and faction
+
+Transfer facts mutate balances, supply, and NFTs only when their LSP7/LSP8 event domain matches the
+asset's verified standard.
+
+A failed individual interface call produces no new typed entity. If a previously verified contract
+later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
+until it verifies again. A later successful verification refreshes the asset's current standard and
+standard-specific fields, so implementation upgrades do not retain a stale classification. Moving
+away from LSP8 also clears the collection-only format, reference, base URI, NFTs, token ownership,
+and extension rows while raw events and ERC725Y values remain stored. Removing a controller array
+slot clears only its index; independent permission maps keep that controller materialized until all
+of them are empty. Clearing a creator, issued-asset, or controller array length with the canonical
+empty ERC725Y value treats its length as zero. Creator and issued-asset members are removed;
+controller indexes are cleared while rows with independent permission maps remain. Other malformed
+lengths are ignored. A transport or malformed-response failure aborts the transaction and leaves
+the cursor at the preceding position.
+Exact replay validates existing deterministic facts but does not reduce them again, preventing
+double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
+deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one
+batch. Creator `verified` flags follow later LSP0 verification changes even when the triggering fact
+does not touch the creator registry.
+
+An empty or malformed packed Orb level value clears both level and cooldown while retaining faction.
+CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
+number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
+tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30
+blocks later after an individual failed call; true flags remain monotonic. Polling-only heads load
+the extension row together with its verified asset guard before applying status or retry-schedule
+updates. IPFS/HTTP metadata parsing and publication remain owned by the later metadata-worker goal;
+the projection pipeline already persists their durable chain inputs.
+
 ## Configuration
 
 | Variable                                | Required | Purpose                                                     |
 | --------------------------------------- | -------- | ----------------------------------------------------------- |
 | `INDEXER_NETWORK`                       | Yes      | Network key from the catalog                                |
-| `INDEXER_FROM_BLOCK`                    | No       | Inclusive start block; defaults to the network start block  |
+| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation |
 | `INDEXER_TO_BLOCK`                      | No       | Inclusive end block; required by the bounded source probe   |
 | `SQD_PORTAL_URL`                        | No       | Override the selected network's Portal dataset URL          |
 | `RPC_URL`                               | No       | Generic RPC override                                        |
@@ -211,9 +264,17 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 Generated migrations are normalized to stay schema-relative. `db:migrations:check` rejects a
 public-schema qualifier. Because Pipes beta.3 does not reconcile snapshot tables after tracked
-columns change, pending migrations fail safely whenever rollback snapshot tables exist, even when
-they are empty; alpha operators must rebuild the database or use an owner-approved preservation
-procedure.
+columns change, ordinary pending migrations fail safely whenever rollback snapshot tables exist,
+even when they are empty.
+
+The projection rollout is an explicit, tested alpha rebuild exception. Stop every v3 indexer before
+running it. Its reviewed `destructive-replay` migration drops old Pipes snapshot functions,
+triggers, and tables and clears every mutable chain table plus `sqd_cursor` in the same transaction
+across all enabled networks. It preserves `network_config` and migration history. On restart, Pipes
+recreates all 16 rollback artifacts from the new schema and ingestion replays from
+the configured network start block. A fresh or reset schema with a later `INDEXER_FROM_BLOCK` is
+rejected. With an existing cursor, a custom start is accepted only when it does not leave a gap
+after the latest committed block. No other migration bypasses the snapshot guard.
 
 ## Commands
 
@@ -238,8 +299,8 @@ blocks, logs, and the network-scoped stream identity, refuses to run without `IN
 fails unless the source returns every block exactly once in ascending order across the inclusive
 range; it is a source diagnostic, not the domain indexer.
 
-After migrations and readiness checks pass, run the raw event indexer for exactly one configured
-network:
+After migrations and readiness checks pass, run the event and projection indexer for exactly one
+configured network:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
@@ -247,9 +308,11 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
   pnpm --filter @chillwhales/indexer-v3 index:events
 ```
 
-The command uses the narrow event query, query-aware decoder, official rollback-aware Drizzle
-target, and the same stable per-network cursor ID. Add `INDEXER_FROM_BLOCK` and
-`INDEXER_TO_BLOCK` for a bounded backfill or fixture run.
+The command uses the narrow event query, query-aware decoder, block-pinned RPC planner,
+deterministic reducer, official rollback-aware Drizzle target, and the same stable per-network
+cursor ID. `INDEXER_TO_BLOCK` can bound an initial replay. A custom `INDEXER_FROM_BLOCK` is only for
+a contiguous continuation from an existing cursor; use `probe:network` for arbitrary source
+fixtures that intentionally start later.
 
 Run local validation:
 
@@ -272,5 +335,6 @@ and reorg acceptance suite.
 See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
 [database contract](../../.github/V3_SCHEMA.md),
 [raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
+[projection disposition](../../.github/V3_PROJECTION_DISPOSITION.md),
 [roadmap](../../.github/V3_ROADMAP.md), and
 [acceptance gates](../../.github/V3_ACCEPTANCE_GATES.md).

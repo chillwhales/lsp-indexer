@@ -97,7 +97,9 @@ Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscor
 `DATABASE_URL_ETHEREUM_MAINNET` or `DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET`.
 
 This creates isolated chain schemas and unified read-only API views, but complete LSP domain
-decoding and the public v3 packages are still under development. See
+decoding and the public v3 packages are still under development. The v3 alpha also persists the
+LUKSO Mainnet-only `chillwhales_nfts` domain for CHILL/ORBS claims and Orb state; it has no Node,
+React, or Next.js consumer API yet. See
 [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
 checks, and environment variables.
 

@@ -20,7 +20,17 @@ import {
   createEventIngestionOutput,
   createEventPersistenceTarget,
   ERC725Y_EVENT_ABI,
+  LSP7_EVENT_ABI,
 } from '../../events/index.js';
+import {
+  applyProjectionMutations,
+  assertProjectionReplayStart,
+  collectProjectionCandidates,
+  createProjectionPersistenceTarget,
+  type ProjectionBatch,
+  type ProjectionMutations,
+  type ProjectionVerification,
+} from '../../projections/index.js';
 import { createNetworkDatabase, createNetworkPool, type NetworkDatabase } from '../client.js';
 import {
   loadDatabaseMigrationConfig,
@@ -41,6 +51,7 @@ import {
   API_SCHEMA,
   CURSOR_TABLE,
   DATABASE_SCHEMA_VERSION,
+  MIGRATIONS_TABLE,
   quotePostgresIdentifier,
   SHARED_ENUMS,
   SHARED_SCHEMA,
@@ -49,12 +60,17 @@ import { verifyDatabaseReadiness } from '../readiness.js';
 import { createChainObjectOwnershipQuery, type ChainObjectOwnershipRow } from '../roleBoundary.js';
 import {
   blocks,
+  chillwhalesNfts,
+  controllers,
   creators,
   digitalAssets,
   eventFacts,
   indexedHeads,
   issuedAssets,
   metadataJobs,
+  nfts,
+  ownedAssets,
+  ownedTokens,
   rollbackTables,
   universalProfiles,
 } from '../schema.js';
@@ -404,6 +420,62 @@ async function createPendingMigrationDirectory(
   return { migrationsDirectory, temporaryDirectory };
 }
 
+async function restoreRawOnlyProjectionBaseline(
+  pool: Pool,
+  network: DatabaseMigrationConfig['networks'][number],
+): Promise<void> {
+  const schema = quotePostgresIdentifier(network.schema);
+  await executeAsRole(
+    pool,
+    API_OWNER_ROLE,
+    `DROP SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} CASCADE`,
+  );
+  await pool.query(
+    `DROP SCHEMA ${schema} CASCADE;
+     CREATE SCHEMA ${schema} AUTHORIZATION ${quotePostgresIdentifier(network.role)}`,
+  );
+
+  const migrations = readMigrationFiles({
+    migrationsFolder: fileURLToPath(new URL('../../../drizzle', import.meta.url)),
+  }).slice(0, 8);
+  const migrationTable = `${schema}.${quotePostgresIdentifier(MIGRATIONS_TABLE)}`;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(network.role)}`);
+    await client.query(
+      `SET LOCAL search_path TO ${schema}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
+    );
+    await client.query(`
+      CREATE TABLE ${migrationTable} (
+        id serial PRIMARY KEY,
+        hash text NOT NULL,
+        created_at bigint NOT NULL
+      )
+    `);
+    for (const migration of migrations) {
+      for (const statement of migration.sql) {
+        if (statement.trim().length > 0) await client.query(statement);
+      }
+      await client.query(`INSERT INTO ${migrationTable} (hash, created_at) VALUES ($1, $2)`, [
+        migration.hash,
+        migration.folderMillis,
+      ]);
+    }
+    await client.query(
+      `INSERT INTO ${schema}.network_config (network, chain_id, schema_version)
+       VALUES ($1, $2, $3)`,
+      [network.network.key, network.network.chainId, DATABASE_SCHEMA_VERSION],
+    );
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 beforeAll(async (): Promise<void> => {
   controlPool = new Pool({ connectionString: sourceDatabaseUrl, max: 1 });
   await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(testDatabaseName)}`);
@@ -459,12 +531,12 @@ describe.sequential('PostgreSQL persistence', () => {
       ORDER BY schemaname
     `);
     expect(tableCounts.rows).toHaveLength(3);
-    expect(tableCounts.rows.every(({ count }) => Number(count) === 18)).toBe(true);
+    expect(tableCounts.rows.every(({ count }) => Number(count) === 19)).toBe(true);
 
     const views = await testAdminPool.query<{ count: string }>(
       `SELECT count(*) AS count FROM pg_views WHERE schemaname = 'api'`,
     );
-    expect(Number(views.rows[0]?.count)).toBe(14);
+    expect(Number(views.rows[0]?.count)).toBe(15);
 
     const enums = await testAdminPool.query<{ schema: string; count: string }>(`
       SELECT n.nspname AS schema, count(*) AS count
@@ -490,6 +562,222 @@ describe.sequential('PostgreSQL persistence', () => {
           `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier('__drizzle_migrations')}`,
         ),
       ).toBe(migrationCount);
+    }
+  });
+
+  it('atomically resets raw-only v3 state so projections replay from the configured range', async () => {
+    const scratchDatabaseName = `lsp_v3_projection_upgrade_${suiteSuffix}`;
+    const scratchUrl = databaseUrl(sourceDatabaseUrl, scratchDatabaseName);
+    const network = migrationConfig.networks.find(
+      ({ network: configuredNetwork }) => configuredNetwork.key === 'ethereum-mainnet',
+    );
+    if (network == null) throw new Error('Expected the Ethereum migration network');
+    const scratchConfig = { connectionString: scratchUrl, networks: [network] };
+    let scratchPool: Pool | undefined;
+    let scratchRuntimePool: Pool | undefined;
+
+    await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(scratchDatabaseName)}`);
+    try {
+      await migrateDatabase(scratchConfig);
+      scratchPool = new Pool({ connectionString: scratchUrl, max: 1 });
+      await restoreRawOnlyProjectionBaseline(scratchPool, network);
+      const schema = quotePostgresIdentifier(network.schema);
+      await scratchPool.query(
+        `INSERT INTO ${schema}.blocks (
+           id, network, chain_id, number, hash, parent_hash, timestamp
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          createBlockId(network.network.chainId, 10),
+          network.network.key,
+          network.network.chainId,
+          10,
+          hashFor(10),
+          hashFor(9),
+          new Date(1_700_000_010_000),
+        ],
+      );
+      await scratchPool.query(
+        `INSERT INTO ${schema}.event_facts (
+           id, network, chain_id, block_number, block_hash, parent_hash, block_timestamp,
+           transaction_hash, transaction_index, log_index, address, topic0, topics, data
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0, $9, $10, $11, '0x')`,
+        [
+          createEventId(network.network.chainId, 10, 0, 0),
+          network.network.key,
+          network.network.chainId,
+          10,
+          hashFor(10),
+          hashFor(9),
+          new Date(1_700_000_010_000),
+          hashFor(110),
+          testAddress,
+          topic0,
+          [topic0],
+        ],
+      );
+      await scratchPool.query(
+        `INSERT INTO ${schema}.universal_profiles (
+           id, network, chain_id, address, verification, last_block_number, last_block_hash
+         ) VALUES ($1, $2, $3, $4, 'verified', 10, $5)`,
+        [
+          createAddressId('profile', network.network.chainId, testAddress),
+          network.network.key,
+          network.network.chainId,
+          testAddress,
+          hashFor(10),
+        ],
+      );
+      await scratchPool.query(
+        `INSERT INTO ${schema}.indexed_heads (
+           network, chain_id, block_number, block_hash, block_timestamp
+         ) VALUES ($1, $2, 10, $3, $4)`,
+        [network.network.key, network.network.chainId, hashFor(10), new Date(1_700_000_010_000)],
+      );
+      await scratchPool.query(
+        `INSERT INTO ${schema}.sqd_cursor (id, current_number, current_hash)
+         VALUES ($1, 10, $2)`,
+        [network.network.key, hashFor(10)],
+      );
+      await executeAsRole(
+        scratchPool,
+        network.role,
+        `CREATE TABLE ${schema}.blocks__snapshots AS
+           SELECT block.*, 'INSERT'::text AS "___sqd__operation",
+                  10::bigint AS "___sqd__block_number"
+           FROM ${schema}.blocks block;
+         ALTER TABLE ${schema}.blocks__snapshots
+           ADD PRIMARY KEY ("___sqd__block_number", id);
+         CREATE FUNCTION ${schema}.maybe_snapshot_blocks() RETURNS trigger AS $$
+         BEGIN
+           RETURN NULL;
+         END;
+         $$ LANGUAGE plpgsql;
+         CREATE TRIGGER blocks_snapshot_trigger
+           AFTER INSERT OR UPDATE OR DELETE ON ${schema}.blocks
+           FOR EACH ROW EXECUTE FUNCTION ${schema}.maybe_snapshot_blocks();`,
+      );
+      expect(await countRows(scratchPool, `${schema}.blocks__snapshots`)).toBe(1);
+
+      await migrateDatabase(scratchConfig);
+
+      for (const table of [
+        'blocks',
+        'event_facts',
+        'universal_profiles',
+        'indexed_heads',
+        'sqd_cursor',
+      ]) {
+        expect(await countRows(scratchPool, `${schema}.${quotePostgresIdentifier(table)}`)).toBe(0);
+      }
+      expect(await countRows(scratchPool, `${schema}.network_config`)).toBe(1);
+      expect(await countRows(scratchPool, `${schema}.__drizzle_migrations`)).toBe(migrationCount);
+
+      const removedArtifacts = await scratchPool.query<{
+        functions: string;
+        snapshots: string;
+        triggers: string;
+      }>(`
+        SELECT
+          count(DISTINCT relation.oid) FILTER (
+            WHERE relation.relkind = 'r' AND relation.relname LIKE '%\\_\\_snapshots'
+          ) AS snapshots,
+          count(DISTINCT routine.oid) FILTER (
+            WHERE routine.proname LIKE 'maybe\\_snapshot\\_%'
+          ) AS functions,
+          count(DISTINCT trigger.oid) FILTER (
+            WHERE trigger.tgname LIKE '%\\_snapshot\\_trigger'
+          ) AS triggers
+        FROM pg_namespace namespace
+        LEFT JOIN pg_class relation ON relation.relnamespace = namespace.oid
+        LEFT JOIN pg_proc routine ON routine.pronamespace = namespace.oid
+        LEFT JOIN pg_trigger trigger
+          ON trigger.tgrelid = relation.oid AND NOT trigger.tgisinternal
+        WHERE namespace.nspname = '${network.schema}'
+      `);
+      expect(removedArtifacts.rows[0]).toEqual({
+        snapshots: '0',
+        functions: '0',
+        triggers: '0',
+      });
+
+      const scratchRuntime = loadRuntimeConfig({ INDEXER_NETWORK: network.network.key });
+      const scratchDatabaseConfig = loadNetworkDatabaseConfig(scratchRuntime, {
+        DATABASE_URL: databaseUrl(
+          sourceDatabaseUrl,
+          scratchDatabaseName,
+          runtimeLogins['ethereum-mainnet'],
+          runtimePassword,
+        ),
+        DATABASE_POOL_MAX: '2',
+        DATABASE_UNFINALIZED_BLOCKS_RETENTION: '100',
+      });
+      scratchRuntimePool = createNetworkPool(scratchDatabaseConfig);
+      const scratchTarget = createPersistenceTarget<TestBlock[]>({
+        runtime: scratchRuntime,
+        databaseConfig: scratchDatabaseConfig,
+        db: createNetworkDatabase(scratchRuntimePool),
+        async onData({ tx }, batch): Promise<void> {
+          for (const block of batch) {
+            await tx
+              .insert(blocks)
+              .values({
+                id: createBlockId(scratchRuntime.network.chainId, block.header.number),
+                network: scratchRuntime.network.key,
+                chainId: scratchRuntime.network.chainId,
+                number: block.header.number,
+                hash: block.header.hash,
+                parentHash: block.header.parentHash,
+                timestamp: new Date(block.header.timestamp),
+              })
+              .onConflictDoNothing();
+          }
+        },
+      });
+      await runBlocks(scratchTarget, [block1]);
+
+      const recreatedArtifacts = await scratchPool.query<{
+        functions: string;
+        snapshots: string;
+        triggers: string;
+      }>(`
+        SELECT
+          count(DISTINCT relation.oid) FILTER (
+            WHERE relation.relkind = 'r' AND relation.relname LIKE '%\\_\\_snapshots'
+          ) AS snapshots,
+          count(DISTINCT routine.oid) FILTER (
+            WHERE routine.proname LIKE 'maybe\\_snapshot\\_%'
+          ) AS functions,
+          count(DISTINCT trigger.oid) FILTER (
+            WHERE trigger.tgname LIKE '%\\_snapshot\\_trigger'
+          ) AS triggers
+        FROM pg_namespace namespace
+        LEFT JOIN pg_class relation ON relation.relnamespace = namespace.oid
+        LEFT JOIN pg_proc routine ON routine.pronamespace = namespace.oid
+        LEFT JOIN pg_trigger trigger
+          ON trigger.tgrelid = relation.oid AND NOT trigger.tgisinternal
+        WHERE namespace.nspname = '${network.schema}'
+      `);
+      expect(recreatedArtifacts.rows[0]).toEqual({
+        snapshots: String(rollbackTables.length),
+        functions: String(rollbackTables.length),
+        triggers: String(rollbackTables.length),
+      });
+      const recreatedClaimSchedule = await scratchPool.query<{ exists: boolean }>(`
+        SELECT EXISTS(
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = '${network.schema}'
+            AND table_name = 'chillwhales_nfts__snapshots'
+            AND column_name = 'claim_check_after_block'
+        ) AS exists
+      `);
+      expect(recreatedClaimSchedule.rows[0]?.exists).toBe(true);
+    } finally {
+      await scratchRuntimePool?.end();
+      await scratchPool?.end();
+      await waitForDatabaseClientsToClose(controlPool, scratchDatabaseName);
+      await controlPool.query(
+        `DROP DATABASE IF EXISTS ${quotePostgresIdentifier(scratchDatabaseName)}`,
+      );
     }
   });
 
@@ -734,7 +1022,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         ORDER BY relation.relname
       `);
       expect(viewsAfterFailure.rows).toEqual(viewsBeforeFailure.rows);
-      expect(viewsAfterFailure.rows).toHaveLength(14);
+      expect(viewsAfterFailure.rows).toHaveLength(15);
     } finally {
       await scratchPool?.end();
       await waitForDatabaseClientsToClose(controlPool, scratchDatabaseName);
@@ -789,6 +1077,16 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         lastBlockNumber: 0,
         lastBlockHash: blockHash,
       });
+      await ethereumDb.insert(controllers).values({
+        id: 'large-controller-array-index',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        profileAddress: issuerAddress,
+        controllerAddress: creatorAddress,
+        arrayIndex,
+        lastBlockNumber: 0,
+        lastBlockHash: blockHash,
+      });
 
       expect(
         (
@@ -796,6 +1094,14 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
             .select()
             .from(creators)
             .where(eq(creators.id, 'large-creator-array-index'))
+        )[0]?.arrayIndex,
+      ).toBe(arrayIndex);
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(controllers)
+            .where(eq(controllers.id, 'large-controller-array-index'))
         )[0]?.arrayIndex,
       ).toBe(arrayIndex);
       expect(
@@ -811,6 +1117,302 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       await ethereumDb
         .delete(universalProfiles)
         .where(eq(universalProfiles.address, issuerAddress));
+    }
+  });
+
+  it('swaps creator, issued-asset, and controller indices without unique collisions', async () => {
+    const issuerAddress = addressFor(240);
+    const firstAssetAddress = addressFor(241);
+    const secondAssetAddress = addressFor(242);
+    const firstRelatedAddress = addressFor(243);
+    const secondRelatedAddress = addressFor(244);
+    const blockHash = hashFor(240);
+    const provenance = {
+      lastBlockNumber: 0,
+      lastBlockHash: blockHash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    };
+
+    await ethereumDb.insert(universalProfiles).values({
+      id: createAddressId('profile', ethereumRuntime.network.chainId, issuerAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: issuerAddress,
+      ...provenance,
+    });
+    await ethereumDb.insert(digitalAssets).values([
+      {
+        id: createAddressId('asset', ethereumRuntime.network.chainId, firstAssetAddress),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: firstAssetAddress,
+        ...provenance,
+      },
+      {
+        id: createAddressId('asset', ethereumRuntime.network.chainId, secondAssetAddress),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: secondAssetAddress,
+        ...provenance,
+      },
+    ]);
+    try {
+      await ethereumDb.insert(creators).values([
+        {
+          id: 'swap-creator-1',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          assetAddress: firstAssetAddress,
+          creatorAddress: firstRelatedAddress,
+          arrayIndex: 0n,
+          ...provenance,
+        },
+        {
+          id: 'swap-creator-2',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          assetAddress: firstAssetAddress,
+          creatorAddress: secondRelatedAddress,
+          arrayIndex: 1n,
+          ...provenance,
+        },
+      ]);
+      await ethereumDb.insert(issuedAssets).values([
+        {
+          id: 'swap-issued-1',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          issuerAddress,
+          assetAddress: firstAssetAddress,
+          arrayIndex: 0n,
+          ...provenance,
+        },
+        {
+          id: 'swap-issued-2',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          issuerAddress,
+          assetAddress: secondAssetAddress,
+          arrayIndex: 1n,
+          ...provenance,
+        },
+      ]);
+      await ethereumDb.insert(controllers).values([
+        {
+          id: 'swap-controller-1',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          profileAddress: issuerAddress,
+          controllerAddress: firstRelatedAddress,
+          arrayIndex: 0n,
+          ...provenance,
+        },
+        {
+          id: 'swap-controller-2',
+          network: ethereumRuntime.network.key,
+          chainId: ethereumRuntime.network.chainId,
+          profileAddress: issuerAddress,
+          controllerAddress: secondRelatedAddress,
+          arrayIndex: 1n,
+          ...provenance,
+        },
+      ]);
+
+      const swapIndex = <T extends { arrayIndex: bigint | null }>(row: T): T => ({
+        ...row,
+        arrayIndex: row.arrayIndex === 0n ? 1n : 0n,
+      });
+      const mutations: ProjectionMutations = {
+        universalProfiles: [],
+        digitalAssets: [],
+        nfts: [],
+        ownedAssets: [],
+        ownedTokens: [],
+        followerEdges: [],
+        creators: (
+          await ethereumDb
+            .select()
+            .from(creators)
+            .where(eq(creators.assetAddress, firstAssetAddress))
+        ).map(swapIndex),
+        issuedAssets: (
+          await ethereumDb
+            .select()
+            .from(issuedAssets)
+            .where(eq(issuedAssets.issuerAddress, issuerAddress))
+        ).map(swapIndex),
+        controllers: (
+          await ethereumDb
+            .select()
+            .from(controllers)
+            .where(eq(controllers.profileAddress, issuerAddress))
+        ).map(swapIndex),
+        chillwhalesNfts: [],
+        dataValues: [],
+        deletedOwnedAssetIds: [],
+        deletedOwnedTokenIds: [],
+        deletedNftCollections: [],
+        deletedCreatorIds: [],
+        deletedIssuedAssetIds: [],
+        deletedControllerIds: [],
+      };
+
+      await ethereumDb.transaction((tx) => applyProjectionMutations(tx, mutations));
+
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(creators)
+            .where(eq(creators.assetAddress, firstAssetAddress))
+            .orderBy(creators.id)
+        ).map(({ id, arrayIndex }) => ({ id, arrayIndex })),
+      ).toEqual([
+        { id: 'swap-creator-1', arrayIndex: 1n },
+        { id: 'swap-creator-2', arrayIndex: 0n },
+      ]);
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(issuedAssets)
+            .where(eq(issuedAssets.issuerAddress, issuerAddress))
+            .orderBy(issuedAssets.id)
+        ).map(({ id, arrayIndex }) => ({ id, arrayIndex })),
+      ).toEqual([
+        { id: 'swap-issued-1', arrayIndex: 1n },
+        { id: 'swap-issued-2', arrayIndex: 0n },
+      ]);
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(controllers)
+            .where(eq(controllers.profileAddress, issuerAddress))
+            .orderBy(controllers.id)
+        ).map(({ id, arrayIndex }) => ({ id, arrayIndex })),
+      ).toEqual([
+        { id: 'swap-controller-1', arrayIndex: 1n },
+        { id: 'swap-controller-2', arrayIndex: 0n },
+      ]);
+    } finally {
+      await ethereumDb
+        .delete(universalProfiles)
+        .where(eq(universalProfiles.address, issuerAddress));
+      await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, firstAssetAddress));
+      await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, secondAssetAddress));
+    }
+  });
+
+  it('deletes an LSP8 collection and its dependent ownership and extension rows', async () => {
+    const assetAddress = addressFor(245);
+    const ownerAddress = addressFor(246);
+    const tokenId = hashFor(245);
+    const blockHash = hashFor(246);
+    const provenance = {
+      lastBlockNumber: 0,
+      lastBlockHash: blockHash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    };
+
+    await ethereumDb.insert(universalProfiles).values({
+      id: createAddressId('profile', ethereumRuntime.network.chainId, ownerAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: ownerAddress,
+      ...provenance,
+    });
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('asset', ethereumRuntime.network.chainId, assetAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: assetAddress,
+      standard: 'lsp8',
+      verification: 'verified',
+      ...provenance,
+    });
+
+    try {
+      await ethereumDb.insert(nfts).values({
+        id: 'reclassified-nft',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: assetAddress,
+        tokenId,
+        ownerAddress,
+        verification: 'verified',
+        ...provenance,
+      });
+      await ethereumDb.insert(ownedTokens).values({
+        id: 'reclassified-owned-token',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        ownerAddress,
+        assetAddress,
+        tokenId,
+        balance: '1',
+        ...provenance,
+      });
+      await ethereumDb.insert(chillwhalesNfts).values({
+        id: 'reclassified-extension',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: assetAddress,
+        tokenId,
+        ...provenance,
+      });
+
+      const mutations: ProjectionMutations = {
+        universalProfiles: [],
+        digitalAssets: [],
+        nfts: [],
+        ownedAssets: [],
+        ownedTokens: [],
+        followerEdges: [],
+        creators: [],
+        issuedAssets: [],
+        controllers: [],
+        chillwhalesNfts: [],
+        dataValues: [],
+        deletedOwnedAssetIds: [],
+        deletedOwnedTokenIds: [],
+        deletedNftCollections: [
+          { chainId: ethereumRuntime.network.chainId, address: assetAddress },
+        ],
+        deletedCreatorIds: [],
+        deletedIssuedAssetIds: [],
+        deletedControllerIds: [],
+      };
+      await ethereumDb.transaction((tx) => applyProjectionMutations(tx, mutations));
+
+      expect(await ethereumDb.select().from(nfts).where(eq(nfts.address, assetAddress))).toEqual(
+        [],
+      );
+      expect(
+        await ethereumDb
+          .select()
+          .from(ownedTokens)
+          .where(eq(ownedTokens.assetAddress, assetAddress)),
+      ).toEqual([]);
+      expect(
+        await ethereumDb
+          .select()
+          .from(chillwhalesNfts)
+          .where(eq(chillwhalesNfts.address, assetAddress)),
+      ).toEqual([]);
+      expect(
+        await ethereumDb
+          .select()
+          .from(digitalAssets)
+          .where(eq(digitalAssets.address, assetAddress)),
+      ).toHaveLength(1);
+    } finally {
+      await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, assetAddress));
+      await ethereumDb.delete(universalProfiles).where(eq(universalProfiles.address, ownerAddress));
     }
   });
 
@@ -2283,5 +2885,159 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(await countRows(ethereumPool, 'blocks')).toBe(1);
     expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
     expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(0);
+  });
+
+  it('keeps projections idempotent on replay and restores ownership across a fork', async () => {
+    const partialRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '20',
+      INDEXER_TO_BLOCK: '21',
+    });
+    await expect(assertProjectionReplayStart(ethereumDb, partialRuntime)).rejects.toThrow(
+      'has no cursor and must start at block 0',
+    );
+
+    const projectionRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '0',
+      INDEXER_TO_BLOCK: '21',
+    });
+    const mintLog = encodeEvent({
+      abi: LSP7_EVENT_ABI,
+      eventName: 'Transfer',
+      address: testAddress,
+      args: {
+        operator: firstOwner,
+        from: '0x0000000000000000000000000000000000000000',
+        to: firstOwner,
+        amount: 10n,
+        force: true,
+        data: '0x',
+      },
+    });
+    const transferLog = encodeEvent({
+      abi: LSP7_EVENT_ABI,
+      eventName: 'Transfer',
+      address: testAddress,
+      args: {
+        operator: firstOwner,
+        from: firstOwner,
+        to: secondOwner,
+        amount: 4n,
+        force: true,
+        data: '0x',
+      },
+    });
+    const projectionBridgeBlocks: PortalBlock[] = [];
+    let projectionParentHash = block1.header.hash;
+    for (let number = 2; number < 20; number += 1) {
+      const block = mockBlock({
+        number,
+        timestamp: 1_700_000_000_000 + number * 1_000,
+        hash: hashFor(400 + number),
+        parentHash: projectionParentHash,
+      });
+      projectionBridgeBlocks.push(block);
+      projectionParentHash = block.header.hash;
+    }
+    const mintBlock = mockBlock({
+      number: 20,
+      timestamp: 1_700_000_020_000,
+      hash: hashFor(120),
+      parentHash: projectionParentHash,
+      transactions: [{ logs: [mintLog] }],
+    });
+    const transferBlock = mockBlock({
+      number: 21,
+      timestamp: 1_700_000_021_000,
+      hash: hashFor(121),
+      parentHash: mintBlock.header.hash,
+      transactions: [{ logs: [transferLog] }],
+    });
+    const projectionTarget = createProjectionPersistenceTarget({
+      runtime: projectionRuntime,
+      databaseConfig: ethereumDatabaseConfig,
+      db: ethereumDb,
+    });
+
+    async function runProjectionFixture(includeBridge = true): Promise<void> {
+      const portal = await mockEvmPortalStream({
+        blocks: includeBridge
+          ? [...projectionBridgeBlocks, mintBlock, transferBlock]
+          : [transferBlock],
+        finalized: { number: block1.header.number, hash: block1.header.hash },
+      });
+      try {
+        const outputs = createEventIngestionOutput(projectionRuntime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status: 'verified',
+                standard: candidate.category === 'digitalAsset' ? 'lsp7' : null,
+                decimals: candidate.category === 'digitalAsset' ? 18 : null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: projectionRuntime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(projectionRuntime, data, ctx));
+        await stream.pipeTo(projectionTarget);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await runProjectionFixture();
+    expect(await ethereumDb.select().from(digitalAssets)).toEqual([
+      expect.objectContaining({ address: testAddress, totalSupply: '10' }),
+    ]);
+    expect(await ethereumDb.select().from(ownedAssets).orderBy(ownedAssets.ownerAddress)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '6' }),
+      expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
+    ]);
+
+    await ethereumPool.query('DELETE FROM sqd_cursor WHERE current_number = 21');
+    await runProjectionFixture(false);
+    expect(await ethereumDb.select().from(ownedAssets).orderBy(ownedAssets.ownerAddress)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '6' }),
+      expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
+    ]);
+
+    if (projectionTarget.resolveFork == null) {
+      throw new Error('Projection target must support forks');
+    }
+    await projectionTarget.resolveFork([
+      {
+        number: mintBlock.header.number,
+        hash: mintBlock.header.hash,
+        timestamp: mintBlock.header.timestamp,
+      },
+    ]);
+    expect(await ethereumDb.select().from(ownedAssets)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '10' }),
+    ]);
+    expect(
+      await ethereumDb.select().from(eventFacts).where(eq(eventFacts.blockNumber, 20)),
+    ).toHaveLength(1);
+
+    await projectionTarget.resolveFork([
+      {
+        number: block1.header.number,
+        hash: block1.header.hash,
+        timestamp: block1.header.timestamp,
+      },
+    ]);
+    expect(await countRows(ethereumPool, 'digital_assets')).toBe(0);
+    expect(await countRows(ethereumPool, 'owned_assets')).toBe(0);
+    expect(
+      await ethereumDb.select().from(eventFacts).where(eq(eventFacts.blockNumber, 20)),
+    ).toHaveLength(0);
   });
 });

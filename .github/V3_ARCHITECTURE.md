@@ -103,7 +103,7 @@ interface NetworkConfig {
   portalDataset?: string;
   rpcUrlEnv: string;
   finalityConfirmations: number;
-  multicallAddress: string;
+  multicall: { address: string; fromBlock: number };
   ipfsGateway: string;
   contracts: {
     lsp23Factory?: { address: string; fromBlock: number };
@@ -147,12 +147,14 @@ The released event decoder already provides block hash, timestamp, transaction h
 index, and log index. V3 must not throw that provenance away when producing domain facts.
 
 RPC calls used for `supportsInterface`, decimals, ownership, or other state reads carry the
-triggering block number and hash. When a client supports EIP-1898, it reads by hash. A number-only
-client must verify that the provider maps that number to the triggering hash immediately before and
-after each read. A mismatch on either side rejects the result instead of mixing state from two
-forks. Reads run in a transform before the database transaction so a slow provider does not hold
-database locks. Provider transport failures and block-identity mismatches abort the batch; because
-the cursor has not committed, retry starts from the same canonical position.
+triggering block number and hash. Every direct call and Multicall3 aggregate uses an EIP-1898
+`{ blockHash, requireCanonical: true }` selector, so the state read itself is bound to the Portal
+block even when an RPC endpoint load-balances across backends. The provider's number-to-hash mapping
+is also checked immediately before and after each read. A mismatch on either side rejects the result
+instead of mixing state from two forks. Reads run in a transform before the database transaction so
+a slow provider does not hold database locks. Provider transport failures, lack of EIP-1898 support,
+and block-identity mismatches abort the batch; because the cursor has not committed, retry starts
+from the same canonical position.
 
 Deterministic contract-level failures are isolated per call. A revert, unsupported selector, or
 invalid return value records an invalid or unknown verification result, preserves the raw fact, and
@@ -296,10 +298,11 @@ The Pipes target receives rollback retention from the validated network database
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` has no independent construction-time fallback. A fork may
 move the finalized watermark backwards only by restoring its tracked snapshot.
 
-The initial #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs,
-owned assets and tokens, follower edges, creators, issued assets, controllers, and ERC725Y values;
-metadata revisions and durable jobs; indexed head visibility; network identity; and the Pipes cursor.
-The raw fact shape is stable while #383 and #384 add event-specific decoding and reduction logic.
+The #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs, owned
+assets and tokens, follower edges, creators, issued assets, controllers, ERC725Y values, and
+network-gated product extensions; metadata revisions and durable jobs; indexed-head visibility;
+network identity; and the Pipes cursor. #383 supplies stable raw event decoding and #384 supplies
+the verification, reduction, and atomic projection writer.
 
 ### Schema evolution gates
 
@@ -309,9 +312,15 @@ fresh-database rebuilds are acceptable. Production migrations cannot add or chan
 until the released SDK safely reconciles snapshots or an owner-approved migration procedure proves
 that rollback data is preserved.
 
-The migration runner enforces that rule: if a pending migration exists and any rollback snapshot
-table exists, even when empty, it fails before executing the migration. PostgreSQL integration tests
-exercise that refusal with a synthetic tracked-table schema change.
+The migration runner enforces that rule for ordinary migrations: if a pending migration exists and
+any rollback snapshot table exists, even when empty, it fails before executing the migration. The
+projection rollout is the sole marked alpha rebuild exception. With every v3 process stopped, its
+cross-network transaction drops old rollback artifacts, clears mutable rows and cursors, preserves
+network identity and migration history, and forces a complete replay. Pipes recreates the 16
+snapshot tables, functions, and triggers from the current tracked schema on restart. With no cursor,
+startup requires the configured network start block; with a cursor, it rejects a source range that
+would leave a gap after the latest committed block. PostgreSQL integration tests cover both generic
+refusal and the marked reset with non-empty old snapshots.
 
 The bounded-finality fix is also still a draft:
 [subsquid/pipes-sdk#143](https://github.com/subsquid/pipes-sdk/pull/143). Backfill completion evidence
@@ -332,6 +341,41 @@ V3 stores three categories deliberately:
 A raw fact is retained even if later verification says its address does not implement an expected
 interface. Verification affects typed relationships and projections, not historical truth. This
 preserves the useful v2 behavior without porting its enrichment queue implementation.
+
+The reducer receives only event IDs inserted by the current transaction. It loads the smallest
+existing state scope needed by those facts through bounded lookup chunks, applies them in canonical
+order, deletes stale registry or zero-balance rows, and upserts the resulting current state. A
+transfer affects typed state only when its decoded LSP7/LSP8 domain matches the asset's verified
+standard. The canonical empty ERC725Y array-length value is length zero; malformed non-empty lengths
+do not mutate current arrays. Creator rows are reverse-scoped by every reverified profile so their
+derived verification flag cannot drift from current LSP0 support. Exact replay can validate an
+existing fact but cannot apply it twice.
+
+Interface verification is planned per exact `(block number, block hash, category, address)` and
+supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded
+Multicall3 deployment block, bounded direct `eth_call` reads are used; from the deployment block
+onward, calls use bounded sequential Multicall requests. Both paths bind the actual `eth_call` to
+the triggering hash with EIP-1898 and require canonical membership; the provider's block hash is
+also checked before and after each path. Transport or response-shape failures fail the batch.
+Individual contract-call failures classify that candidate as invalid; they do not delete its raw
+event or ERC725Y value. A later invalid result marks an existing core row invalid and prevents
+subsequent typed reduction until verification succeeds again. Decimals are accepted only for a
+verified LSP7 asset.
+
+Successful re-verification also owns standard-transition cleanup. When an asset moves away from
+LSP8, the writer clears its token-ID format, reference contract, base URI, NFT rows, token ownership,
+and collection extension rows before writing the new standard, while raw facts and ERC725Y values
+remain immutable. Controller array membership is not ownership of its permission maps: clearing an
+array slot nulls the index and keeps the controller while any permission, allowed-call, or
+allowed-data-key mapping remains. The row is deleted only after every independent mapping is empty.
+
+The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
+updates use the same deterministic reducer. Empty or malformed packed Orb level data clears the
+derived level and cooldown together without changing faction. Each available Portal head checks at most 250
+unresolved CHILL and ORBS claim rows, prioritizing new mints. Successful false results wait 720
+blocks and individual call failures wait 30 blocks before becoming due again. Reads are pinned to
+the head's exact number and hash, and flags move monotonically from false to true. Other networks do
+not query or populate the extension.
 
 ## Metadata subsystem
 

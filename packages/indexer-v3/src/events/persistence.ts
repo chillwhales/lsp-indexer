@@ -71,7 +71,8 @@ async function persistBlocks(
 async function persistEvents(
   tx: PersistenceTransaction,
   records: EventIngestionBatch['events'],
-): Promise<void> {
+): Promise<Set<string>> {
+  const insertedEventIds = new Set<string>();
   for (const chunk of chunks(records)) {
     const inserted = await tx
       .insert(eventFacts)
@@ -79,6 +80,7 @@ async function persistEvents(
       .onConflictDoNothing()
       .returning({ id: eventFacts.id });
     const insertedIds = new Set(inserted.map(({ id }) => id));
+    for (const id of insertedIds) insertedEventIds.add(id);
     const conflicts = chunk.filter(({ id }) => !insertedIds.has(id));
     if (conflicts.length === 0) continue;
 
@@ -99,15 +101,20 @@ async function persistEvents(
       }
     }
   }
+  return insertedEventIds;
+}
+
+export interface EventPersistenceResult {
+  insertedEventIds: Set<string>;
 }
 
 /** Insert canonical raw blocks before their event facts inside the Pipes target transaction. */
 export async function persistEventBatch(
   { tx }: Pick<PersistenceHandlerContext, 'tx'>,
   batch: EventIngestionBatch,
-): Promise<void> {
+): Promise<EventPersistenceResult> {
   await persistBlocks(tx, batch.blocks);
-  await persistEvents(tx, batch.events);
+  return { insertedEventIds: await persistEvents(tx, batch.events) };
 }
 
 /** Create the rollback-aware target used by raw event ingestion for one network schema. */

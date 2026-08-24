@@ -1,6 +1,8 @@
 # LSP Indexer v3 database contract
 
-Status: implemented foundation for [#382](https://github.com/chillwhales/lsp-indexer/issues/382)
+Status: implemented through domain projections for
+[#382](https://github.com/chillwhales/lsp-indexer/issues/382) and
+[#384](https://github.com/chillwhales/lsp-indexer/issues/384)
 
 This document is the persistence contract between the Pipes ingestion work, domain reducers,
 metadata workers, Hasura, and the v3 consumer packages. The Drizzle definitions and generated SQL
@@ -43,29 +45,30 @@ CREATE`, grant options, or a reachable user-defined routine abort startup.
 
 Every chain schema has the same application tables.
 
-| Table                | Category        | Natural or primary key                                        | Rollback | API |
-| -------------------- | --------------- | ------------------------------------------------------------- | :------: | :-: |
-| `network_config`     | Static identity | `(network, chain_id)`                                         |    No    | No  |
-| `sqd_cursor`         | Pipes state     | `(id, current_number)`                                        |  Pipes   | No  |
-| `blocks`             | Canonical fact  | `(chain_id, number)`                                          |   Yes    | Yes |
-| `event_facts`        | Raw log fact    | deterministic ID; unique chain/block/transaction/log position |   Yes    | Yes |
-| `universal_profiles` | Projection      | `(chain_id, address)`                                         |   Yes    | Yes |
-| `digital_assets`     | Projection      | `(chain_id, address)`                                         |   Yes    | Yes |
-| `nfts`               | Projection      | `(chain_id, address, token_id)`                               |   Yes    | Yes |
-| `owned_assets`       | Projection      | `(chain_id, owner_address, asset_address)`                    |   Yes    | Yes |
-| `owned_tokens`       | Projection      | `(chain_id, owner_address, asset_address, token_id)`          |   Yes    | Yes |
-| `follower_edges`     | Projection      | `(chain_id, follower_address, followed_address)`              |   Yes    | Yes |
-| `creators`           | Projection      | `(chain_id, asset_address, creator_address)`                  |   Yes    | Yes |
-| `issued_assets`      | Projection      | `(chain_id, issuer_address, asset_address)`                   |   Yes    | Yes |
-| `controllers`        | Projection      | `(chain_id, profile_address, controller_address)`             |   Yes    | Yes |
-| `data_values`        | Projection      | deterministic ID; unique address/token/data-key scope         |   Yes    | Yes |
-| `metadata_revisions` | Revision fact   | deterministic ID; unique source revision                      |   Yes    | Yes |
-| `metadata_jobs`      | Internal queue  | deterministic source-revision ID                              |   Yes    | No  |
-| `indexed_heads`      | Visibility      | `(network, chain_id)`                                         |   Yes    | Yes |
+| Table                | Category          | Natural or primary key                                        | Rollback | API |
+| -------------------- | ----------------- | ------------------------------------------------------------- | :------: | :-: |
+| `network_config`     | Static identity   | `(network, chain_id)`                                         |    No    | No  |
+| `sqd_cursor`         | Pipes state       | `(id, current_number)`                                        |  Pipes   | No  |
+| `blocks`             | Canonical fact    | `(chain_id, number)`                                          |   Yes    | Yes |
+| `event_facts`        | Raw log fact      | deterministic ID; unique chain/block/transaction/log position |   Yes    | Yes |
+| `universal_profiles` | Projection        | `(chain_id, address)`                                         |   Yes    | Yes |
+| `digital_assets`     | Projection        | `(chain_id, address)`                                         |   Yes    | Yes |
+| `nfts`               | Projection        | `(chain_id, address, token_id)`                               |   Yes    | Yes |
+| `owned_assets`       | Projection        | `(chain_id, owner_address, asset_address)`                    |   Yes    | Yes |
+| `owned_tokens`       | Projection        | `(chain_id, owner_address, asset_address, token_id)`          |   Yes    | Yes |
+| `follower_edges`     | Projection        | `(chain_id, follower_address, followed_address)`              |   Yes    | Yes |
+| `creators`           | Projection        | `(chain_id, asset_address, creator_address)`                  |   Yes    | Yes |
+| `issued_assets`      | Projection        | `(chain_id, issuer_address, asset_address)`                   |   Yes    | Yes |
+| `controllers`        | Projection        | `(chain_id, profile_address, controller_address)`             |   Yes    | Yes |
+| `chillwhales_nfts`   | Product extension | `(chain_id, address, token_id)`                               |   Yes    | Yes |
+| `data_values`        | Projection        | deterministic ID; unique address/token/data-key scope         |   Yes    | Yes |
+| `metadata_revisions` | Revision fact     | deterministic ID; unique source revision                      |   Yes    | Yes |
+| `metadata_jobs`      | Internal queue    | deterministic source-revision ID                              |   Yes    | No  |
+| `indexed_heads`      | Visibility        | `(network, chain_id)`                                         |   Yes    | Yes |
 
 `__drizzle_migrations` is also present in each chain schema but is migration bookkeeping, not an
 application table. When the target starts, Pipes creates one `<table>__snapshots` table,
-`maybe_snapshot_<table>()` function, and `<table>_snapshot_trigger` for each of the 15 rollback
+`maybe_snapshot_<table>()` function, and `<table>_snapshot_trigger` for each of the 16 rollback
 tables. The official target manages `sqd_cursor` separately in the same serializable transaction.
 
 ## Facts and projections
@@ -97,13 +100,27 @@ to its head row, while Pipes orders tracked rollback operations so parent blocks
 their dependent heads.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
-projections also retain transaction and log position. Domain reducers in #384 must apply updates in
-canonical block, transaction, and log order and use idempotent inserts/upserts.
+projections also retain transaction and log position. The #384 reducer applies only newly inserted
+facts in canonical block, transaction, and log order. This makes a cursor-reset replay idempotent
+without hiding a conflicting fact at the same deterministic position.
+
+`nfts` retains the raw bytes32 token ID plus its current formatted representation, mint/burn state,
+owner, and derived base-URI location. Creator, issued-asset, and controller array/map records are
+collapsed into one row per natural relationship; array shrink events delete stale current rows.
+Changed relationship rows are removed before reinsertion so unique array-index swaps cannot
+collide. `chillwhales_nfts` is a network-gated product extension rather than a core LSP table. Its
+indexed `claim_check_after_block` field bounds due-token polling and remains rollback tracked.
+
+Verification reads current and legacy LSP0/LSP7/LSP8 interface IDs at the exact triggering block
+number and hash. The provider hash is checked before and after every Multicall. A verified result
+may create a typed profile or asset. An invalid result never removes the raw fact or `data_values`
+row and never creates a false typed projection. Optional EOA references such as a controller
+address remain valid relationship fields without pretending to be Universal Profiles.
 
 Addresses and bytes32 values are lowercase, fixed-width hex strings checked by PostgreSQL. EVM
 unsigned integers use `numeric(78, 0)`. Block and chain numbers use `bigint` in PostgreSQL and are
-validated as safe integers at the TypeScript boundary. ERC725Y creator and issued-asset array
-indexes use `numeric(39, 0)` and TypeScript `bigint` to preserve the full unsigned 128-bit key
+validated as safe integers at the TypeScript boundary. ERC725Y creator, issued-asset, and controller
+array indexes use `numeric(39, 0)` and TypeScript `bigint` to preserve the full unsigned 128-bit key
 suffix. Nullable token scopes use `NULLS NOT DISTINCT` unique constraints, preventing duplicate
 contract-wide ERC725Y or metadata revisions.
 
@@ -171,7 +188,7 @@ dropped or added column, foreign key, check, index, or other reviewed storage ob
 even if the Drizzle journal is unchanged. Pipes-managed `__snapshots` tables are excluded because
 their lifecycle is dynamic.
 
-After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
+After every enabled chain is current, the migrator transactionally replaces 15 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
 migration history, and rollback artifacts are intentionally absent. Unexpected API relations abort
 the rebuild. The shared namespace is accepted only when it contains the four canonical enums and
@@ -182,7 +199,12 @@ usage is removed from API view types and shared enums, while a publicly executab
 routine aborts migration. Hasura and future packages must join, filter, cache, and subscribe with
 both `network` and `chain_id`.
 
-Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
-migration therefore fails before execution whenever any snapshot table exists, even if retention
-has emptied it. Alpha databases must be rebuilt, or the repository owner must approve a separately
-tested preservation procedure.
+Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. An ordinary
+pending migration therefore fails before execution whenever any snapshot table exists, even if
+retention has emptied it. The projection rollout is the sole marked alpha exception: with all v3
+indexers stopped, one transaction drops obsolete rollback artifacts and truncates all mutable
+tables plus `sqd_cursor` across enabled schemas while preserving `network_config` and migration
+history. Pipes recreates the 16 artifacts from the new tracked schema on restart, and the configured
+range is replayed from the network start. Startup rejects a missing cursor with a later start block
+and rejects a gap after an existing cursor. PostgreSQL integration tests exercise non-empty old
+snapshots, atomic reset, and artifact recreation.

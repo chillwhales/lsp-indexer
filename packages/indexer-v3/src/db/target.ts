@@ -41,6 +41,7 @@ export interface PersistenceTargetOptions<T> {
   runtime: RuntimeConfig;
   databaseConfig: NetworkDatabaseConfig;
   db: NetworkDatabase;
+  onStart?(): Promise<unknown>;
   onData(context: PersistenceHandlerContext, payload: T): Promise<unknown>;
 }
 
@@ -315,6 +316,7 @@ export function createPersistenceTarget<T>(
     },
     async onStart(): Promise<void> {
       await verifyDatabaseReadiness(options.db, options.runtime);
+      await options.onStart?.();
     },
     async onData({ tx, data, ctx }): Promise<void> {
       await options.onData({ tx, ctx }, data.payload);

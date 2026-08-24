@@ -147,7 +147,8 @@ function LiveProfiles() {
 
 ## Available Domains
 
-All 12 domains follow the same pattern. Replace `Profile` with any domain name:
+The 12 current consumer domains follow the same pattern. `chillwhales_nfts` is also shown so its
+v3-only status is explicit, but it does not have a public hook yet.
 
 | Domain                | Hooks                                                                                                                                                                                                                                                                                    |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -164,6 +165,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
 | Collection Attributes | `useCollectionAttributes`                                                                                                                                                                                                                                                                |
+| Chillwhales NFTs (v3) | — (LUKSO Mainnet v3 alpha projection only)                                                                                                                                                                                                                                               |
 
 ---
 
