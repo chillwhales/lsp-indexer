@@ -3,7 +3,7 @@ import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { fileURLToPath } from 'node:url';
 import { Pool, type PoolClient } from 'pg';
-import { createNetworkSchema } from '../config/index.js';
+import { createNetworkSchema, getNetworkConfig } from '../config/index.js';
 import type { DatabaseMigrationConfig, DatabaseMigrationNetwork } from './config.js';
 import {
   API_OWNER_ROLE,
@@ -965,6 +965,12 @@ function assertMigrationNetworks(networks: readonly DatabaseMigrationNetwork[]):
   }
 
   for (const network of networks) {
+    const catalogNetwork = getNetworkConfig(network.network.key);
+    if (network.network.chainId !== catalogNetwork.chainId) {
+      throw new Error(
+        `Migration network "${network.network.key}" must use catalog chain ID ${catalogNetwork.chainId}; received ${network.network.chainId}`,
+      );
+    }
     const expectedSchema = assertPostgresIdentifier(
       createNetworkSchema(network.network.key),
       'canonical network schema',
@@ -1133,6 +1139,11 @@ async function rebuildApiViews(
   try {
     await client.query('BEGIN');
     for (const viewName of viewNames) {
+      await client.query(
+        `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
+      );
+    }
+    for (const viewName of viewNames) {
       const view = quotePostgresIdentifier(viewName);
       const selections = networks
         .map(
@@ -1141,7 +1152,7 @@ async function rebuildApiViews(
         )
         .join(' UNION ALL ');
       await client.query(
-        `CREATE OR REPLACE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,
+        `CREATE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,
       );
       await client.query(
         `REVOKE USAGE ON TYPE ${quotePostgresIdentifier(API_SCHEMA)}.${view} FROM PUBLIC`,

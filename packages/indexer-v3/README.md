@@ -43,6 +43,8 @@ profiles, digital assets, NFTs, ownership, followers, creators, issued assets, p
 ERC725Y data, metadata revisions, metadata jobs, indexed head, and the Pipes cursor. Fifteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
+Creator and issued-asset ERC725Y array indexes retain their complete unsigned 128-bit range as
+PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
 identity. During forward processing, indexed heads retain the last known finalized watermark when a
 later source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is

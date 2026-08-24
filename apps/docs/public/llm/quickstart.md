@@ -76,16 +76,25 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
   pnpm --filter @chillwhales/indexer-v3 db:check
 ```
 
-The v3 pool accepts these optional timeout settings in milliseconds; the values shown are the
-defaults:
+The v3 database variables are:
 
-```env
-DATABASE_CONNECTION_TIMEOUT_MS=10000
-DATABASE_IDLE_TIMEOUT_MS=30000
-DATABASE_STATEMENT_TIMEOUT_MS=60000
-DATABASE_LOCK_TIMEOUT_MS=10000
-DATABASE_IDLE_TRANSACTION_TIMEOUT_MS=60000
-```
+| Variable                                | Scope and default                                                |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL`                          | Generic runtime PostgreSQL URL                                   |
+| `DATABASE_URL_<NETWORK>`                | Per-network override; takes priority over `DATABASE_URL`         |
+| `DATABASE_ADMIN_URL`                    | Separate admin URL used only by `db:migrate`                     |
+| `DATABASE_MIGRATION_NETWORKS`           | Comma-separated migration set; defaults to every catalog network |
+| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | Existing login that receives only its matching writer role       |
+| `DATABASE_POOL_MAX`                     | Runtime connection limit; defaults to `10`                       |
+| `DATABASE_CONNECTION_TIMEOUT_MS`        | Connection timeout; defaults to `10000` milliseconds             |
+| `DATABASE_IDLE_TIMEOUT_MS`              | Idle connection timeout; defaults to `30000` milliseconds        |
+| `DATABASE_STATEMENT_TIMEOUT_MS`         | Statement timeout; defaults to `60000` milliseconds              |
+| `DATABASE_LOCK_TIMEOUT_MS`              | Lock timeout; defaults to `10000` milliseconds                   |
+| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | Idle transaction timeout; defaults to `60000` milliseconds       |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | Defaults to max(`1000`, finality × 4) and must exceed finality   |
+
+Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscores, such as
+`DATABASE_URL_ETHEREUM_MAINNET` or `DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET`.
 
 This creates isolated chain schemas and unified read-only API views, but complete LSP domain
 decoding and the public v3 packages are still under development. See

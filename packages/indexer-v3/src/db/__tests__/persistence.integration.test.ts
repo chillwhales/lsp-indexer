@@ -37,8 +37,11 @@ import {
 import { verifyDatabaseReadiness } from '../readiness.js';
 import {
   blocks,
+  creators,
+  digitalAssets,
   eventFacts,
   indexedHeads,
+  issuedAssets,
   metadataJobs,
   rollbackTables,
   universalProfiles,
@@ -462,6 +465,96 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('recreates API views when their public columns are incompatible', async () => {
+    const qualifiedView = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier('creators')}`;
+    await executeAsRole(testAdminPool, API_OWNER_ROLE, `DROP VIEW ${qualifiedView}`);
+    await executeAsRole(
+      testAdminPool,
+      API_OWNER_ROLE,
+      `CREATE VIEW ${qualifiedView} AS SELECT id AS legacy_id FROM ${quotePostgresIdentifier('chain_ethereum_mainnet')}.${quotePostgresIdentifier('creators')}`,
+    );
+
+    await expect(migrateDatabase(migrationConfig)).resolves.toBeDefined();
+    const columns = await testAdminPool.query<{ columnName: string }>(
+      `SELECT column_name AS "columnName"
+       FROM information_schema.columns
+       WHERE table_schema = $1 AND table_name = $2
+       ORDER BY ordinal_position`,
+      [API_SCHEMA, 'creators'],
+    );
+    expect(columns.rows.map(({ columnName }) => columnName)).toContain('array_index');
+    expect(columns.rows.map(({ columnName }) => columnName)).not.toContain('legacy_id');
+  });
+
+  it('stores the full unsigned 128-bit ERC725Y array-index range', async () => {
+    const issuerAddress = addressFor(230);
+    const assetAddress = addressFor(231);
+    const creatorAddress = addressFor(232);
+    const blockHash = hashFor(230);
+    const arrayIndex = (1n << 128n) - 1n;
+
+    await ethereumDb.insert(universalProfiles).values({
+      id: createAddressId('profile', ethereumRuntime.network.chainId, issuerAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: issuerAddress,
+      lastBlockNumber: 0,
+      lastBlockHash: blockHash,
+    });
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('asset', ethereumRuntime.network.chainId, assetAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: assetAddress,
+      lastBlockNumber: 0,
+      lastBlockHash: blockHash,
+    });
+    try {
+      await ethereumDb.insert(creators).values({
+        id: 'large-creator-array-index',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        assetAddress,
+        creatorAddress,
+        arrayIndex,
+        lastBlockNumber: 0,
+        lastBlockHash: blockHash,
+      });
+      await ethereumDb.insert(issuedAssets).values({
+        id: 'large-issued-asset-array-index',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        issuerAddress,
+        assetAddress,
+        arrayIndex,
+        lastBlockNumber: 0,
+        lastBlockHash: blockHash,
+      });
+
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(creators)
+            .where(eq(creators.id, 'large-creator-array-index'))
+        )[0]?.arrayIndex,
+      ).toBe(arrayIndex);
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(issuedAssets)
+            .where(eq(issuedAssets.id, 'large-issued-asset-array-index'))
+        )[0]?.arrayIndex,
+      ).toBe(arrayIndex);
+    } finally {
+      await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, assetAddress));
+      await ethereumDb
+        .delete(universalProfiles)
+        .where(eq(universalProfiles.address, issuerAddress));
+    }
+  });
+
   it('rejects duplicate network keys and schemas at the migration API boundary', async () => {
     const ethereum = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
@@ -487,6 +580,20 @@ describe.sequential('PostgreSQL persistence', () => {
       ({ network }) => network.key === 'ethereum-mainnet',
     );
     if (ethereum == null) throw new Error('Expected the Ethereum migration network');
+
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: [
+          {
+            ...ethereum,
+            network: { ...ethereum.network, chainId: ethereum.network.chainId + 1 },
+          },
+        ],
+      }),
+    ).rejects.toThrow(
+      'Migration network "ethereum-mainnet" must use catalog chain ID 1; received 2',
+    );
 
     await expect(
       migrateDatabase({

@@ -102,6 +102,9 @@ retain a known finalized watermark when a later source batch omits finality or r
 height; only Pipes rollback restoration moves it backwards. A different hash at the stored finalized
 height aborts the batch. The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
+ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
+`numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
+truncate or abort a batch.
 
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
