@@ -8,6 +8,7 @@ import {
   decodeArrayLength,
   decodeCompactBytesArray,
   decodeLsp8BaseUri,
+  decodeLsp8TokenIdFormat,
   decodeRegistryValue,
   deriveTokenUri,
   formatTokenId,
@@ -60,6 +61,10 @@ describe('LSP projection value decoders', () => {
     expect(formatTokenId(stringTokenId, 101)).toBe('whale-42');
     expect(formatTokenId(numericTokenId, 4)).toBe(numericTokenId);
     expect(formatTokenId(numericTokenId, null)).toBeNull();
+    expect(decodeLsp8TokenIdFormat('0x00')).toBe(0);
+    expect(decodeLsp8TokenIdFormat('0x64')).toBe(100);
+    expect(decodeLsp8TokenIdFormat('0x05')).toBeNull();
+    expect(decodeLsp8TokenIdFormat('0x')).toBeNull();
     expect(deriveTokenUri('ipfs://collection/', '42')).toBe('ipfs://collection/42');
     expect(deriveTokenUri('ipfs://collection', '42')).toBe('ipfs://collection/42');
   });

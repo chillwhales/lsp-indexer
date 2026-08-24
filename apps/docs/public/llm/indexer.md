@@ -365,6 +365,10 @@ reloads those target scopes in bounded pages and queues their current metadata s
 jobs use the eligibility-changing block for finality, so an older metadata row cannot be fetched
 before its verification transition is finalized. Repeated events with the identical current value
 retain the first source provenance and do not reset an existing job.
+For an LSP8 collection transition, stored base-URI and token-ID-format controls are reapplied before
+its NFTs are paged. This restores derived token locations and direct token metadata without loading
+the collection into memory; direct token recovery reads each NFT's durable verification state rather
+than depending on the current event scope.
 LSP29 index entries are eligible only while their index is below the profile's authoritative current
 array length. Length changes rescan the affected profile in bounded pages, cancel out-of-range jobs,
 and are checked again by the worker before fetching and publishing.
@@ -375,8 +379,10 @@ the validated content, while its durable job remains keyed by the primary chain 
 Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker
 normalizes IP literals, rejects mixed or non-public DNS answers, and pins the socket to a validated
-address while retaining the original hostname for TLS. Requests also enforce deadlines, response
-and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. IPFS schemes are
+address while retaining the original hostname for TLS. Pinned lookups support Node's single- and
+all-address callback modes, and retryable connection failures advance through the remaining public
+addresses within one overall request deadline. Requests also enforce response and redirect limits,
+UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. IPFS schemes are
 case-insensitive and normalized before use. LSP31 jobs accept at most five supported storage entries,
 try them in backend-preference order, and try every configured gateway for each IPFS entry. A
 retryable failure on any attempted location keeps the job retryable even when a later fallback ends

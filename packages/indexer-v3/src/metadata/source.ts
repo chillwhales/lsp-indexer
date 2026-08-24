@@ -61,6 +61,7 @@ export interface RecoveredMetadataCandidate<T> {
   eligibleBlockNumber: number;
   eligibleBlockHash: string;
   lsp29Length?: bigint | null;
+  nftVerification?: NftRow['verification'] | null;
 }
 
 /** Current metadata rows reloaded for targets that became eligible after verification. */
@@ -204,10 +205,22 @@ export function isCurrentLsp29MetadataRow(
   return index != null && index < length;
 }
 
+function currentNftVerification(
+  state: ProjectionState,
+  row: DataValueRow,
+  recovered: NftRow['verification'] | null | undefined,
+): NftRow['verification'] | null | undefined {
+  if (row.tokenId == null) return null;
+  return recovered === undefined
+    ? state.nfts.get(tokenKey(row.address, row.tokenId))?.verification
+    : recovered;
+}
+
 function isVerifiedTarget(
   state: ProjectionState,
   row: DataValueRow,
   kind: MetadataJobKind,
+  recoveredNftVerification?: NftRow['verification'] | null,
 ): boolean {
   if (kind === 'lsp3_profile' || kind === 'lsp29_encrypted_asset') {
     return state.universalProfiles.get(row.address)?.verification === 'verified';
@@ -220,7 +233,7 @@ function isVerifiedTarget(
     asset?.verification === 'verified' &&
     asset.standard === 'lsp8' &&
     row.tokenId != null &&
-    state.nfts.get(tokenKey(row.address, row.tokenId))?.verification === 'verified'
+    currentNftVerification(state, row, recoveredNftVerification) === 'verified'
   );
 }
 
@@ -481,7 +494,8 @@ export function planMetadataSources(
     };
     const key = scopeKey(scope);
     scopes.set(key, scope);
-    if (!isVerifiedTarget(state, row, kind)) continue;
+    const recovered = recoveredDataValues.get(row.id);
+    if (!isVerifiedTarget(state, row, kind, recovered?.nftVerification)) continue;
     if (
       kind === 'lsp29_encrypted_asset' &&
       !isCurrentLsp29MetadataRow(row, currentLsp29Lengths.get(row.address))
@@ -491,7 +505,7 @@ export function planMetadataSources(
     try {
       const source = createDataValueMetadataSource(runtime, row);
       if (source != null) {
-        sources.set(key, applyRecoveryEligibility(source, recoveredDataValues.get(row.id)));
+        sources.set(key, applyRecoveryEligibility(source, recovered));
       }
     } catch (error) {
       rejected.push({

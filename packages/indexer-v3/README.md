@@ -174,9 +174,12 @@ is exposed through metrics rather than the public API views. An existing determi
 immutable; a later fetch for the same chain source cannot replace its published bytes or provenance.
 Repeated identical values retain their first source provenance without resetting the job. Metadata
 recovered after a verification transition waits for that transition to finalize, and collection
-recovery is page-bounded. LSP29 jobs also require their index to remain below the authoritative
-current array length; a length shrink cancels stale slots and the worker rechecks the length before
-fetching or publishing.
+recovery is page-bounded. When an LSP8 collection becomes verified, its stored base URI and token-ID
+format are reapplied before existing NFTs are paged, so both derived token locations and direct token
+metadata are recovered without loading the full collection into memory. Direct token recovery reads
+the NFT's durable verification state instead of relying on the current event scope. LSP29 jobs also
+require their index to remain below the authoritative current array length; a length shrink cancels
+stale slots and the worker rechecks the length before fetching or publishing.
 
 ## Configuration
 
@@ -372,7 +375,9 @@ worker needs database readiness, but it does not require Portal or RPC connectiv
 `data:` content is bounded; IPFS uses the ordered `METADATA_IPFS_GATEWAYS` list; HTTPS is the
 network default, and public plain HTTP requires `METADATA_ALLOW_HTTP=true`. Every network hop
 rejects mixed or non-public DNS answers and connects through a validated address while preserving
-the hostname for TLS, closing the DNS-rebinding gap.
+the hostname for TLS, closing the DNS-rebinding gap. Every pinned lookup honors Node's single- and
+all-address callback shapes, and a retryable failure advances to the next validated DNS address
+within the request's overall deadline.
 
 Run local validation:
 

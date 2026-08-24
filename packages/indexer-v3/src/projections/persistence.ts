@@ -29,10 +29,11 @@ import {
   planMetadataSources,
   snapshotMetadataVerification,
 } from '../metadata/source.js';
+import { loadLsp8MetadataLocationRecoveryPages } from './metadataRecovery.js';
 import type { ProjectionBatch } from './output.js';
 import { reduceProjectionEvents, type ProjectionMutations } from './reducer.js';
 import { DATA_KEYS, isMetadataControlDataKey } from './standards.js';
-import { loadProjectionState } from './state.js';
+import { loadProjectionState, tokenKey } from './state.js';
 
 const WRITE_CHUNK_SIZE = 500;
 type ProjectionTransaction = PersistenceHandlerContext['tx'];
@@ -478,7 +479,22 @@ export async function persistProjectionBatch(
     ...mutations,
     dataValues: await effectiveDataValueRows(context.tx, mutations.dataValues),
   };
+  const transitions = findMetadataVerificationTransitions(metadataVerification, effectiveMutations);
   await applyProjectionMutations(context.tx, effectiveMutations);
+  for await (const page of loadLsp8MetadataLocationRecoveryPages(
+    context.tx,
+    runtime,
+    state,
+    transitions.tokenCollectionTargets.map(({ address }) => address),
+  )) {
+    await upsertDigitalAssets(context.tx, page.digitalAssets);
+    await upsertNfts(context.tx, page.nfts);
+    for (const asset of page.digitalAssets) state.digitalAssets.set(asset.address, asset);
+    for (const nft of page.nfts) {
+      const key = tokenKey(nft.address, nft.tokenId);
+      if (state.nfts.has(key)) state.nfts.set(key, nft);
+    }
+  }
   const lsp29Addresses = [
     ...new Set(
       effectiveMutations.dataValues
@@ -502,7 +518,6 @@ export async function persistProjectionBatch(
       lsp29Lengths,
     ),
   );
-  const transitions = findMetadataVerificationTransitions(metadataVerification, effectiveMutations);
   for await (const recovery of loadMetadataRecoveryCandidatePages(
     context.tx,
     runtime,

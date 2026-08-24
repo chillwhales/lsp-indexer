@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
-import { concatHex, toBytes, toHex, type Hex } from 'viem';
+import { concatHex, stringToHex, toBytes, toHex, type Hex } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadRuntimeConfig, type RuntimeConfig } from '../../config/index.js';
 import {
@@ -3357,6 +3357,209 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       now: claimTime,
     });
     expect(verifiedClaim).toMatchObject({ sourceBlockNumber: verificationBlock.header.number });
+  });
+
+  it('reapplies stored LSP8 locations and NFT verification during collection recovery', async () => {
+    const collectionAddress = addressFor(227);
+    const tokenId = toHex(42n, { size: 32 });
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('digital-asset', ethereumRuntime.network.chainId, collectionAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      standard: 'lsp8',
+      tokenIdFormat: null,
+      baseUri: null,
+      verification: 'invalid',
+      lastBlockNumber: previousBlock.number,
+      lastBlockHash: previousBlock.hash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    });
+    await ethereumDb.insert(nfts).values({
+      id: 'recovered-location-nft',
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      tokenId,
+      formattedTokenId: null,
+      tokenUri: null,
+      verification: 'verified',
+      lastBlockNumber: previousBlock.number,
+      lastBlockHash: previousBlock.hash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    });
+    const directContent = { LSP4Metadata: { name: 'Recovered direct token metadata' } };
+    await ethereumDb.insert(dataValues).values([
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp8MetadataBaseUri,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: null,
+        dataKey: DATA_KEYS.lsp8MetadataBaseUri,
+        dataValue: concatHex(['0x0000000000000000', stringToHex('ipfs://recovered-collection/')]),
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp8TokenIdFormat,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: null,
+        dataKey: DATA_KEYS.lsp8TokenIdFormat,
+        dataValue: toHex(0, { size: 1 }),
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp4Metadata,
+          tokenId,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId,
+        dataKey: DATA_KEYS.lsp4Metadata,
+        dataValue: encodeVerifiableUri(directContent, 'ipfs://recovered-direct-token'),
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+    ]);
+
+    const verificationBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_001_050,
+      hash: hashFor(1_250),
+      parentHash: previousBlock.hash,
+      transactions: [
+        {
+          logs: [
+            encodeEvent({
+              abi: LSP14_EVENT_ABI,
+              eventName: 'OwnershipTransferred',
+              address: collectionAddress,
+              args: { previousOwner: ZERO_ADDRESS, newOwner: addressFor(228) },
+            }),
+          ],
+        },
+      ],
+    });
+    const runtime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '0',
+      INDEXER_TO_BLOCK: String(verificationBlock.header.number),
+    });
+    const target = createProjectionPersistenceTarget({
+      runtime,
+      databaseConfig: ethereumDatabaseConfig,
+      db: ethereumDb,
+    });
+    const portal = await mockEvmPortalStream({
+      blocks: [verificationBlock],
+      finalized: { number: verificationBlock.header.number, hash: verificationBlock.header.hash },
+    });
+    try {
+      const outputs = createEventIngestionOutput(runtime).pipe({
+        transform(facts): ProjectionBatch {
+          const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+            (candidate) => ({
+              ...candidate,
+              status:
+                candidate.address === collectionAddress && candidate.category === 'digitalAsset'
+                  ? 'verified'
+                  : 'invalid',
+              standard: candidate.category === 'digitalAsset' ? 'lsp8' : null,
+              decimals: null,
+            }),
+          );
+          return { facts, verifications, claimStatusUpdates: [] };
+        },
+      });
+      const stream = evmPortalStream({
+        id: runtime.streamId,
+        portal: portal.url,
+        outputs,
+        logger: 'error',
+        profiler: false,
+      }).pipe((data, ctx) => createPersistenceBatch(runtime, data, ctx));
+      await stream.pipeTo(target);
+    } finally {
+      await portal.close();
+    }
+
+    expect(
+      await ethereumDb
+        .select()
+        .from(digitalAssets)
+        .where(eq(digitalAssets.address, collectionAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        verification: 'verified',
+        standard: 'lsp8',
+        tokenIdFormat: 0,
+        baseUri: 'ipfs://recovered-collection/',
+      }),
+    ]);
+    expect(await ethereumDb.select().from(nfts).where(eq(nfts.address, collectionAddress))).toEqual(
+      [
+        expect.objectContaining({
+          formattedTokenId: '42',
+          tokenUri: 'ipfs://recovered-collection/42',
+          lastBlockNumber: verificationBlock.header.number,
+        }),
+      ],
+    );
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataJobs)
+        .where(eq(metadataJobs.address, collectionAddress)),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dataKey: DATA_KEYS.lsp4Metadata,
+          contentUri: 'ipfs://recovered-direct-token',
+          sourceBlockNumber: verificationBlock.header.number,
+        }),
+        expect.objectContaining({
+          dataKey: DATA_KEYS.lsp8MetadataBaseUri,
+          contentUri: 'ipfs://recovered-collection/42',
+          sourceBlockNumber: verificationBlock.header.number,
+        }),
+      ]),
+    );
   });
 
   it('cancels LSP29 jobs when the authoritative array length shrinks', async () => {

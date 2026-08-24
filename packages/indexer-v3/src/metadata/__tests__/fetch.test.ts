@@ -214,6 +214,24 @@ describe('metadata transport', () => {
     });
     expect(addressResult).toMatchObject({ ok: true, content });
     expect(addresses.addresses).toEqual(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']);
+
+    const timeoutAttempts: string[] = [];
+    const timeoutResult = await fetchMetadata(createSource(), {
+      ...createConfig((_url, currentAddress): Promise<Response> => {
+        timeoutAttempts.push(currentAddress.address);
+        return timeoutAttempts.length === 1
+          ? new Promise<Response>(() => undefined)
+          : Promise.resolve(new Response(body));
+      }),
+      requestTimeoutMs: 50,
+      lookupImplementation: () =>
+        Promise.resolve([
+          { address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 },
+          { address: '93.184.216.34', family: 4 },
+        ]),
+    });
+    expect(timeoutResult).toMatchObject({ ok: true, content });
+    expect(timeoutAttempts).toEqual(['2606:2800:220:1:248:1893:25c8:1946', '93.184.216.34']);
   });
 
   it('fails over across every LSP31 location and records the location that succeeds', async () => {

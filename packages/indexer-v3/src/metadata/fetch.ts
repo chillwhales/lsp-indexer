@@ -3,9 +3,10 @@ import { Buffer } from 'node:buffer';
 import { lookup } from 'node:dns/promises';
 import { request as requestHttp, type IncomingHttpHeaders, type IncomingMessage } from 'node:http';
 import { request as requestHttps } from 'node:https';
-import { BlockList, isIP, type LookupFunction } from 'node:net';
+import { BlockList, isIP } from 'node:net';
 import { bytesToHex, keccak256, toHex } from 'viem';
 import { z } from 'zod';
+import { createPinnedLookup } from './pinnedLookup.js';
 import { METADATA_MAX_SOURCE_LOCATIONS, type MetadataSource } from './source.js';
 
 const KECCAK256_UTF8_METHOD_ID = '0x6f357c6a';
@@ -321,12 +322,6 @@ async function readBoundedBody(response: Response, maximum: number): Promise<Uin
   return combineChunks(chunks, length);
 }
 
-function createPinnedLookup(address: MetadataDnsAddress): LookupFunction {
-  return (_hostname, _options, callback): void => {
-    callback(null, address.address, address.family);
-  };
-}
-
 function createResponseHeaders(values: IncomingHttpHeaders): Headers {
   const headers = new Headers();
   for (const [name, value] of Object.entries(values)) {
@@ -450,17 +445,20 @@ async function requestResolvedUrl(
   );
   const requestImplementation = config.requestImplementation ?? requestPinnedAddress;
   let lastError: unknown;
-  for (const address of addresses) {
+  for (const [index, address] of addresses.entries()) {
+    const remainingAddresses = addresses.length - index;
+    const now = performance.now();
+    const addressDeadline = now + Math.max(1, (deadline - now) / remainingAddresses);
     try {
       return await withRequestDeadline(
         requestImplementation(url, address, {
-          deadline,
+          deadline: addressDeadline,
           maxResponseBytes: config.maxResponseBytes,
         }),
-        deadline,
+        addressDeadline,
       );
     } catch (error) {
-      if (error instanceof MetadataRequestError) throw error;
+      if (error instanceof MetadataRequestError && !error.retryable) throw error;
       lastError = error;
     }
   }

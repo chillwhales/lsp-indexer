@@ -195,14 +195,34 @@ function dataValueTokenKey(row: DataValueRow): string {
 function recoverCandidate<T>(
   row: T,
   target: MetadataTransitionTarget,
-  lsp29Length?: bigint | null,
+  evidence: Pick<RecoveredMetadataCandidate<T>, 'lsp29Length' | 'nftVerification'> = {},
 ): RecoveredMetadataCandidate<T> {
   return {
     row,
     eligibleBlockNumber: target.eligibleBlockNumber,
     eligibleBlockHash: target.eligibleBlockHash,
-    ...(lsp29Length === undefined ? {} : { lsp29Length }),
+    ...evidence,
   };
+}
+
+async function loadNftVerifications(
+  tx: ProjectionTransaction,
+  runtime: RuntimeConfig,
+  rows: readonly DataValueRow[],
+): Promise<Map<string, (typeof nfts.$inferSelect)['verification']>> {
+  const scope = or(
+    ...rows.flatMap((row) =>
+      row.tokenId == null
+        ? []
+        : [and(eq(nfts.address, row.address), eq(nfts.tokenId, row.tokenId))],
+    ),
+  );
+  if (scope == null) return new Map();
+  const currentNfts = await tx
+    .select({ address: nfts.address, tokenId: nfts.tokenId, verification: nfts.verification })
+    .from(nfts)
+    .where(and(eq(nfts.chainId, runtime.network.chainId), scope));
+  return new Map(currentNfts.map((row) => [tokenKey(row.address, row.tokenId), row.verification]));
 }
 
 /** Load authoritative LSP29 array lengths for a bounded set of profile addresses. */
@@ -298,9 +318,14 @@ export async function* loadMetadataRecoveryCandidatePages(
         .limit(WRITE_CHUNK_SIZE);
       if (rows.length === 0) break;
       yield {
-        dataValues: rows.map((row) =>
-          recoverCandidate(row, requiredTarget(targets, row.address), lengths.get(row.address)),
-        ),
+        dataValues: rows.map((row) => {
+          const length = lengths.get(row.address);
+          return recoverCandidate(
+            row,
+            requiredTarget(targets, row.address),
+            length === undefined ? {} : { lsp29Length: length },
+          );
+        }),
         nfts: [],
       };
       if (rows.length < WRITE_CHUNK_SIZE) break;
@@ -327,8 +352,13 @@ export async function* loadMetadataRecoveryCandidatePages(
         .orderBy(asc(dataValues.id))
         .limit(WRITE_CHUNK_SIZE);
       if (rows.length === 0) break;
+      const nftVerifications = await loadNftVerifications(tx, runtime, rows);
       yield {
-        dataValues: rows.map((row) => recoverCandidate(row, requiredTarget(targets, row.address))),
+        dataValues: rows.map((row) =>
+          recoverCandidate(row, requiredTarget(targets, row.address), {
+            nftVerification: nftVerifications.get(dataValueTokenKey(row)) ?? null,
+          }),
+        ),
         nfts: [],
       };
       if (rows.length < WRITE_CHUNK_SIZE) break;
@@ -393,9 +423,14 @@ export async function* loadMetadataRecoveryCandidatePages(
         .where(and(eq(nfts.chainId, runtime.network.chainId), nftScope)),
     ]);
     if (tokenRows.length > 0) {
+      const nftVerifications = new Map(
+        nftRows.map((row) => [tokenKey(row.address, row.tokenId), row.verification]),
+      );
       yield {
         dataValues: tokenRows.map((row) =>
-          recoverCandidate(row, requiredTarget(targets, dataValueTokenKey(row))),
+          recoverCandidate(row, requiredTarget(targets, dataValueTokenKey(row)), {
+            nftVerification: nftVerifications.get(dataValueTokenKey(row)) ?? null,
+          }),
         ),
         nfts: [],
       };

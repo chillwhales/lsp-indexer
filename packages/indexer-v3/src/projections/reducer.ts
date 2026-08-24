@@ -23,6 +23,7 @@ import {
   decodeBoundedInteger,
   decodeCompactBytesArray,
   decodeLsp8BaseUri,
+  decodeLsp8TokenIdFormat,
   decodeRegistryValue,
   decodeUtf8,
   deriveTokenUri,
@@ -389,12 +390,7 @@ function reduceAssetScalar(context: ReducerContext, event: EventFactRecord): voi
   } else if (dataKey === DATA_KEYS.lsp4TokenType) {
     updateAsset(context, event, { tokenType: decodeBoundedInteger(dataValue, 2) });
   } else if (dataKey === DATA_KEYS.lsp8TokenIdFormat) {
-    const decoded = decodeBoundedInteger(dataValue, 104);
-    const tokenIdFormat =
-      decoded != null && [0, 1, 2, 3, 4, 100, 101, 102, 103, 104].includes(decoded)
-        ? decoded
-        : null;
-    updateAsset(context, event, { tokenIdFormat });
+    updateAsset(context, event, { tokenIdFormat: decodeLsp8TokenIdFormat(dataValue) });
     reformatNfts(context, event);
   } else if (dataKey === DATA_KEYS.lsp8ReferenceContract) {
     updateAsset(context, event, { tokenIdReferenceContract: decodeAddressValue(dataValue) });

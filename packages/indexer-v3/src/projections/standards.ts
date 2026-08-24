@@ -108,6 +108,14 @@ export function decodeBoundedInteger(value: string, maximum: number): number | n
   return decoded <= BigInt(maximum) ? Number(decoded) : null;
 }
 
+/** Decode the current and legacy LSP8 token-ID format enum values. */
+export function decodeLsp8TokenIdFormat(value: string): number | null {
+  const decoded = decodeBoundedInteger(value, 104);
+  return decoded != null && [0, 1, 2, 3, 4, 100, 101, 102, 103, 104].includes(decoded)
+    ? decoded
+    : null;
+}
+
 /** Decode an ERC725Y UTF-8 scalar, returning null for empty or malformed data. */
 export function decodeUtf8(value: string): string | null {
   if (!isHex(value) || value === '0x') return null;
