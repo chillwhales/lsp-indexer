@@ -18,18 +18,24 @@ const address = '0x0000000000000000000000000000000000000042';
 describe('LSP projection value decoders', () => {
   it('decodes addresses, array positions, and registry map values exactly', () => {
     const indexKey = `${DATA_KEYS.lsp4CreatorsIndex}${toHex(7n, { size: 16 }).slice(2)}`;
+    const maximumUint128 = (1n << 128n) - 1n;
+    const maximumIndexKey = `${DATA_KEYS.lsp4CreatorsIndex}${toHex(maximumUint128, { size: 16 }).slice(2)}`;
     const mapKey = `${DATA_KEYS.lsp4CreatorsMap}${address.slice(2)}`;
     const registryValue = `0x24871b3d${toHex(7n, { size: 16 }).slice(2)}`;
+    const maximumRegistryValue = `0x24871b3d${toHex(maximumUint128, { size: 16 }).slice(2)}`;
 
     expect(decodeAddressValue(address)).toBe(address);
     expect(decodeAddressValue('0x')).toBeNull();
     expect(decodeAddressKey(mapKey)).toBe(address);
-    expect(decodeArrayIndex(indexKey)).toBe(7);
-    expect(decodeArrayLength(toHex(8n, { size: 16 }))).toBe(8);
+    expect(decodeArrayIndex(indexKey)).toBe(7n);
+    expect(decodeArrayIndex(maximumIndexKey)).toBe(maximumUint128);
+    expect(decodeArrayLength(toHex(8n, { size: 16 }))).toBe(8n);
+    expect(decodeArrayLength(toHex(maximumUint128, { size: 16 }))).toBe(maximumUint128);
     expect(decodeRegistryValue(registryValue)).toEqual({
       interfaceId: '0x24871b3d',
-      arrayIndex: 7,
+      arrayIndex: 7n,
     });
+    expect(decodeRegistryValue(maximumRegistryValue)?.arrayIndex).toBe(maximumUint128);
     expect(decodeRegistryValue(`${registryValue}00`)).toBeNull();
   });
 

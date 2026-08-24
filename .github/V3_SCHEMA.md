@@ -116,8 +116,8 @@ controller address remain valid relationship fields without pretending to be Uni
 
 Addresses and bytes32 values are lowercase, fixed-width hex strings checked by PostgreSQL. EVM
 unsigned integers use `numeric(78, 0)`. Block and chain numbers use `bigint` in PostgreSQL and are
-validated as safe integers at the TypeScript boundary. ERC725Y creator and issued-asset array
-indexes use `numeric(39, 0)` and TypeScript `bigint` to preserve the full unsigned 128-bit key
+validated as safe integers at the TypeScript boundary. ERC725Y creator, issued-asset, and controller
+array indexes use `numeric(39, 0)` and TypeScript `bigint` to preserve the full unsigned 128-bit key
 suffix. Nullable token scopes use `NULLS NOT DISTINCT` unique constraints, preventing duplicate
 contract-wide ERC725Y or metadata revisions.
 

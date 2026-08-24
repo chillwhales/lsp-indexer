@@ -115,7 +115,7 @@ number and hash must both be present or both be null. When a live source reports
 historical backfill cursor, the target records the processed cursor and its hash as the highest
 finalized block available locally. The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
-ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
+ERC725Y creator, issued-asset, and controller array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
 truncate or abort a batch. Every raw event topic array must be one-dimensional, nonempty, null-free,
 contain only canonical lowercase bytes32 values, and start with the separately indexed `topic0`.

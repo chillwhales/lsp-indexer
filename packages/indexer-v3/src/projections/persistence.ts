@@ -1,6 +1,7 @@
 import { inArray, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
+import type { NetworkDatabaseConfig } from '../db/config.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -25,8 +26,8 @@ type ProjectionTransaction = PersistenceHandlerContext['tx'];
 
 export interface ProjectionPersistenceTargetOptions {
   runtime: RuntimeConfig;
+  databaseConfig: NetworkDatabaseConfig;
   db: NetworkDatabase;
-  unfinalizedBlocksRetention?: number;
 }
 
 function chunks<T>(values: readonly T[]): T[][] {
@@ -388,10 +389,8 @@ export function createProjectionPersistenceTarget(
 ): ReturnType<typeof createPersistenceTarget<ProjectionBatch>> {
   return createPersistenceTarget<ProjectionBatch>({
     runtime: options.runtime,
+    databaseConfig: options.databaseConfig,
     db: options.db,
     onData: (context, batch) => persistProjectionBatch(context, batch, options.runtime),
-    ...(options.unfinalizedBlocksRetention == null
-      ? {}
-      : { unfinalizedBlocksRetention: options.unfinalizedBlocksRetention }),
   });
 }

@@ -51,11 +51,9 @@ export interface ClaimStatusCall {
 
 export type ClaimStatusCallResult = { status: 'success'; value: boolean } | { status: 'failure' };
 
-// Codacy's standalone ESLint profile applies the base rule to type-only parameter names.
-// eslint-disable-next-line no-unused-vars
 export type ClaimStatusCallExecutor = (
-  blockNumber: number,
-  calls: readonly ClaimStatusCall[],
+  _blockNumber: number,
+  _calls: readonly ClaimStatusCall[],
 ) => Promise<readonly ClaimStatusCallResult[]>;
 
 function readString(value: Record<string, unknown> | null, key: string): string | null {

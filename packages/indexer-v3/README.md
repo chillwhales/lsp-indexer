@@ -45,8 +45,8 @@ ERC725Y data, the network-gated Chillwhales extension, metadata revisions, metad
 head, and the Pipes cursor. Sixteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
-Creator and issued-asset ERC725Y array indexes retain their complete unsigned 128-bit range as
-PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
+Creator, issued-asset, and controller ERC725Y array indexes retain their complete unsigned 128-bit
+range as PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
 identity. Before advancing the head, the target verifies every parent link after the previously
 indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected

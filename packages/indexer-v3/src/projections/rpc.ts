@@ -35,11 +35,9 @@ export type ProjectionContractCallResult =
   | { status: 'success'; value: unknown }
   | { status: 'failure' };
 
-// Codacy's standalone ESLint profile applies the base rule to type-only parameter names.
-// eslint-disable-next-line no-unused-vars
 export type ProjectionCallExecutor = (
-  blockNumber: number,
-  calls: readonly ProjectionContractCall[],
+  _blockNumber: number,
+  _calls: readonly ProjectionContractCall[],
 ) => Promise<readonly ProjectionContractCallResult[]>;
 
 export interface ProjectionVerification {

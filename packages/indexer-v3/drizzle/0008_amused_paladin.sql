@@ -23,7 +23,7 @@ CREATE TABLE "chillwhales_nfts" (
 	CONSTRAINT "chillwhales_nfts_block_hash_check" CHECK ("chillwhales_nfts"."last_block_hash" ~ '^0x[0-9a-f]{64}$')
 );
 --> statement-breakpoint
-ALTER TABLE "controllers" ADD COLUMN "array_index" integer;--> statement-breakpoint
+ALTER TABLE "controllers" ADD COLUMN "array_index" numeric(39, 0);--> statement-breakpoint
 ALTER TABLE "creators" ADD COLUMN "interface_id" varchar(10);--> statement-breakpoint
 ALTER TABLE "issued_assets" ADD COLUMN "interface_id" varchar(10);--> statement-breakpoint
 ALTER TABLE "nfts" ADD COLUMN "formatted_token_id" text;--> statement-breakpoint

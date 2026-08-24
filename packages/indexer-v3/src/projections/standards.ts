@@ -49,7 +49,7 @@ export const DATA_KEYS = {
 
 export interface RegistryValue {
   interfaceId: string;
-  arrayIndex: number;
+  arrayIndex: bigint;
 }
 
 /** Return whether an address is a sentinel that must never become a typed projection. */
@@ -71,23 +71,22 @@ export function decodeAddressKey(dataKey: string): string | null {
   return isNullAddress(address) ? null : address;
 }
 
-/** Decode the uint128 suffix of an array data key when PostgreSQL can represent it safely. */
-export function decodeArrayIndex(dataKey: string): number | null {
+/** Decode the uint128 suffix of an array data key without losing precision. */
+export function decodeArrayIndex(dataKey: string): bigint | null {
   if (!isHex(dataKey) || hexToBytes(dataKey).length !== 32) return null;
-  return safeInteger(BigInt(`0x${dataKey.slice(-32)}`));
+  return BigInt(`0x${dataKey.slice(-32)}`);
 }
 
-/** Decode an exact uint128 array length bounded by the v3 integer representation. */
-export function decodeArrayLength(value: string): number | null {
+/** Decode an exact uint128 array length without losing precision. */
+export function decodeArrayLength(value: string): bigint | null {
   if (!isHex(value) || hexToBytes(value).length !== 16) return null;
-  return safeInteger(BigInt(value));
+  return BigInt(value);
 }
 
 /** Decode the interface ID and uint128 index stored by LSP registry map values. */
 export function decodeRegistryValue(value: string): RegistryValue | null {
   if (!isHex(value) || hexToBytes(value).length !== 20) return null;
-  const arrayIndex = safeInteger(BigInt(`0x${value.slice(-32)}`));
-  if (arrayIndex == null) return null;
+  const arrayIndex = BigInt(`0x${value.slice(-32)}`);
   return { interfaceId: `0x${value.slice(2, 10)}`, arrayIndex };
 }
 
@@ -156,8 +155,4 @@ export function decodeCompactBytesArray(value: string): string[] | null {
     offset += length;
   }
   return entries;
-}
-
-function safeInteger(value: bigint): number | null {
-  return value <= 2_147_483_647n ? Number(value) : null;
 }

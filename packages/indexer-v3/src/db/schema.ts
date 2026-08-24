@@ -546,7 +546,7 @@ export const controllers = pgTable(
     chainId: bigint('chain_id', { mode: 'number' }).notNull(),
     profileAddress: varchar('profile_address', { length: 42 }).notNull(),
     controllerAddress: varchar('controller_address', { length: 42 }).notNull(),
-    arrayIndex: integer('array_index'),
+    arrayIndex: numeric('array_index', { precision: 39, scale: 0, mode: 'bigint' }),
     permissions: varchar('permissions', { length: 66 }),
     allowedCalls: jsonb('allowed_calls').$type<string[]>(),
     allowedDataKeys: jsonb('allowed_data_keys').$type<string[]>(),

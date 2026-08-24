@@ -1,5 +1,5 @@
 {
-  "id": "90214ad5-e1bb-43ef-bf20-c8b81b9ddb2c",
+  "id": "e43bce94-77a0-46ba-9883-96b844097d08",
   "prevId": "b64854d7-7901-4236-8bc2-05023d94420b",
   "version": "7",
   "dialect": "postgresql",
@@ -121,14 +121,8 @@
           "name": "blocks_network_fk",
           "tableFrom": "blocks",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -136,10 +130,7 @@
       "compositePrimaryKeys": {
         "blocks_pk": {
           "name": "blocks_pk",
-          "columns": [
-            "chain_id",
-            "number"
-          ]
+          "columns": ["chain_id", "number"]
         }
       },
       "uniqueConstraints": {},
@@ -306,14 +297,8 @@
           "name": "chillwhales_nfts_network_fk",
           "tableFrom": "chillwhales_nfts",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -321,16 +306,8 @@
           "name": "chillwhales_nfts_nft_fk",
           "tableFrom": "chillwhales_nfts",
           "tableTo": "nfts",
-          "columnsFrom": [
-            "chain_id",
-            "address",
-            "token_id"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address",
-            "token_id"
-          ],
+          "columnsFrom": ["chain_id", "address", "token_id"],
+          "columnsTo": ["chain_id", "address", "token_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -338,11 +315,7 @@
       "compositePrimaryKeys": {
         "chillwhales_nfts_pk": {
           "name": "chillwhales_nfts_pk",
-          "columns": [
-            "chain_id",
-            "address",
-            "token_id"
-          ]
+          "columns": ["chain_id", "address", "token_id"]
         }
       },
       "uniqueConstraints": {},
@@ -411,7 +384,7 @@
         },
         "array_index": {
           "name": "array_index",
-          "type": "integer",
+          "type": "numeric(39, 0)",
           "primaryKey": false,
           "notNull": false
         },
@@ -528,14 +501,8 @@
           "name": "controllers_network_fk",
           "tableFrom": "controllers",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -543,14 +510,8 @@
           "name": "controllers_profile_fk",
           "tableFrom": "controllers",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "profile_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "profile_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -558,11 +519,7 @@
       "compositePrimaryKeys": {
         "controllers_pk": {
           "name": "controllers_pk",
-          "columns": [
-            "chain_id",
-            "profile_address",
-            "controller_address"
-          ]
+          "columns": ["chain_id", "profile_address", "controller_address"]
         }
       },
       "uniqueConstraints": {},
@@ -743,14 +700,8 @@
           "name": "creators_network_fk",
           "tableFrom": "creators",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -758,14 +709,8 @@
           "name": "creators_asset_fk",
           "tableFrom": "creators",
           "tableTo": "digital_assets",
-          "columnsFrom": [
-            "chain_id",
-            "asset_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "asset_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -773,11 +718,7 @@
       "compositePrimaryKeys": {
         "creators_pk": {
           "name": "creators_pk",
-          "columns": [
-            "chain_id",
-            "asset_address",
-            "creator_address"
-          ]
+          "columns": ["chain_id", "asset_address", "creator_address"]
         }
       },
       "uniqueConstraints": {},
@@ -915,14 +856,8 @@
           "name": "data_values_network_fk",
           "tableFrom": "data_values",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -932,12 +867,7 @@
         "data_values_scope_uidx": {
           "name": "data_values_scope_uidx",
           "nullsNotDistinct": true,
-          "columns": [
-            "chain_id",
-            "address",
-            "token_id",
-            "data_key"
-          ]
+          "columns": ["chain_id", "address", "token_id", "data_key"]
         }
       },
       "policies": {},
@@ -1150,14 +1080,8 @@
           "name": "digital_assets_network_fk",
           "tableFrom": "digital_assets",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1165,10 +1089,7 @@
       "compositePrimaryKeys": {
         "digital_assets_pk": {
           "name": "digital_assets_pk",
-          "columns": [
-            "chain_id",
-            "address"
-          ]
+          "columns": ["chain_id", "address"]
         }
       },
       "uniqueConstraints": {},
@@ -1421,14 +1342,8 @@
           "name": "event_facts_network_fk",
           "tableFrom": "event_facts",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1436,16 +1351,8 @@
           "name": "event_facts_block_fk",
           "tableFrom": "event_facts",
           "tableTo": "blocks",
-          "columnsFrom": [
-            "chain_id",
-            "block_number",
-            "block_hash"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "number",
-            "hash"
-          ],
+          "columnsFrom": ["chain_id", "block_number", "block_hash"],
+          "columnsTo": ["chain_id", "number", "hash"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1623,14 +1530,8 @@
           "name": "follower_edges_network_fk",
           "tableFrom": "follower_edges",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1638,14 +1539,8 @@
           "name": "follower_edges_follower_fk",
           "tableFrom": "follower_edges",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "follower_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "follower_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1653,14 +1548,8 @@
           "name": "follower_edges_followed_fk",
           "tableFrom": "follower_edges",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "followed_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "followed_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1668,11 +1557,7 @@
       "compositePrimaryKeys": {
         "follower_edges_pk": {
           "name": "follower_edges_pk",
-          "columns": [
-            "chain_id",
-            "follower_address",
-            "followed_address"
-          ]
+          "columns": ["chain_id", "follower_address", "followed_address"]
         }
       },
       "uniqueConstraints": {},
@@ -1761,14 +1646,8 @@
           "name": "indexed_heads_network_fk",
           "tableFrom": "indexed_heads",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1776,16 +1655,8 @@
           "name": "indexed_heads_block_fk",
           "tableFrom": "indexed_heads",
           "tableTo": "blocks",
-          "columnsFrom": [
-            "chain_id",
-            "block_number",
-            "block_hash"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "number",
-            "hash"
-          ],
+          "columnsFrom": ["chain_id", "block_number", "block_hash"],
+          "columnsTo": ["chain_id", "number", "hash"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1793,16 +1664,8 @@
           "name": "indexed_heads_finalized_block_fk",
           "tableFrom": "indexed_heads",
           "tableTo": "blocks",
-          "columnsFrom": [
-            "chain_id",
-            "finalized_block_number",
-            "finalized_block_hash"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "number",
-            "hash"
-          ],
+          "columnsFrom": ["chain_id", "finalized_block_number", "finalized_block_hash"],
+          "columnsTo": ["chain_id", "number", "hash"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1810,10 +1673,7 @@
       "compositePrimaryKeys": {
         "indexed_heads_pk": {
           "name": "indexed_heads_pk",
-          "columns": [
-            "network",
-            "chain_id"
-          ]
+          "columns": ["network", "chain_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1983,14 +1843,8 @@
           "name": "issued_assets_network_fk",
           "tableFrom": "issued_assets",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1998,14 +1852,8 @@
           "name": "issued_assets_issuer_fk",
           "tableFrom": "issued_assets",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "issuer_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "issuer_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2013,14 +1861,8 @@
           "name": "issued_assets_asset_fk",
           "tableFrom": "issued_assets",
           "tableTo": "digital_assets",
-          "columnsFrom": [
-            "chain_id",
-            "asset_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "asset_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2028,11 +1870,7 @@
       "compositePrimaryKeys": {
         "issued_assets_pk": {
           "name": "issued_assets_pk",
-          "columns": [
-            "chain_id",
-            "issuer_address",
-            "asset_address"
-          ]
+          "columns": ["chain_id", "issuer_address", "asset_address"]
         }
       },
       "uniqueConstraints": {},
@@ -2225,14 +2063,8 @@
           "name": "metadata_jobs_network_fk",
           "tableFrom": "metadata_jobs",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2242,13 +2074,7 @@
         "metadata_jobs_revision_uidx": {
           "name": "metadata_jobs_revision_uidx",
           "nullsNotDistinct": true,
-          "columns": [
-            "chain_id",
-            "address",
-            "token_id",
-            "data_key",
-            "source_revision"
-          ]
+          "columns": ["chain_id", "address", "token_id", "data_key", "source_revision"]
         }
       },
       "policies": {},
@@ -2446,14 +2272,8 @@
           "name": "metadata_revisions_network_fk",
           "tableFrom": "metadata_revisions",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2463,13 +2283,7 @@
         "metadata_revisions_natural_uidx": {
           "name": "metadata_revisions_natural_uidx",
           "nullsNotDistinct": true,
-          "columns": [
-            "chain_id",
-            "address",
-            "token_id",
-            "data_key",
-            "source_revision"
-          ]
+          "columns": ["chain_id", "address", "token_id", "data_key", "source_revision"]
         }
       },
       "policies": {},
@@ -2552,10 +2366,7 @@
       "compositePrimaryKeys": {
         "network_config_pk": {
           "name": "network_config_pk",
-          "columns": [
-            "network",
-            "chain_id"
-          ]
+          "columns": ["network", "chain_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2718,14 +2529,8 @@
           "name": "nfts_network_fk",
           "tableFrom": "nfts",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2733,14 +2538,8 @@
           "name": "nfts_asset_fk",
           "tableFrom": "nfts",
           "tableTo": "digital_assets",
-          "columnsFrom": [
-            "chain_id",
-            "address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2748,11 +2547,7 @@
       "compositePrimaryKeys": {
         "nfts_pk": {
           "name": "nfts_pk",
-          "columns": [
-            "chain_id",
-            "address",
-            "token_id"
-          ]
+          "columns": ["chain_id", "address", "token_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2889,14 +2684,8 @@
           "name": "owned_assets_network_fk",
           "tableFrom": "owned_assets",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2904,14 +2693,8 @@
           "name": "owned_assets_owner_fk",
           "tableFrom": "owned_assets",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "owner_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "owner_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2919,14 +2702,8 @@
           "name": "owned_assets_asset_fk",
           "tableFrom": "owned_assets",
           "tableTo": "digital_assets",
-          "columnsFrom": [
-            "chain_id",
-            "asset_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "asset_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2934,11 +2711,7 @@
       "compositePrimaryKeys": {
         "owned_assets_pk": {
           "name": "owned_assets_pk",
-          "columns": [
-            "chain_id",
-            "owner_address",
-            "asset_address"
-          ]
+          "columns": ["chain_id", "owner_address", "asset_address"]
         }
       },
       "uniqueConstraints": {},
@@ -3087,14 +2860,8 @@
           "name": "owned_tokens_network_fk",
           "tableFrom": "owned_tokens",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -3102,14 +2869,8 @@
           "name": "owned_tokens_owner_fk",
           "tableFrom": "owned_tokens",
           "tableTo": "universal_profiles",
-          "columnsFrom": [
-            "chain_id",
-            "owner_address"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address"
-          ],
+          "columnsFrom": ["chain_id", "owner_address"],
+          "columnsTo": ["chain_id", "address"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3117,16 +2878,8 @@
           "name": "owned_tokens_nft_fk",
           "tableFrom": "owned_tokens",
           "tableTo": "nfts",
-          "columnsFrom": [
-            "chain_id",
-            "asset_address",
-            "token_id"
-          ],
-          "columnsTo": [
-            "chain_id",
-            "address",
-            "token_id"
-          ],
+          "columnsFrom": ["chain_id", "asset_address", "token_id"],
+          "columnsTo": ["chain_id", "address", "token_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3134,12 +2887,7 @@
       "compositePrimaryKeys": {
         "owned_tokens_pk": {
           "name": "owned_tokens_pk",
-          "columns": [
-            "chain_id",
-            "owner_address",
-            "asset_address",
-            "token_id"
-          ]
+          "columns": ["chain_id", "owner_address", "asset_address", "token_id"]
         }
       },
       "uniqueConstraints": {},
@@ -3240,10 +2988,7 @@
       "compositePrimaryKeys": {
         "sqd_cursor_pk": {
           "name": "sqd_cursor_pk",
-          "columns": [
-            "id",
-            "current_number"
-          ]
+          "columns": ["id", "current_number"]
         }
       },
       "uniqueConstraints": {},
@@ -3361,14 +3106,8 @@
           "name": "universal_profiles_network_fk",
           "tableFrom": "universal_profiles",
           "tableTo": "network_config",
-          "columnsFrom": [
-            "network",
-            "chain_id"
-          ],
-          "columnsTo": [
-            "network",
-            "chain_id"
-          ],
+          "columnsFrom": ["network", "chain_id"],
+          "columnsTo": ["network", "chain_id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -3376,10 +3115,7 @@
       "compositePrimaryKeys": {
         "universal_profiles_pk": {
           "name": "universal_profiles_pk",
-          "columns": [
-            "chain_id",
-            "address"
-          ]
+          "columns": ["chain_id", "address"]
         }
       },
       "uniqueConstraints": {},
@@ -3409,43 +3145,22 @@
     "public.asset_standard": {
       "name": "asset_standard",
       "schema": "public",
-      "values": [
-        "unknown",
-        "lsp7",
-        "lsp8"
-      ]
+      "values": ["unknown", "lsp7", "lsp8"]
     },
     "public.metadata_job_status": {
       "name": "metadata_job_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "processing",
-        "retry",
-        "succeeded",
-        "failed",
-        "cancelled"
-      ]
+      "values": ["pending", "processing", "retry", "succeeded", "failed", "cancelled"]
     },
     "public.metadata_kind": {
       "name": "metadata_kind",
       "schema": "public",
-      "values": [
-        "lsp3_profile",
-        "lsp4_asset",
-        "lsp4_token",
-        "lsp29_encrypted_asset",
-        "extension"
-      ]
+      "values": ["lsp3_profile", "lsp4_asset", "lsp4_token", "lsp29_encrypted_asset", "extension"]
     },
     "public.verification_status": {
       "name": "verification_status",
       "schema": "public",
-      "values": [
-        "unknown",
-        "verified",
-        "invalid"
-      ]
+      "values": ["unknown", "verified", "invalid"]
     }
   },
   "schemas": {},

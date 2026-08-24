@@ -56,6 +56,7 @@ import { verifyDatabaseReadiness } from '../readiness.js';
 import { createChainObjectOwnershipQuery, type ChainObjectOwnershipRow } from '../roleBoundary.js';
 import {
   blocks,
+  controllers,
   creators,
   digitalAssets,
   eventFacts,
@@ -742,7 +743,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         ORDER BY relation.relname
       `);
       expect(viewsAfterFailure.rows).toEqual(viewsBeforeFailure.rows);
-      expect(viewsAfterFailure.rows).toHaveLength(14);
+      expect(viewsAfterFailure.rows).toHaveLength(15);
     } finally {
       await scratchPool?.end();
       await waitForDatabaseClientsToClose(controlPool, scratchDatabaseName);
@@ -797,6 +798,16 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         lastBlockNumber: 0,
         lastBlockHash: blockHash,
       });
+      await ethereumDb.insert(controllers).values({
+        id: 'large-controller-array-index',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        profileAddress: issuerAddress,
+        controllerAddress: creatorAddress,
+        arrayIndex,
+        lastBlockNumber: 0,
+        lastBlockHash: blockHash,
+      });
 
       expect(
         (
@@ -804,6 +815,14 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
             .select()
             .from(creators)
             .where(eq(creators.id, 'large-creator-array-index'))
+        )[0]?.arrayIndex,
+      ).toBe(arrayIndex);
+      expect(
+        (
+          await ethereumDb
+            .select()
+            .from(controllers)
+            .where(eq(controllers.id, 'large-controller-array-index'))
         )[0]?.arrayIndex,
       ).toBe(arrayIndex);
       expect(
@@ -2325,30 +2344,44 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         data: '0x',
       },
     });
+    const projectionBridgeBlocks: PortalBlock[] = [];
+    let projectionParentHash = block1.header.hash;
+    for (let number = 2; number < 20; number += 1) {
+      const block = mockBlock({
+        number,
+        timestamp: 1_700_000_000_000 + number * 1_000,
+        hash: hashFor(400 + number),
+        parentHash: projectionParentHash,
+      });
+      projectionBridgeBlocks.push(block);
+      projectionParentHash = block.header.hash;
+    }
     const mintBlock = mockBlock({
       number: 20,
-      timestamp: 1_700_000_020,
+      timestamp: 1_700_000_020_000,
       hash: hashFor(120),
-      parentHash: block0.header.hash,
+      parentHash: projectionParentHash,
       transactions: [{ logs: [mintLog] }],
     });
     const transferBlock = mockBlock({
       number: 21,
-      timestamp: 1_700_000_021,
+      timestamp: 1_700_000_021_000,
       hash: hashFor(121),
       parentHash: mintBlock.header.hash,
       transactions: [{ logs: [transferLog] }],
     });
     const projectionTarget = createProjectionPersistenceTarget({
       runtime: projectionRuntime,
+      databaseConfig: ethereumDatabaseConfig,
       db: ethereumDb,
-      unfinalizedBlocksRetention: 100,
     });
 
-    async function runProjectionFixture(): Promise<void> {
+    async function runProjectionFixture(includeBridge = true): Promise<void> {
       const portal = await mockEvmPortalStream({
-        blocks: [mintBlock, transferBlock],
-        finalized: { number: block0.header.number, hash: block0.header.hash },
+        blocks: includeBridge
+          ? [...projectionBridgeBlocks, mintBlock, transferBlock]
+          : [transferBlock],
+        finalized: { number: block1.header.number, hash: block1.header.hash },
       });
       try {
         const outputs = createEventIngestionOutput(projectionRuntime).pipe({
@@ -2386,8 +2419,8 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
     ]);
 
-    await ethereumPool.query('DELETE FROM sqd_cursor');
-    await runProjectionFixture();
+    await ethereumPool.query('DELETE FROM sqd_cursor WHERE current_number = 21');
+    await runProjectionFixture(false);
     expect(await ethereumDb.select().from(ownedAssets).orderBy(ownedAssets.ownerAddress)).toEqual([
       expect.objectContaining({ ownerAddress: firstOwner, balance: '6' }),
       expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
@@ -2406,17 +2439,21 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(await ethereumDb.select().from(ownedAssets)).toEqual([
       expect.objectContaining({ ownerAddress: firstOwner, balance: '10' }),
     ]);
-    expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
+    expect(
+      await ethereumDb.select().from(eventFacts).where(eq(eventFacts.blockNumber, 20)),
+    ).toHaveLength(1);
 
     await projectionTarget.resolveFork([
       {
-        number: block0.header.number,
-        hash: block0.header.hash,
-        timestamp: block0.header.timestamp,
+        number: block1.header.number,
+        hash: block1.header.hash,
+        timestamp: block1.header.timestamp,
       },
     ]);
     expect(await countRows(ethereumPool, 'digital_assets')).toBe(0);
     expect(await countRows(ethereumPool, 'owned_assets')).toBe(0);
-    expect(await countRows(ethereumPool, 'event_facts')).toBe(0);
+    expect(
+      await ethereumDb.select().from(eventFacts).where(eq(eventFacts.blockNumber, 20)),
+    ).toHaveLength(0);
   });
 });

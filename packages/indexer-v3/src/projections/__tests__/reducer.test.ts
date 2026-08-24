@@ -273,19 +273,19 @@ describe('deterministic v3 domain reducer', () => {
       expect.objectContaining({
         assetAddress: asset,
         creatorAddress: alice,
-        arrayIndex: 0,
+        arrayIndex: 0n,
         interfaceId: '0x24871b3d',
         verified: true,
       }),
     ]);
     expect(first.issuedAssets).toEqual([
-      expect.objectContaining({ issuerAddress: bob, assetAddress: asset, arrayIndex: 0 }),
+      expect.objectContaining({ issuerAddress: bob, assetAddress: asset, arrayIndex: 0n }),
     ]);
     expect(first.controllers).toEqual([
       expect.objectContaining({
         profileAddress: bob,
         controllerAddress: controller,
-        arrayIndex: 0,
+        arrayIndex: 0n,
         allowedCalls: [allowedCall],
       }),
     ]);

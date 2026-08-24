@@ -332,7 +332,7 @@ function deleteCreator(context: ReducerContext, key: string): void {
 function deleteCreatorsAtOrAfter(
   context: ReducerContext,
   assetAddress: string,
-  minimumIndex: number,
+  minimumIndex: bigint,
 ): void {
   for (const [key, row] of context.state.creators) {
     if (row.assetAddress === assetAddress && row.arrayIndex >= minimumIndex)
@@ -343,7 +343,7 @@ function deleteCreatorsAtOrAfter(
 function deleteCreatorAtIndex(
   context: ReducerContext,
   assetAddress: string,
-  arrayIndex: number,
+  arrayIndex: bigint,
   exceptAddress?: string,
 ): void {
   for (const [key, row] of context.state.creators) {
@@ -361,7 +361,7 @@ function upsertCreator(
   context: ReducerContext,
   event: EventFactRecord,
   creatorAddress: string,
-  arrayIndex: number,
+  arrayIndex: bigint,
   interfaceId: string | null,
 ): void {
   if (!context.state.digitalAssets.has(event.address)) return;
@@ -425,7 +425,7 @@ function deleteIssuedAsset(context: ReducerContext, key: string): void {
 function deleteIssuedAtOrAfter(
   context: ReducerContext,
   issuerAddress: string,
-  minimumIndex: number,
+  minimumIndex: bigint,
 ): void {
   for (const [key, row] of context.state.issuedAssets) {
     if (row.issuerAddress === issuerAddress && row.arrayIndex >= minimumIndex) {
@@ -437,7 +437,7 @@ function deleteIssuedAtOrAfter(
 function deleteIssuedAtIndex(
   context: ReducerContext,
   issuerAddress: string,
-  arrayIndex: number,
+  arrayIndex: bigint,
   exceptAddress?: string,
 ): void {
   for (const [key, row] of context.state.issuedAssets) {
@@ -455,7 +455,7 @@ function upsertIssuedAsset(
   context: ReducerContext,
   event: EventFactRecord,
   assetAddress: string,
-  arrayIndex: number,
+  arrayIndex: bigint,
   interfaceId: string | null,
 ): void {
   deleteIssuedAtIndex(context, event.address, arrayIndex, assetAddress);
@@ -523,7 +523,7 @@ function deleteController(context: ReducerContext, key: string): void {
 function deleteControllersAtOrAfter(
   context: ReducerContext,
   profileAddress: string,
-  minimumIndex: number,
+  minimumIndex: bigint,
 ): void {
   for (const [key, row] of context.state.controllers) {
     if (
@@ -539,7 +539,7 @@ function deleteControllersAtOrAfter(
 function deleteControllerAtIndex(
   context: ReducerContext,
   profileAddress: string,
-  arrayIndex: number,
+  arrayIndex: bigint,
   exceptAddress?: string,
 ): void {
   for (const [key, row] of context.state.controllers) {
