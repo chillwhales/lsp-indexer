@@ -102,30 +102,39 @@ concurrent migration commands. Exported migration entry points reject duplicate 
 IDs, schemas, writer roles, and runtime logins before connecting, and every schema and role must
 equal its deterministic network mapping without colliding with a reserved schema or role. Runtime
 login roles must already exist; provide their names to grant each login only its matching writer
-role. Every login must be unique to one network, must not have elevated PostgreSQL capabilities or
-delegation rights, and may reach no role other than its assigned writer. Its writer membership must
-carry `SET OPTION` so the pool can assume the role, and must not carry `ADMIN OPTION`. Migration and
-startup reject direct or transitive memberships in any other role. Because a session can `RESET
-ROLE`, they also reject direct ACLs, object ownership, default ACLs, and policy references held by
-the runtime login, except for non-grantable `CONNECT` on the current database. Existing
-deterministic owner and writer roles are accepted only when they remain `NOLOGIN NOINHERIT`,
-capability-limited, and have no direct or transitive role memberships. A writer may own or receive
-privileges only inside its assigned chain schema; outside it, the sole exceptions are non-grantable
-`USAGE` on `lsp_v3` and its four canonical enum types. Migration and startup reject stale read-only
-grants, shared-schema `CREATE`, grant options, foreign ownership, default privileges, and policy
-references. The migrator inventories every role that can reach each writer role and permits only
-the migration admin and currently configured runtime login; only the current migration admin may
-reach the API owner role. Revoke old memberships before rotating either credential. Each existing
-chain schema must have no identity or exactly its configured singleton identity. The shared schema
-is rejected unless it contains only the four canonical enums and their PostgreSQL-generated array
-types. The API reader is rejected if it owns a schema, relation, routine, type, or database, or has
-direct or effective `PUBLIC` access outside shared-enum usage, API schema usage, and `SELECT` on the
-enumerated public views. Publicly executable custom routines, including default-public `SECURITY
-DEFINER` routines, are rejected. Runtime readiness independently audits the active credential's
-effective `PUBLIC` privileges across schemas, relations, columns, routines, types, the database, and
-default ACLs. Its explicit allowlist covers only ambient system access, non-grantable connection and
-temporary-database access, and canonical shared-enum usage; `PUBLIC CREATE`, grant options, and
-reachable custom routines are startup failures.
+role. Every login must be unique to one network, remain `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
+NOREPLICATION NOBYPASSRLS`, and may reach no role other than its assigned writer. Its writer
+membership must carry `SET OPTION` so the pool can assume the role, and must not carry `ADMIN
+OPTION`. Migration and startup revalidate every capability and reject direct or transitive
+memberships in any other role. Because a session can `RESET ROLE`, they also reject direct ACLs,
+object ownership, default ACLs, and policy references held by the runtime login, except for
+non-grantable `CONNECT` on the current database. Existing deterministic owner and writer roles are
+accepted only when they remain `NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE
+NOREPLICATION NOBYPASSRLS` and have no direct or transitive role memberships. A writer may own or
+receive privileges only inside its assigned chain schema; outside it, the exceptions are
+non-grantable `USAGE` on `lsp_v3` and its four canonical enum types plus a global function default
+ACL containing only the writer's own `EXECUTE`. That restrictive default removes PostgreSQL's
+built-in `PUBLIC EXECUTE` from future Pipes rollback functions, and migration revokes it from
+existing chain functions. Migration and startup reject stale read-only grants, shared-schema
+`CREATE`, grant options, foreign ownership, other default privileges, and policy references. They
+also inventory schema, relation, sequence, column, routine, type, and default ACLs inside every
+chain schema: only the writer's privileges and the API owner's non-grantable schema `USAGE` plus
+`SELECT` on enumerated public tables are accepted. PostgreSQL's non-grantable `PUBLIC USAGE` on
+writer-owned table row types, including Pipes snapshots, is the sole ambient exception; without
+chain schema usage or relation privileges it cannot expose rows. The migrator inventories every
+role that can reach each writer role and permits only the migration admin and currently configured
+runtime login; only the current migration admin may reach the API owner role. Revoke old memberships
+before rotating either credential. Each existing chain schema must have no identity or exactly its
+configured singleton identity. The shared schema is rejected unless it contains only the four
+canonical enums and their PostgreSQL-generated array types. The API reader is rejected if it owns a
+schema, relation, routine, type, or database, or has direct or effective `PUBLIC` access outside
+shared-enum usage, API schema usage, and `SELECT` on the enumerated public views. Publicly executable
+custom routines, including default-public `SECURITY DEFINER` routines, are rejected. Runtime
+readiness independently audits the active credential's effective `PUBLIC` privileges across
+schemas, relations, columns, routines, types, the database, and default ACLs. Its explicit allowlist
+covers only ambient system access, non-grantable connection and temporary-database access, and
+canonical shared-enum usage; `PUBLIC CREATE`, grant options, and reachable custom routines are
+startup failures.
 
 The migrator drops the enumerated API views before source-table migrations and rebuilds them after
 every enabled schema is current, allowing column removal, reordering, and type changes. View
@@ -155,9 +164,10 @@ chain_<network>,lsp_v3,public
 
 Check the role, schema, seeded chain identity, and privilege boundary before starting a pipe.
 Readiness validates both the assumed writer role and the underlying session login, including
-superuser status, every reachable role membership, writer ownership and ACL drift, and direct
-privilege or ownership dependencies. It also rejects unexpected effective `PUBLIC` privileges and
-any mismatch between the live chain catalog and the reviewed schema fingerprint:
+every login, inheritance, superuser, database/role creation, replication, and row-security-bypass
+capability; every reachable role membership; writer ownership; the complete chain ACL surface; and
+direct privilege or ownership dependencies. It also rejects unexpected effective `PUBLIC`
+privileges and any mismatch between the live chain catalog and the reviewed schema fingerprint:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

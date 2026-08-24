@@ -1104,13 +1104,63 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     }
   });
 
-  it('rejects elevated runtime login capabilities', async () => {
+  it('revalidates every runtime login capability during migration and startup', async () => {
     const runtimeLogin = runtimeLogins['ethereum-mainnet'];
-    await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} SUPERUSER`);
-    try {
-      await expect(migrateDatabase(migrationConfig)).rejects.toThrow('NOSUPERUSER');
-    } finally {
-      await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} NOSUPERUSER`);
+    const mutations: { disable: string; enable: string }[] = [
+      { enable: 'NOLOGIN', disable: 'LOGIN' },
+      { enable: 'SUPERUSER', disable: 'NOSUPERUSER' },
+      { enable: 'CREATEDB', disable: 'NOCREATEDB' },
+      { enable: 'CREATEROLE', disable: 'NOCREATEROLE' },
+      { enable: 'REPLICATION', disable: 'NOREPLICATION' },
+      { enable: 'BYPASSRLS', disable: 'NOBYPASSRLS' },
+    ];
+
+    for (const { disable, enable } of mutations) {
+      await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} ${enable}`);
+      try {
+        await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+          `Configured runtime login "${runtimeLogin}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+        );
+        await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+          `Database session user "${runtimeLogin}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+        );
+      } finally {
+        await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} ${disable}`);
+      }
+    }
+  });
+
+  it('revalidates every writer role capability during migration and startup', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const mutations: { disable: string; enable: string }[] = [
+      { enable: 'LOGIN', disable: 'NOLOGIN' },
+      { enable: 'INHERIT', disable: 'NOINHERIT' },
+      { enable: 'SUPERUSER', disable: 'NOSUPERUSER' },
+      { enable: 'CREATEDB', disable: 'NOCREATEDB' },
+      { enable: 'CREATEROLE', disable: 'NOCREATEROLE' },
+      { enable: 'REPLICATION', disable: 'NOREPLICATION' },
+      { enable: 'BYPASSRLS', disable: 'NOBYPASSRLS' },
+    ];
+
+    for (const { disable, enable } of mutations) {
+      await controlPool.query(
+        `ALTER ROLE ${quotePostgresIdentifier(ethereumNetwork.role)} ${enable}`,
+      );
+      try {
+        await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+          `Existing database role "${ethereumNetwork.role}" must be NOLOGIN, NOINHERIT, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+        );
+        await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+          `Database writer role "${ethereumNetwork.role}" must be NOLOGIN, NOINHERIT, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+        );
+      } finally {
+        await controlPool.query(
+          `ALTER ROLE ${quotePostgresIdentifier(ethereumNetwork.role)} ${disable}`,
+        );
+      }
     }
   });
 
@@ -1176,6 +1226,31 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       await testAdminPool.query(
         `REVOKE SELECT ON ${foreignTable} FROM ${quotePostgresIdentifier(ethereumNetwork.role)}`,
       );
+    }
+  });
+
+  it('rejects chain-schema grants held by an unapproved role', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const unexpectedRole = `v3_test_chain_grantee_${suiteSuffix}`;
+    const qualifiedRole = quotePostgresIdentifier(unexpectedRole);
+    const qualifiedSchema = quotePostgresIdentifier(ethereumNetwork.schema);
+    const qualifiedBlocks = `${qualifiedSchema}.${quotePostgresIdentifier('blocks')}`;
+    await controlPool.query(`CREATE ROLE ${qualifiedRole} NOLOGIN`);
+    await testAdminPool.query(`GRANT USAGE ON SCHEMA ${qualifiedSchema} TO ${qualifiedRole}`);
+    await testAdminPool.query(`GRANT INSERT ON ${qualifiedBlocks} TO ${qualifiedRole}`);
+    try {
+      const expectedError = `Database schema "${ethereumNetwork.schema}" grants privileges to unapproved roles`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(`REVOKE INSERT ON ${qualifiedBlocks} FROM ${qualifiedRole}`);
+      await testAdminPool.query(`REVOKE USAGE ON SCHEMA ${qualifiedSchema} FROM ${qualifiedRole}`);
+      await controlPool.query(`DROP ROLE ${qualifiedRole}`);
     }
   });
 
@@ -1808,6 +1883,19 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     for (const row of inventory.rows.filter(({ schema }) => schema !== 'chain_ethereum_mainnet')) {
       expect(row).toMatchObject({ snapshots: '0', functions: '0', triggers: '0' });
     }
+    const publicRoutinePrivileges = await testAdminPool.query<{ count: string }>(`
+      SELECT count(*)
+      FROM pg_proc routine
+      JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(routine.proacl, acldefault('f', routine.proowner))
+      ) acl
+      WHERE namespace.nspname = 'chain_ethereum_mainnet'
+        AND routine.proname LIKE 'maybe_snapshot_%'
+        AND acl.grantee = 0
+        AND acl.privilege_type = 'EXECUTE'
+    `);
+    expect(publicRoutinePrivileges.rows[0]?.count).toBe('0');
   });
 
   it('refuses tracked schema evolution while rollback snapshots contain data', async () => {

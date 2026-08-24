@@ -120,12 +120,19 @@ writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `sear
 columns across chains; existing definitions must match their canonical labels and ordering, and any
 other shared-schema object aborts migration. The `api` schema excludes migration history, cursors,
 metadata jobs, snapshots, functions, and triggers. Unexpected API relations or routines abort
-migration. The API reader may not own a schema, relation, routine, type, or database and may hold only
-shared-enum usage, API schema usage, and `SELECT` on the enumerated public views; any inventoried
-stale privilege aborts migration. The inventory includes privileges inherited from PostgreSQL's
-`PUBLIC` pseudo-role and implicit default ACLs on reachable user-defined routines and types. Public
-type usage is removed from the shared enums and API view row types, and a publicly executable custom
-routine—including a default-public `SECURITY DEFINER` routine—aborts migration.
+migration. Every chain schema's schema, relation, sequence, column, routine, type, and default ACLs
+are also inventoried. Only its writer's privileges plus the API owner's non-grantable schema `USAGE`
+and `SELECT` on enumerated public tables are accepted. PostgreSQL's non-grantable `PUBLIC USAGE` on
+writer-owned table row types, including Pipes snapshots, is the sole ambient exception; `PUBLIC`
+lacks chain-schema usage and relation privileges, so it cannot expose rows. The API reader may not
+own a schema, relation, routine, type, or database and may hold only shared-enum usage, API schema
+usage, and `SELECT` on the enumerated public views; any inventoried stale privilege aborts migration.
+The inventory includes privileges inherited from PostgreSQL's `PUBLIC` pseudo-role and implicit
+default ACLs on reachable user-defined routines and types. Public type usage is removed from the
+shared enums and API view row types, and a publicly executable custom routine—including a
+default-public `SECURITY DEFINER` routine—aborts migration. Migration installs a restrictive writer
+function default and normalizes existing chain functions so Pipes rollback functions never retain
+PostgreSQL's implicit `PUBLIC EXECUTE`.
 Runtime readiness separately expands the active credential's effective `PUBLIC` privileges across
 schemas, relations, columns, routines, types, the database, and default ACLs. Its allowlist is limited
 to PostgreSQL's ambient system access, non-grantable connection and temporary-database access, and
@@ -149,24 +156,27 @@ foreign keys, checks, indexes, and other reviewed storage objects are rejected e
 journal still matches. Dynamic Pipes `__snapshots` tables are excluded.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
-one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
-capabilities, and may reach only its assigned network writer role. Migration and startup both reject
-direct or transitive memberships in any other role. Deterministic schema owner and writer roles
-remain capability-limited `NOLOGIN NOINHERIT` roles without direct or transitive memberships in
-other roles. Migration also inventories every role that can reach a writer role and allows only the
-migration admin and that network's configured runtime login. Runtime membership may not carry
-`ADMIN OPTION` and must carry `SET OPTION` so the runtime pool can assume the writer role. Only the
-current migration admin may reach the API owner role. Revoke the previous membership before
+one-shot migration. Each login must be unique to one network, remain `LOGIN NOSUPERUSER NOCREATEDB
+NOCREATEROLE NOREPLICATION NOBYPASSRLS`, and may reach only its assigned network writer role.
+Migration and startup both revalidate every capability and reject direct or transitive memberships
+in any other role. Deterministic schema owner and writer roles remain `NOLOGIN NOINHERIT
+NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS` roles without direct or transitive
+memberships in other roles. Migration also inventories every role that can reach a writer role and
+allows only the migration admin and that network's configured runtime login. Runtime membership may
+not carry `ADMIN OPTION` and must carry `SET OPTION` so the runtime pool can assume the writer role.
+Only the current migration admin may reach the API owner role. Revoke the previous membership before
 rotating either credential. Because a PostgreSQL session can `RESET ROLE`, migration and startup
-also reject direct ACLs, object ownership, default ACLs, and policy references held by the
-underlying runtime login; the only permitted direct database ACL is non-grantable `CONNECT` on the
-current database. The writer itself may own or receive privileges only inside its assigned chain
-schema. Its only privileges outside that schema are non-grantable `USAGE` on `lsp_v3` and the four
-canonical shared enums. Read-only grants on another chain, shared-schema `CREATE`, grant options,
-foreign ownership, default privileges, and policy references all abort migration and readiness.
-Programmatic migration calls require every schema and writer role to match the deterministic
-mapping for its network, reject reserved mappings and duplicate identities, and require an existing
-chain schema to contain only its expected singleton `network_config` identity:
+also reject direct ACLs, object ownership, default ACLs, and policy references held by the underlying
+runtime login; the only permitted direct database ACL is non-grantable `CONNECT` on the current
+database. The writer itself may own or receive privileges only inside its assigned chain schema.
+Its privileges outside that schema are non-grantable `USAGE` on `lsp_v3` and the four canonical
+shared enums, plus a global function default ACL containing only the writer's own `EXECUTE`; that
+default exists solely to remove implicit `PUBLIC EXECUTE`. Read-only grants on another chain,
+shared-schema `CREATE`, grant options, foreign ownership, other default privileges, and policy
+references all abort migration and readiness. Programmatic migration calls require every schema and
+writer role to match the deterministic mapping for its network, reject reserved mappings and
+duplicate identities, and require an existing chain schema to contain only its expected singleton
+`network_config` identity:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -176,7 +186,8 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 
 Verify that a runtime connection has the expected role and schema and remains inside its privilege
 boundary. Readiness checks both the assumed role and the underlying session login for superuser
-status, every reachable role membership, direct privilege or ownership dependencies, writer ACL
+status, login and inheritance flags, database/role creation, replication, row-security bypass,
+every reachable role membership, direct privilege or ownership dependencies, complete chain ACL
 and ownership drift, effective `PUBLIC` privileges, live-catalog fingerprint drift, and foreign
 write privileges:
 

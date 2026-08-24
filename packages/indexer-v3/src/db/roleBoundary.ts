@@ -1,12 +1,13 @@
 import { getTableName, sql, type SQL } from 'drizzle-orm';
 import {
+  API_OWNER_ROLE,
   MIGRATIONS_SEQUENCE,
   MIGRATIONS_TABLE,
   SHARED_ENUMS,
   SHARED_SCHEMA,
   assertPostgresIdentifier,
 } from './names.js';
-import { networkConfig, rollbackTables, sqdCursor } from './schema.js';
+import { networkConfig, publicTables, rollbackTables, sqdCursor } from './schema.js';
 
 const EXPECTED_CHAIN_OBJECTS = [
   { name: MIGRATIONS_TABLE, type: 'table', requiredBeforeLatest: true },
@@ -17,12 +18,21 @@ const EXPECTED_CHAIN_OBJECTS = [
     ...rollbackTables.map(getTableName),
   ].map((name) => ({ name, type: 'table', requiredBeforeLatest: false })),
 ].sort((left, right) => left.name.localeCompare(right.name));
+const PUBLIC_CHAIN_TABLE_NAMES = publicTables.map(getTableName);
 
 /** A missing or incorrectly owned object from a chain schema's storage inventory. */
 export interface ChainObjectOwnershipRow extends Record<string, unknown> {
   objectName: string;
   objectType: string;
   owner: string | null;
+}
+
+/** A chain-schema ACL held by a role outside the approved writer/API boundary. */
+export interface ChainAclBoundaryRow extends Record<string, unknown> {
+  grantee: string;
+  kind: string;
+  object: string;
+  privilege: string;
 }
 
 /** An effective privilege inherited from PostgreSQL's PUBLIC pseudo-role. */
@@ -93,6 +103,161 @@ export function createChainObjectOwnershipQuery(
       AND (${requireAllObjects}::boolean OR expected_object.required_before_latest)
     ) OR relation.relowner <> writer_role.oid
     ORDER BY expected_object.object_name
+  `;
+}
+
+/**
+ * Build the catalog audit that rejects chain-schema grants to unapproved roles.
+ *
+ * @param role Deterministic writer role that may hold arbitrary chain privileges.
+ * @param networkSchema Chain schema whose complete ACL surface is inspected.
+ * @returns A query describing every privilege outside the writer/API read boundary.
+ * @throws When either identifier is not a canonical PostgreSQL identifier.
+ */
+export function createChainAclBoundaryQuery(role: string, networkSchema: string): SQL {
+  const validatedRole = assertPostgresIdentifier(role, 'database writer role');
+  const validatedSchema = assertPostgresIdentifier(networkSchema, 'network database schema');
+
+  return sql`
+    WITH writer_role AS (
+      SELECT oid FROM pg_roles WHERE rolname = ${validatedRole}
+    ), api_owner_role AS (
+      SELECT (SELECT oid FROM pg_roles WHERE rolname = ${API_OWNER_ROLE}) AS oid
+    ), unexpected_acl AS (
+      SELECT 'schema' AS kind,
+             format('%I', namespace.nspname) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_namespace namespace
+      CROSS JOIN writer_role
+      CROSS JOIN api_owner_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(namespace.nspacl, acldefault('n', namespace.nspowner))
+      ) acl
+      WHERE namespace.nspname = ${validatedSchema}
+        AND acl.grantee <> writer_role.oid
+        AND NOT (
+          acl.grantee = api_owner_role.oid
+          AND acl.privilege_type = 'USAGE'
+          AND NOT acl.is_grantable
+        )
+      UNION ALL
+      SELECT CASE WHEN relation.relkind = 'S' THEN 'sequence' ELSE 'relation' END AS kind,
+             format('%I.%I', namespace.nspname, relation.relname) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_class relation
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      CROSS JOIN writer_role
+      CROSS JOIN api_owner_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(
+          relation.relacl,
+          acldefault(
+            (CASE WHEN relation.relkind = 'S' THEN 'S' ELSE 'r' END)::"char",
+            relation.relowner
+          )
+        )
+      ) acl
+      WHERE namespace.nspname = ${validatedSchema}
+        AND relation.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
+        AND acl.grantee <> writer_role.oid
+        AND NOT (
+          acl.grantee = api_owner_role.oid
+          AND relation.relkind IN ('r', 'p')
+          AND relation.relname IN (
+            ${sql.join(
+              PUBLIC_CHAIN_TABLE_NAMES.map((name) => sql`${name}`),
+              sql`, `,
+            )}
+          )
+          AND acl.privilege_type = 'SELECT'
+          AND NOT acl.is_grantable
+        )
+      UNION ALL
+      SELECT 'column' AS kind,
+             format('%I.%I.%I', namespace.nspname, relation.relname, attribute.attname) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_attribute attribute
+      JOIN pg_class relation ON relation.oid = attribute.attrelid
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      CROSS JOIN writer_role
+      CROSS JOIN LATERAL aclexplode(attribute.attacl) acl
+      WHERE namespace.nspname = ${validatedSchema}
+        AND attribute.attnum > 0
+        AND NOT attribute.attisdropped
+        AND acl.grantee <> writer_role.oid
+      UNION ALL
+      SELECT 'routine' AS kind,
+             format(
+               '%I.%I(%s)',
+               namespace.nspname,
+               routine.proname,
+               pg_get_function_identity_arguments(routine.oid)
+             ) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_proc routine
+      JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+      CROSS JOIN writer_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(routine.proacl, acldefault('f', routine.proowner))
+      ) acl
+      WHERE namespace.nspname = ${validatedSchema}
+        AND acl.grantee <> writer_role.oid
+      UNION ALL
+      SELECT 'type' AS kind,
+             format('%I.%I', namespace.nspname, granted_type.typname) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_type granted_type
+      JOIN pg_namespace namespace ON namespace.oid = granted_type.typnamespace
+      CROSS JOIN writer_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(granted_type.typacl, acldefault('T', granted_type.typowner))
+      ) acl
+      WHERE namespace.nspname = ${validatedSchema}
+        AND granted_type.typelem = 0
+        AND acl.grantee <> writer_role.oid
+        AND NOT (
+          acl.grantee = 0
+          AND granted_type.typtype = 'c'
+          AND granted_type.typrelid <> 0
+          AND EXISTS (
+            SELECT 1
+            FROM pg_class row_relation
+            WHERE row_relation.oid = granted_type.typrelid
+              AND row_relation.relkind IN ('r', 'p')
+              AND row_relation.relowner = writer_role.oid
+          )
+          AND acl.privilege_type = 'USAGE'
+          AND NOT acl.is_grantable
+        )
+      UNION ALL
+      SELECT 'default privilege' AS kind,
+             format(
+               '%s:%s:%s',
+               owner.rolname,
+               COALESCE(namespace.nspname, '<global>'),
+               default_acl.defaclobjtype
+             ) AS object,
+             acl.grantee,
+             acl.privilege_type AS privilege
+      FROM pg_default_acl default_acl
+      JOIN pg_roles owner ON owner.oid = default_acl.defaclrole
+      LEFT JOIN pg_namespace namespace ON namespace.oid = default_acl.defaclnamespace
+      CROSS JOIN writer_role
+      CROSS JOIN LATERAL aclexplode(default_acl.defaclacl) acl
+      WHERE (namespace.nspname = ${validatedSchema} OR default_acl.defaclrole = writer_role.oid)
+        AND acl.grantee <> writer_role.oid
+    )
+    SELECT kind,
+           object,
+           CASE WHEN grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(grantee) END AS grantee,
+           privilege
+    FROM unexpected_acl
+    ORDER BY kind, object, privilege, grantee
   `;
 }
 
@@ -339,6 +504,29 @@ export function createWriterRoleBoundaryQuery(role: string, networkSchema: strin
           FROM pg_default_acl default_acl
           WHERE default_acl.oid = dependency.objid
             AND default_acl.defaclnamespace = expected_schema.oid
+        )
+      )
+      OR (
+        dependency.classid = 'pg_default_acl'::regclass
+        AND EXISTS (
+          SELECT 1
+          FROM pg_default_acl default_acl
+          WHERE default_acl.oid = dependency.objid
+            AND default_acl.defaclrole = writer_role.oid
+            AND default_acl.defaclnamespace = 0
+            AND default_acl.defaclobjtype = 'f'
+            AND EXISTS (
+              SELECT 1
+              FROM aclexplode(default_acl.defaclacl) acl
+              WHERE acl.grantee = writer_role.oid
+                AND acl.privilege_type = 'EXECUTE'
+            )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM aclexplode(default_acl.defaclacl) acl
+              WHERE acl.grantee <> writer_role.oid
+                OR acl.privilege_type <> 'EXECUTE'
+            )
         )
       )
       OR (

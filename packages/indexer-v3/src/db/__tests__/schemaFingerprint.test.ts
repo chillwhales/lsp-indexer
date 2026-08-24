@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createPublicPrivilegeBoundaryQuery } from '../roleBoundary.js';
+import {
+  createChainAclBoundaryQuery,
+  createPublicPrivilegeBoundaryQuery,
+} from '../roleBoundary.js';
 import {
   EXPECTED_CHAIN_SCHEMA_FINGERPRINT,
   assertChainSchemaFingerprint,
@@ -21,6 +24,9 @@ describe('database catalog boundaries', () => {
 
   it('builds the chain and PUBLIC catalog audits', () => {
     expect(createChainSchemaFingerprintQuery('chain_ethereum_mainnet')).toBeDefined();
+    expect(
+      createChainAclBoundaryQuery('lsp_v3_chain_ethereum_mainnet_writer', 'chain_ethereum_mainnet'),
+    ).toBeDefined();
     expect(createPublicPrivilegeBoundaryQuery()).toBeDefined();
   });
 
@@ -28,5 +34,8 @@ describe('database catalog boundaries', () => {
     expect(() => createChainSchemaFingerprintQuery('chain; DROP SCHEMA public')).toThrow(
       'network database schema',
     );
+    expect(() =>
+      createChainAclBoundaryQuery('writer; RESET ROLE', 'chain_ethereum_mainnet'),
+    ).toThrow('database writer role');
   });
 });

@@ -3,10 +3,12 @@ import { getNetworkKeys, type RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
 import { DATABASE_SCHEMA_VERSION, SHARED_SCHEMA, createNetworkDatabaseRole } from './names.js';
 import {
+  createChainAclBoundaryQuery,
   createChainObjectOwnershipQuery,
   createPublicPrivilegeBoundaryQuery,
   createWriterRoleBoundaryQuery,
   formatChainObjectOwnership,
+  type ChainAclBoundaryRow,
   type ChainObjectOwnershipRow,
   type PublicPrivilegeRow,
 } from './roleBoundary.js';
@@ -20,9 +22,19 @@ interface DatabaseIdentityRow extends Record<string, unknown> {
   currentRole: string;
   currentSchema: string | null;
   sessionUser: string;
-  sessionUserIsSuperuser: boolean;
   searchPath: string;
   searchPathSchemas: string[];
+}
+
+interface DatabaseRoleCapabilityRow extends Record<string, unknown> {
+  bypassRls: boolean;
+  canLogin: boolean;
+  createDatabase: boolean;
+  createRole: boolean;
+  inheritPrivileges: boolean;
+  replication: boolean;
+  role: string;
+  superuser: boolean;
 }
 
 interface NetworkConfigRow extends Record<string, unknown> {
@@ -53,6 +65,12 @@ export interface DatabaseReadiness {
   schemaVersion: number;
 }
 
+function hasElevatedDatabaseCapabilities(role: DatabaseRoleCapabilityRow): boolean {
+  return (
+    role.bypassRls || role.createDatabase || role.createRole || role.replication || role.superuser
+  );
+}
+
 /** Verify role, search path, seed identity, and credential isolation at startup. */
 export async function verifyDatabaseReadiness(
   db: NetworkDatabase,
@@ -62,10 +80,6 @@ export async function verifyDatabaseReadiness(
     SELECT current_role AS "currentRole",
            current_schema() AS "currentSchema",
            session_user AS "sessionUser",
-           COALESCE(
-             (SELECT rolsuper FROM pg_roles WHERE rolname = session_user),
-             false
-           ) AS "sessionUserIsSuperuser",
            current_setting('search_path') AS "searchPath",
            current_schemas(false)::text[] AS "searchPathSchemas"
   `);
@@ -76,8 +90,39 @@ export async function verifyDatabaseReadiness(
   if (row.currentRole !== expectedRole) {
     throw new Error(`Database role is "${row.currentRole}"; expected "${expectedRole}"`);
   }
-  if (row.sessionUserIsSuperuser) {
-    throw new Error(`Database session user "${row.sessionUser}" must not be a superuser`);
+  const capabilities = await db.execute<DatabaseRoleCapabilityRow>(sql`
+    SELECT rolname AS role,
+           rolbypassrls AS "bypassRls",
+           rolcanlogin AS "canLogin",
+           rolcreatedb AS "createDatabase",
+           rolcreaterole AS "createRole",
+           rolinherit AS "inheritPrivileges",
+           rolreplication AS replication,
+           rolsuper AS superuser
+    FROM pg_roles
+    WHERE rolname IN (current_role, session_user)
+  `);
+  const writerCapabilities = capabilities.rows.find(({ role }) => role === row.currentRole);
+  if (writerCapabilities == null) {
+    throw new Error(`PostgreSQL did not return capabilities for writer role "${row.currentRole}"`);
+  }
+  if (
+    writerCapabilities.canLogin ||
+    writerCapabilities.inheritPrivileges ||
+    hasElevatedDatabaseCapabilities(writerCapabilities)
+  ) {
+    throw new Error(
+      `Database writer role "${row.currentRole}" must be NOLOGIN, NOINHERIT, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+    );
+  }
+  const sessionCapabilities = capabilities.rows.find(({ role }) => role === row.sessionUser);
+  if (sessionCapabilities == null) {
+    throw new Error(`PostgreSQL did not return capabilities for session user "${row.sessionUser}"`);
+  }
+  if (!sessionCapabilities.canLogin || hasElevatedDatabaseCapabilities(sessionCapabilities)) {
+    throw new Error(
+      `Database session user "${row.sessionUser}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+    );
   }
   if (row.currentSchema !== runtime.databaseSchema) {
     throw new Error(
@@ -212,6 +257,14 @@ export async function verifyDatabaseReadiness(
   if (ownershipResult.rows.length > 0) {
     throw new Error(
       `Database writer role "${expectedRole}" must own every expected object in schema "${runtime.databaseSchema}": ${formatChainObjectOwnership(ownershipResult.rows)}`,
+    );
+  }
+  const chainAclResult = await db.execute<ChainAclBoundaryRow>(
+    createChainAclBoundaryQuery(expectedRole, runtime.databaseSchema),
+  );
+  if (chainAclResult.rows.length > 0) {
+    throw new Error(
+      `Database schema "${runtime.databaseSchema}" grants privileges to unapproved roles: ${chainAclResult.rows.map(({ grantee, kind, object, privilege }) => `${object} (${kind} ${privilege} via ${grantee})`).join(', ')}`,
     );
   }
   const publicPrivilegeResult = await db.execute<PublicPrivilegeRow>(

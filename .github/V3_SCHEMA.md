@@ -22,15 +22,22 @@ One PostgreSQL cluster contains four kinds of schema:
 The runtime search path is always `chain_<network>,lsp_v3,public`. The released Pipes rollback
 tracker emits unqualified DDL and rollback SQL, so pinning that search path is a correctness
 requirement rather than a convenience. Startup readiness rejects the wrong current role or schema
-and checks the underlying session login as well: it cannot be a superuser, reach an unexpected role,
-hold direct ACLs or database-object ownership beyond non-grantable connection access, or have direct
-or inherited write privileges on another configured chain schema. Readiness also inventories the
-assumed writer: it may own or receive privileges only inside its chain schema, plus non-grantable
-`USAGE` on `lsp_v3` and the four canonical enums. It separately expands the effective privileges
-inherited from PostgreSQL's `PUBLIC` pseudo-role across schemas, relations, columns, routines,
-types, the database, and default ACLs. The allowlist contains only PostgreSQL's ambient system
-access, non-grantable connection and temporary-database access, and the expected shared enum usage;
-`PUBLIC CREATE`, grant options, or a reachable user-defined routine abort startup.
+and checks the underlying session login as well: it must remain `LOGIN NOSUPERUSER NOCREATEDB
+NOCREATEROLE NOREPLICATION NOBYPASSRLS`, cannot reach an unexpected role, cannot hold direct ACLs
+or database-object ownership beyond non-grantable connection access, and cannot have direct or
+inherited write privileges on another configured chain schema. The assumed writer must remain
+`NOLOGIN NOINHERIT` with the same five elevated capabilities disabled. Readiness also inventories
+the writer and every ACL in its chain schema. The writer may own or receive arbitrary privileges
+only inside that schema; the API owner may hold only non-grantable schema `USAGE` and `SELECT` on
+the enumerated public chain tables. Grants to any other role across schema, relation, sequence,
+column, routine, type, or default ACL surfaces abort migration and startup. The only ambient
+chain-schema exception is PostgreSQL's non-grantable `PUBLIC USAGE` on writer-owned table row types,
+including Pipes snapshots; `PUBLIC` has neither schema usage nor relation privileges, so that
+catalog default cannot expose rows. Readiness separately expands the effective privileges inherited
+from PostgreSQL's `PUBLIC` pseudo-role across schemas, relations, columns, routines, types, the
+database, and default ACLs. The allowlist contains only PostgreSQL's ambient system access,
+non-grantable connection and temporary-database access, and the expected shared enum usage; `PUBLIC
+CREATE`, grant options, or a reachable user-defined routine abort startup.
 
 ## Table inventory
 
@@ -119,19 +126,26 @@ Drizzle Kit generates one schema-relative migration series. The normalization st
 default `public` qualifiers and enum creation; the migration owner creates shared enum types once in
 `lsp_v3` and rejects any pre-existing definition whose labels or ordering differ. Deterministic
 owner and writer roles must be capability-limited non-login roles without direct or transitive role
-memberships. The migrator traverses the reverse membership graph for each writer and fails if any
-role other than the migration admin or configured runtime login can reach it; an old login must be
-revoked before credential rotation. The runtime membership cannot carry `ADMIN OPTION` and must
-carry `SET OPTION`. Migration and startup inventory every writer ACL, ownership dependency, default
-ACL, and policy reference. Anything outside the assigned chain schema is rejected except exact,
-non-grantable `USAGE` on the shared schema and canonical enum types. This includes read-only foreign
-grants, shared-schema `CREATE`, and grant options. Only the current migration admin may reach the API
-owner role. Each chain has an independent migration history whose normalized hashes are verified on
-every run. Exported entry points reject duplicate network keys, chain IDs, schemas, writer roles,
-and runtime logins before connecting. They also require the deterministic schema and writer-role
-mapping for every network and reject reserved collisions. Existing chain schemas must have an empty
-identity table or exactly the configured singleton before it is seeded. A cluster-wide advisory
-lock rejects concurrent migration commands, and reapplying the same plan is idempotent.
+memberships. The runtime login must be a login role while remaining non-superuser and unable to
+create databases or roles, replicate, or bypass row-level security. Both migration and startup
+revalidate every one of these attributes. The migrator traverses the reverse membership graph for
+each writer and fails if any role other than the migration admin or configured runtime login can
+reach it; an old login must be revoked before credential rotation. The runtime membership cannot
+carry `ADMIN OPTION` and must carry `SET OPTION`. Migration and startup inventory every writer ACL,
+ownership dependency, default ACL, and policy reference. Anything outside the assigned chain schema
+is rejected except exact, non-grantable `USAGE` on the shared schema and canonical enum types, plus
+the writer's global function default ACL containing only its own `EXECUTE`. That restrictive
+default ACL removes PostgreSQL's built-in `PUBLIC EXECUTE` from future Pipes rollback functions;
+the migrator also revokes it from existing functions. This includes rejection of read-only foreign
+grants, shared-schema `CREATE`, and grant options. A separate complete chain-schema ACL inventory
+allows only the writer, the API owner's exact read grants, and PostgreSQL's inert row-type default
+described above. Only the current migration admin may reach the API owner role. Each chain has an
+independent migration history whose normalized hashes are verified on every run. Exported entry
+points reject duplicate network keys, chain IDs, schemas, writer roles, and runtime logins before
+connecting. They also require the deterministic schema and writer-role mapping for every network
+and reject reserved collisions. Existing chain schemas must have an empty identity table or exactly
+the configured singleton before it is seeded. A cluster-wide advisory lock rejects concurrent
+migration commands, and reapplying the same plan is idempotent.
 
 The migrator drops all enumerated API views before applying source-table changes and rebuilds them
 after all enabled schemas are current. View removal, every enabled network migration, and view

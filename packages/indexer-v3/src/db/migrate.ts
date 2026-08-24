@@ -18,9 +18,11 @@ import {
   quotePostgresIdentifier,
 } from './names.js';
 import {
+  createChainAclBoundaryQuery,
   createChainObjectOwnershipQuery,
   createWriterRoleBoundaryQuery,
   formatChainObjectOwnership,
+  type ChainAclBoundaryRow,
   type ChainObjectOwnershipRow,
 } from './roleBoundary.js';
 import * as schema from './schema.js';
@@ -263,6 +265,36 @@ async function ensureWriterRolePrivilegeBoundary(
       `Database writer role "${role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${networkSchema}": ${result.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
+}
+
+async function ensureChainAclBoundary(
+  client: PoolClient,
+  role: string,
+  networkSchema: string,
+): Promise<void> {
+  const result = await drizzle(client).execute<ChainAclBoundaryRow>(
+    createChainAclBoundaryQuery(role, networkSchema),
+  );
+  if (result.rows.length > 0) {
+    throw new Error(
+      `Database schema "${networkSchema}" grants privileges to unapproved roles: ${result.rows.map(({ grantee, kind, object, privilege }) => `${object} (${kind} ${privilege} via ${grantee})`).join(', ')}`,
+    );
+  }
+}
+
+async function normalizeChainRoutinePrivileges(
+  client: PoolClient,
+  role: string,
+  networkSchema: string,
+): Promise<void> {
+  await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(role)}`);
+  // PostgreSQL's built-in PUBLIC EXECUTE default is global. A schema-scoped
+  // REVOKE only reverses a schema-scoped GRANT and cannot remove that default.
+  await client.query('ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC');
+  await client.query(
+    `REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA ${quotePostgresIdentifier(networkSchema)} FROM PUBLIC`,
+  );
+  await client.query('RESET ROLE');
 }
 
 async function ensureChainObjectOwnership(
@@ -932,6 +964,7 @@ async function prepareRolesAndSchemas(
       await client.query(
         `GRANT USAGE ON TYPE ${sharedTypes} TO ${quotePostgresIdentifier(network.role)}, ${quotePostgresIdentifier(API_READER_ROLE)}`,
       );
+      await normalizeChainRoutinePrivileges(client, network.role, network.schema);
       await ensureWriterRolePrivilegeBoundary(client, network.role, network.schema);
       if (network.runtimeLogin != null) {
         await ensureExistingLoginRole(client, network.runtimeLogin, network.role);
@@ -1191,6 +1224,7 @@ async function migrateNetwork(
   await client.query(
     `GRANT SELECT ON ${publicTableList} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
   );
+  await ensureChainAclBoundary(client, network.role, network.schema);
   await verifyMigrationHistory(client, network.schema, migrationsDirectory);
   await client.query('RESET ROLE');
   await client.query(`SET LOCAL search_path TO ${quotePostgresIdentifier('public')}`);
@@ -1278,6 +1312,9 @@ export async function migrateDatabaseWithPool(
     await prepareRolesAndSchemas(client, config.networks);
     for (const network of config.networks) {
       await ensureCurrentChainTableOwnership(client, network, migrationsDirectory);
+    }
+    for (const network of config.networks) {
+      await ensureChainAclBoundary(client, network.role, network.schema);
     }
     await client.query('BEGIN');
     try {
