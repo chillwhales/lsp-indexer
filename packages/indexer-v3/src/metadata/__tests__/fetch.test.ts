@@ -28,6 +28,9 @@ function createSource(overrides: Partial<MetadataSource> = {}): MetadataSource {
     contentUris: overrides.contentUris ?? [contentUri],
     contentHash: bodyHash,
     verificationMethod: '0x8019f9b1',
+    eligibleBlockNumber: 100,
+    eligibleBlockHash: toHex(100n, { size: 32 }),
+    refreshEligibility: false,
     lastBlockNumber: 100,
     lastBlockHash: toHex(100n, { size: 32 }),
     lastTransactionHash: toHex(200n, { size: 32 }),
@@ -232,6 +235,24 @@ describe('metadata transport', () => {
       'https://gateway.example.test/ipfs/primary/profile',
       'https://arweave.net/fallback-profile',
     ]);
+  });
+
+  it('rejects source location counts outside the configured lease bound', async () => {
+    const mocked = mockFetch([new Response(body)]);
+    await expectFetchFailure(
+      fetchMetadata(
+        createSource({
+          contentUris: Array.from(
+            { length: 6 },
+            (_, index) => `https://metadata.example.test/${index}.json`,
+          ),
+        }),
+        createConfig(mocked.fetchImplementation),
+      ),
+      'between 1 and 5 locations',
+      false,
+    );
+    expect(mocked.urls).toEqual([]);
   });
 
   it('validates LSP29 encrypted metadata with the package schema', async () => {

@@ -146,6 +146,31 @@ describe('deterministic v3 domain reducer', () => {
     ]);
   });
 
+  it('keeps first provenance for an identical metadata revision within one batch', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const metadataValue = stringToHex('same metadata revision');
+    const scalarValue = stringToHex('same scalar value');
+    const changes = [
+      dataChanged(runtime, 1, alice, DATA_KEYS.lsp3Profile, metadataValue),
+      dataChanged(runtime, 2, alice, DATA_KEYS.lsp3Profile, metadataValue),
+      dataChanged(runtime, 3, asset, DATA_KEYS.lsp4TokenName, scalarValue),
+      dataChanged(runtime, 4, asset, DATA_KEYS.lsp4TokenName, scalarValue),
+    ];
+    const mutations = reduceProjectionEvents(
+      runtime,
+      emptyState(),
+      changes,
+      verifications(changes, [], new Map()),
+    );
+
+    expect(
+      mutations.dataValues.find(({ dataKey }) => dataKey === DATA_KEYS.lsp3Profile),
+    ).toMatchObject({ dataValue: metadataValue, lastBlockNumber: 1 });
+    expect(
+      mutations.dataValues.find(({ dataKey }) => dataKey === DATA_KEYS.lsp4TokenName),
+    ).toMatchObject({ dataValue: scalarValue, lastBlockNumber: 4 });
+  });
+
   it('invalidates a previously verified contract and blocks later typed mutations', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const mint = transfer(runtime, 1, asset, 'lsp7', ZERO_ADDRESS, alice, '10');

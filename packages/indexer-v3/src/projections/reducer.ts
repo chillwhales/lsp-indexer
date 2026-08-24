@@ -27,6 +27,7 @@ import {
   decodeUtf8,
   deriveTokenUri,
   formatTokenId,
+  isMetadataControlDataKey,
   isNullAddress,
 } from './standards.js';
 import {
@@ -345,6 +346,8 @@ function persistDataValue(context: ReducerContext, event: EventFactRecord): void
     dataKey,
     tokenId ?? undefined,
   );
+  const existing = context.changes.dataValues.get(id);
+  if (isMetadataControlDataKey(dataKey) && existing?.dataValue === dataValue) return;
   context.changes.dataValues.set(id, {
     id,
     network: context.runtime.network.key,

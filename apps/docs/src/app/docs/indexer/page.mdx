@@ -102,7 +102,7 @@ through event modules.
 | `METADATA_MAX_ATTEMPTS`                 | No       | `6`                                                         |
 | `METADATA_RETRY_BASE_MS`                | No       | `5000`                                                      |
 | `METADATA_RETRY_MAX_MS`                 | No       | `1800000`                                                   |
-| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × configured gateway count        |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × 5 locations × gateway count     |
 | `METADATA_METRICS_PORT`                 | No       | `9091`; make unique for colocated network workers           |
 | `METADATA_IPFS_GATEWAYS`                | No       | Ordered list; defaults to the network's configured gateway  |
 | `METADATA_ALLOW_HTTP`                   | No       | `false`; explicitly permit public plain-HTTP sources        |
@@ -358,7 +358,13 @@ transaction; a changed URI, hash, verification state, or source revision cancels
 Token metadata additionally requires both the NFT and its LSP8 parent collection to remain verified.
 Raw metadata values remain stored when their target is not yet verified. When a later event changes
 the affected profile, asset, collection, or NFT to a verified state, the same projection transaction
-reloads only those target scopes and queues their current metadata sources.
+reloads those target scopes in bounded pages and queues their current metadata sources. Recovered
+jobs use the eligibility-changing block for finality, so an older metadata row cannot be fetched
+before its verification transition is finalized. Repeated events with the identical current value
+retain the first source provenance and do not reset an existing job.
+LSP29 index entries are eligible only while their index is below the profile's authoritative current
+array length. Length changes rescan the affected profile in bounded pages, cancel out-of-range jobs,
+and are checked again by the worker before fetching and publishing.
 Published deterministic revisions are immutable, so a later fetch for the same chain source cannot
 replace their bytes or provenance. A revision records the storage location that actually returned
 the validated content, while its durable job remains keyed by the primary chain source.
@@ -367,10 +373,11 @@ Requests accept bounded `data:` content, IPFS through an ordered gateway list, H
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker
 normalizes IP literals, rejects mixed or non-public DNS answers, and pins the socket to a validated
 address while retaining the original hostname for TLS. Requests also enforce deadlines, response
-and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. LSP31 jobs try
-every supported storage entry in backend-preference order, and each IPFS entry tries every configured
-gateway. A retryable failure on any attempted location keeps the job retryable even when a later
-fallback ends with a terminal response. Metrics on
+and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. IPFS schemes are
+case-insensitive and normalized before use. LSP31 jobs accept at most five supported storage entries,
+try them in backend-preference order, and try every configured gateway for each IPFS entry. A
+retryable failure on any attempted location keeps the job retryable even when a later fallback ends
+with a terminal response. Metrics on
 `METADATA_METRICS_PORT` report throughput, outcomes, categorized failures, retries, backlog and its
 oldest age and maximum attempts, queue/request latency, and response bytes. The worker needs only
 the network database connection; it does not open Portal or RPC connections.

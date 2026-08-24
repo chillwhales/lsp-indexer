@@ -18,14 +18,20 @@ import {
 } from '../db/schema.js';
 import { createPersistenceTarget, type PersistenceHandlerContext } from '../db/target.js';
 import { persistEventBatch } from '../events/persistence.js';
-import { applyMetadataSourcePlan, loadMetadataRecoveryCandidates } from '../metadata/queue.js';
+import {
+  applyMetadataSourcePlan,
+  loadMetadataLsp29Lengths,
+  loadMetadataRecoveryCandidatePages,
+} from '../metadata/queue.js';
 import {
   findMetadataVerificationTransitions,
+  planMetadataRecoverySources,
   planMetadataSources,
   snapshotMetadataVerification,
 } from '../metadata/source.js';
 import type { ProjectionBatch } from './output.js';
 import { reduceProjectionEvents, type ProjectionMutations } from './reducer.js';
+import { DATA_KEYS, isMetadataControlDataKey } from './standards.js';
 import { loadProjectionState } from './state.js';
 
 const WRITE_CHUNK_SIZE = 500;
@@ -396,6 +402,29 @@ async function upsertDataValues(
   }
 }
 
+async function effectiveDataValueRows(
+  tx: ProjectionTransaction,
+  rows: readonly (typeof dataValues.$inferSelect)[],
+): Promise<ProjectionMutations['dataValues']> {
+  const metadataRows = rows.filter(({ dataKey }) => isMetadataControlDataKey(dataKey));
+  const previous = new Map<string, string>();
+  for (const rowChunk of chunks(metadataRows)) {
+    const current = await tx
+      .select({ id: dataValues.id, dataValue: dataValues.dataValue })
+      .from(dataValues)
+      .where(
+        inArray(
+          dataValues.id,
+          rowChunk.map(({ id }) => id),
+        ),
+      );
+    for (const row of current) previous.set(row.id, row.dataValue);
+  }
+  return rows.filter(
+    (row) => !isMetadataControlDataKey(row.dataKey) || previous.get(row.id) !== row.dataValue,
+  );
+}
+
 async function applyUpserts(
   tx: ProjectionTransaction,
   mutations: ProjectionMutations,
@@ -445,16 +474,45 @@ export async function persistProjectionBatch(
     batch.verifications,
     batch.claimStatusUpdates,
   );
-  await applyProjectionMutations(context.tx, mutations);
-  const recovery = await loadMetadataRecoveryCandidates(
-    context.tx,
-    runtime,
-    findMetadataVerificationTransitions(metadataVerification, mutations),
-  );
+  const effectiveMutations: ProjectionMutations = {
+    ...mutations,
+    dataValues: await effectiveDataValueRows(context.tx, mutations.dataValues),
+  };
+  await applyProjectionMutations(context.tx, effectiveMutations);
+  const lsp29Addresses = [
+    ...new Set(
+      effectiveMutations.dataValues
+        .filter(
+          (row) =>
+            row.dataKey === DATA_KEYS.lsp29EncryptedAssetsLength ||
+            row.dataKey.startsWith(DATA_KEYS.lsp29EncryptedAssetsIndex),
+        )
+        .map(({ address }) => address),
+    ),
+  ];
+  const lsp29Lengths = await loadMetadataLsp29Lengths(context.tx, runtime, lsp29Addresses);
   await applyMetadataSourcePlan(
     context.tx,
-    planMetadataSources(runtime, state, mutations, events, recovery),
+    planMetadataSources(
+      runtime,
+      state,
+      effectiveMutations,
+      events,
+      { dataValues: [], nfts: [] },
+      lsp29Lengths,
+    ),
   );
+  const transitions = findMetadataVerificationTransitions(metadataVerification, effectiveMutations);
+  for await (const recovery of loadMetadataRecoveryCandidatePages(
+    context.tx,
+    runtime,
+    transitions,
+  )) {
+    await applyMetadataSourcePlan(
+      context.tx,
+      planMetadataRecoverySources(runtime, state, recovery),
+    );
+  }
 }
 
 /** Create the rollback-aware target for raw facts and v3 current-state projections. */

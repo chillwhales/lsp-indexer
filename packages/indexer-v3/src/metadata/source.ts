@@ -6,12 +6,13 @@ import { createMetadataRevisionId } from '../db/identity.js';
 import { dataValues, metadataJobs, nfts } from '../db/schema.js';
 import type { EventFactRecord } from '../events/decode.js';
 import type { ProjectionMutations } from '../projections/reducer.js';
-import { DATA_KEYS, ZERO_ADDRESS } from '../projections/standards.js';
+import { DATA_KEYS, ZERO_ADDRESS, decodeArrayIndex } from '../projections/standards.js';
 import { tokenKey, type ProjectionState } from '../projections/state.js';
 
 const CONTENT_URI_MAX_LENGTH = 4_096;
 const KECCAK256_UTF8_METHOD_ID = '0x6f357c6a';
 const KECCAK256_BYTES_METHOD_ID = '0x8019f9b1';
+export const METADATA_MAX_SOURCE_LOCATIONS = 5;
 
 type DataValueRow = typeof dataValues.$inferSelect;
 type NftRow = typeof nfts.$inferSelect;
@@ -33,6 +34,9 @@ export interface MetadataSource extends MetadataSourceScope {
   contentUris: readonly string[];
   contentHash: string | null;
   verificationMethod: string | null;
+  eligibleBlockNumber: number;
+  eligibleBlockHash: string;
+  refreshEligibility: boolean;
   lastBlockNumber: number;
   lastBlockHash: string;
   lastTransactionHash: string | null;
@@ -51,10 +55,18 @@ export interface MetadataSourcePlan {
   rejected: RejectedMetadataSource[];
 }
 
+/** One current metadata row paired with the block that made it eligible for processing. */
+export interface RecoveredMetadataCandidate<T> {
+  row: T;
+  eligibleBlockNumber: number;
+  eligibleBlockHash: string;
+  lsp29Length?: bigint | null;
+}
+
 /** Current metadata rows reloaded for targets that became eligible after verification. */
 export interface MetadataRecoveryCandidates {
-  dataValues: readonly DataValueRow[];
-  nfts: readonly NftRow[];
+  dataValues: readonly RecoveredMetadataCandidate<DataValueRow>[];
+  nfts: readonly RecoveredMetadataCandidate<NftRow>[];
 }
 
 /** Verification fields captured before the projection reducer mutates its scoped state. */
@@ -64,12 +76,21 @@ export interface MetadataVerificationSnapshot {
   nfts: ReadonlyMap<string, string>;
 }
 
+/** One target and the canonical block that changed its metadata eligibility. */
+export interface MetadataTransitionTarget {
+  address: string;
+  tokenId?: string;
+  eligibleBlockNumber: number;
+  eligibleBlockHash: string;
+}
+
 /** Chain targets whose final state newly permits one or more metadata source kinds. */
 export interface MetadataVerificationTransitions {
-  profileAddresses: readonly string[];
-  assetAddresses: readonly string[];
-  tokenCollectionAddresses: readonly string[];
-  nftTargets: readonly { address: string; tokenId: string }[];
+  profileTargets: readonly MetadataTransitionTarget[];
+  assetTargets: readonly MetadataTransitionTarget[];
+  tokenCollectionTargets: readonly MetadataTransitionTarget[];
+  nftTargets: readonly (MetadataTransitionTarget & { tokenId: string })[];
+  lsp29Targets: readonly MetadataTransitionTarget[];
 }
 
 interface ParsedContentReference {
@@ -94,12 +115,12 @@ function assertSupportedContentUri(value: string): string {
   if (/[^\x20-\x7e]/.test(value)) {
     throw new Error('Metadata URI contains non-printable characters');
   }
-  if (value.startsWith('ipfs://')) {
+  if (value.toLowerCase().startsWith('ipfs://')) {
     const location = value.slice('ipfs://'.length);
     if (location.length === 0 || location.startsWith('/') || location.includes('\\')) {
       throw new Error('IPFS metadata URI is malformed');
     }
-    return value;
+    return `ipfs://${location}`;
   }
 
   let parsed: URL;
@@ -148,6 +169,9 @@ function parseEncryptedReference(dataValue: Hex): ParsedContentReference {
   if (supported.length === 0) {
     throw new Error('LSP31 source has no IPFS or HTTP-compatible backend');
   }
+  if (supported.length > METADATA_MAX_SOURCE_LOCATIONS) {
+    throw new Error(`LSP31 source exceeds the ${METADATA_MAX_SOURCE_LOCATIONS}-location maximum`);
+  }
   return {
     contentUris: supported.map((entry) => assertSupportedContentUri(resolveUrl(entry))),
     contentHash: parsed.verificationData.toLowerCase(),
@@ -168,6 +192,16 @@ function metadataKind(row: DataValueRow): MetadataJobKind | null {
     return 'lsp29_encrypted_asset';
   }
   return null;
+}
+
+/** Return whether an LSP29 index row is inside its profile's authoritative current array length. */
+export function isCurrentLsp29MetadataRow(
+  row: DataValueRow,
+  length: bigint | null | undefined,
+): boolean {
+  if (metadataKind(row) !== 'lsp29_encrypted_asset' || length == null) return false;
+  const index = decodeArrayIndex(row.dataKey);
+  return index != null && index < length;
 }
 
 function isVerifiedTarget(
@@ -234,6 +268,9 @@ export function createDataValueMetadataSource(
     contentUris: reference.contentUris,
     contentHash: reference.contentHash,
     verificationMethod: reference.verificationMethod,
+    eligibleBlockNumber: row.lastBlockNumber,
+    eligibleBlockHash: row.lastBlockHash,
+    refreshEligibility: false,
     lastBlockNumber: row.lastBlockNumber,
     lastBlockHash: row.lastBlockHash,
     lastTransactionHash: row.lastTransactionHash,
@@ -262,6 +299,9 @@ export function createNftMetadataSource(
     contentUris: [contentUri],
     contentHash: null,
     verificationMethod: null,
+    eligibleBlockNumber: row.lastBlockNumber,
+    eligibleBlockHash: row.lastBlockHash,
+    refreshEligibility: false,
     lastBlockNumber: row.lastBlockNumber,
     lastBlockHash: row.lastBlockHash,
     lastTransactionHash: row.lastTransactionHash,
@@ -287,48 +327,122 @@ export function snapshotMetadataVerification(state: ProjectionState): MetadataVe
   };
 }
 
+function setLatestTransitionTarget<T extends MetadataTransitionTarget>(
+  targets: Map<string, T>,
+  key: string,
+  target: T,
+): void {
+  const current = targets.get(key);
+  if (current == null || target.eligibleBlockNumber >= current.eligibleBlockNumber) {
+    targets.set(key, target);
+  }
+}
+
 /** Find bounded targets whose final state newly permits metadata processing. */
 export function findMetadataVerificationTransitions(
   snapshot: MetadataVerificationSnapshot,
   mutations: ProjectionMutations,
 ): MetadataVerificationTransitions {
-  const profileAddresses = new Set<string>();
-  const assetAddresses = new Set<string>();
-  const tokenCollectionAddresses = new Set<string>();
-  const nftTargets = new Map<string, { address: string; tokenId: string }>();
+  const profileTargets = new Map<string, MetadataTransitionTarget>();
+  const assetTargets = new Map<string, MetadataTransitionTarget>();
+  const tokenCollectionTargets = new Map<string, MetadataTransitionTarget>();
+  const nftTargets = new Map<string, MetadataTransitionTarget & { tokenId: string }>();
+  const lsp29Targets = new Map<string, MetadataTransitionTarget>();
 
   for (const row of mutations.universalProfiles) {
     if (row.verification === 'verified' && snapshot.profiles.get(row.address) !== 'verified') {
-      profileAddresses.add(row.address);
+      const target = {
+        address: row.address,
+        eligibleBlockNumber: row.lastBlockNumber,
+        eligibleBlockHash: row.lastBlockHash,
+      };
+      setLatestTransitionTarget(profileTargets, row.address, target);
+      setLatestTransitionTarget(lsp29Targets, row.address, target);
     }
   }
   for (const row of mutations.digitalAssets) {
     const previous = snapshot.assets.get(row.address);
     if (row.verification === 'verified' && previous?.verification !== 'verified') {
-      assetAddresses.add(row.address);
+      setLatestTransitionTarget(assetTargets, row.address, {
+        address: row.address,
+        eligibleBlockNumber: row.lastBlockNumber,
+        eligibleBlockHash: row.lastBlockHash,
+      });
     }
     if (
       row.verification === 'verified' &&
       row.standard === 'lsp8' &&
       (previous?.verification !== 'verified' || previous.standard !== 'lsp8')
     ) {
-      tokenCollectionAddresses.add(row.address);
+      setLatestTransitionTarget(tokenCollectionTargets, row.address, {
+        address: row.address,
+        eligibleBlockNumber: row.lastBlockNumber,
+        eligibleBlockHash: row.lastBlockHash,
+      });
     }
   }
   for (const row of mutations.nfts) {
     const key = tokenKey(row.address, row.tokenId);
     if (row.verification === 'verified' && snapshot.nfts.get(key) !== 'verified') {
-      nftTargets.set(key, { address: row.address, tokenId: row.tokenId });
+      setLatestTransitionTarget(nftTargets, key, {
+        address: row.address,
+        tokenId: row.tokenId,
+        eligibleBlockNumber: row.lastBlockNumber,
+        eligibleBlockHash: row.lastBlockHash,
+      });
     }
+  }
+  for (const row of mutations.dataValues) {
+    if (row.tokenId != null || row.dataKey !== DATA_KEYS.lsp29EncryptedAssetsLength) continue;
+    setLatestTransitionTarget(lsp29Targets, row.address, {
+      address: row.address,
+      eligibleBlockNumber: row.lastBlockNumber,
+      eligibleBlockHash: row.lastBlockHash,
+    });
   }
 
   return {
-    profileAddresses: [...profileAddresses],
-    assetAddresses: [...assetAddresses],
-    tokenCollectionAddresses: [...tokenCollectionAddresses],
+    profileTargets: [...profileTargets.values()],
+    assetTargets: [...assetTargets.values()],
+    tokenCollectionTargets: [...tokenCollectionTargets.values()],
     nftTargets: [...nftTargets.values()],
+    lsp29Targets: [...lsp29Targets.values()],
   };
 }
+
+function applyRecoveryEligibility(
+  source: MetadataSource,
+  recovery: RecoveredMetadataCandidate<unknown> | undefined,
+): MetadataSource {
+  if (recovery == null) return source;
+  const recoveryIsCurrent = recovery.eligibleBlockNumber >= source.lastBlockNumber;
+  return {
+    ...source,
+    eligibleBlockNumber: recoveryIsCurrent ? recovery.eligibleBlockNumber : source.lastBlockNumber,
+    eligibleBlockHash: recoveryIsCurrent ? recovery.eligibleBlockHash : source.lastBlockHash,
+    refreshEligibility: true,
+  };
+}
+
+const EMPTY_PROJECTION_MUTATIONS: ProjectionMutations = {
+  universalProfiles: [],
+  digitalAssets: [],
+  nfts: [],
+  ownedAssets: [],
+  ownedTokens: [],
+  followerEdges: [],
+  creators: [],
+  issuedAssets: [],
+  controllers: [],
+  chillwhalesNfts: [],
+  dataValues: [],
+  deletedOwnedAssetIds: [],
+  deletedOwnedTokenIds: [],
+  deletedNftCollections: [],
+  deletedCreatorIds: [],
+  deletedIssuedAssetIds: [],
+  deletedControllerIds: [],
+};
 
 /** Plan durable queue replacements from the projection rows changed by one Pipes transaction. */
 export function planMetadataSources(
@@ -337,14 +451,25 @@ export function planMetadataSources(
   mutations: ProjectionMutations,
   events: readonly EventFactRecord[],
   recovery: MetadataRecoveryCandidates = { dataValues: [], nfts: [] },
+  lsp29Lengths: ReadonlyMap<string, bigint | null> = new Map(),
 ): MetadataSourcePlan {
   const scopes = new Map<string, MetadataSourceScope>();
   const sources = new Map<string, MetadataSource>();
   const rejected: RejectedMetadataSource[] = [];
 
-  const candidateDataValues = new Map(
-    [...recovery.dataValues, ...mutations.dataValues].map((row) => [row.id, row]),
+  const recoveredDataValues = new Map(
+    recovery.dataValues.map((candidate) => [candidate.row.id, candidate]),
   );
+  const candidateDataValues = new Map(
+    recovery.dataValues.map((candidate) => [candidate.row.id, candidate.row]),
+  );
+  for (const row of mutations.dataValues) candidateDataValues.set(row.id, row);
+  const currentLsp29Lengths = new Map(lsp29Lengths);
+  for (const candidate of recovery.dataValues) {
+    if (candidate.lsp29Length !== undefined) {
+      currentLsp29Lengths.set(candidate.row.address, candidate.lsp29Length);
+    }
+  }
   for (const row of candidateDataValues.values()) {
     const kind = metadataKind(row);
     if (kind == null) continue;
@@ -357,9 +482,17 @@ export function planMetadataSources(
     const key = scopeKey(scope);
     scopes.set(key, scope);
     if (!isVerifiedTarget(state, row, kind)) continue;
+    if (
+      kind === 'lsp29_encrypted_asset' &&
+      !isCurrentLsp29MetadataRow(row, currentLsp29Lengths.get(row.address))
+    ) {
+      continue;
+    }
     try {
       const source = createDataValueMetadataSource(runtime, row);
-      if (source != null) sources.set(key, source);
+      if (source != null) {
+        sources.set(key, applyRecoveryEligibility(source, recoveredDataValues.get(row.id)));
+      }
     } catch (error) {
       rejected.push({
         scope,
@@ -386,10 +519,20 @@ export function planMetadataSources(
     }
   }
 
-  const recoveredNftKeys = new Set(recovery.nfts.map((row) => tokenKey(row.address, row.tokenId)));
-  const candidateNfts = new Map(
-    [...recovery.nfts, ...mutations.nfts].map((row) => [tokenKey(row.address, row.tokenId), row]),
+  const recoveredNfts = new Map(
+    recovery.nfts.map((candidate) => [
+      tokenKey(candidate.row.address, candidate.row.tokenId),
+      candidate,
+    ]),
   );
+  const recoveredNftKeys = new Set(recoveredNfts.keys());
+  const candidateNfts = new Map(
+    recovery.nfts.map((candidate) => [
+      tokenKey(candidate.row.address, candidate.row.tokenId),
+      candidate.row,
+    ]),
+  );
+  for (const row of mutations.nfts) candidateNfts.set(tokenKey(row.address, row.tokenId), row);
   for (const row of candidateNfts.values()) {
     if (
       !recoveredNftKeys.has(tokenKey(row.address, row.tokenId)) &&
@@ -409,7 +552,12 @@ export function planMetadataSources(
     if (!isVerifiedNftTarget(state, row)) continue;
     try {
       const source = createNftMetadataSource(runtime, row);
-      if (source != null) sources.set(key, source);
+      if (source != null) {
+        sources.set(
+          key,
+          applyRecoveryEligibility(source, recoveredNfts.get(tokenKey(row.address, row.tokenId))),
+        );
+      }
     } catch (error) {
       rejected.push({
         scope,
@@ -419,6 +567,15 @@ export function planMetadataSources(
   }
 
   return { scopes: [...scopes.values()], sources: [...sources.values()], rejected };
+}
+
+/** Plan one bounded page of stored metadata recovered after an eligibility transition. */
+export function planMetadataRecoverySources(
+  runtime: RuntimeConfig,
+  state: ProjectionState,
+  recovery: MetadataRecoveryCandidates,
+): MetadataSourcePlan {
+  return planMetadataSources(runtime, state, EMPTY_PROJECTION_MUTATIONS, [], recovery);
 }
 
 /** Compare a claimed job to a source reloaded from current chain-scoped state. */

@@ -19,6 +19,14 @@ const INVALID_ENVIRONMENTS: [NodeJS.ProcessEnv, string][] = [
     { METADATA_REQUEST_TIMEOUT_MS: '1000', METADATA_LEASE_TIMEOUT_MS: '1000' },
     'METADATA_LEASE_TIMEOUT_MS must exceed',
   ],
+  [
+    {
+      METADATA_REQUEST_TIMEOUT_MS: '1000',
+      METADATA_LEASE_TIMEOUT_MS: '10000',
+      METADATA_IPFS_GATEWAYS: 'https://one.example.test/ipfs,https://two.example.test/ipfs',
+    },
+    'METADATA_LEASE_TIMEOUT_MS must exceed',
+  ],
   [{ METADATA_METRICS_PORT: '65536' }, 'METADATA_METRICS_PORT must be a safe integer'],
   [{ METADATA_IPFS_GATEWAYS: 'ipfs://gateway' }, 'must use HTTP or HTTPS'],
   [{ METADATA_IPFS_GATEWAYS: 'not a url' }, 'must contain absolute HTTP(S) URLs'],
@@ -71,7 +79,7 @@ describe('metadata worker configuration', () => {
         METADATA_MAX_ATTEMPTS: '2',
         METADATA_RETRY_BASE_MS: '300',
         METADATA_RETRY_MAX_MS: '600',
-        METADATA_LEASE_TIMEOUT_MS: '2000',
+        METADATA_LEASE_TIMEOUT_MS: '5001',
         METADATA_METRICS_PORT: '9191',
         METADATA_IPFS_GATEWAYS:
           'https://gateway.example.test/ipfs///, http://fallback.example.test/ipfs/',
@@ -87,7 +95,7 @@ describe('metadata worker configuration', () => {
       maxAttempts: 2,
       retryBaseMs: 300,
       retryMaximumMs: 600,
-      leaseTimeoutMs: 2000,
+      leaseTimeoutMs: 5001,
       metricsPort: 9191,
       ipfsGateways: ['https://gateway.example.test/ipfs', 'http://fallback.example.test/ipfs'],
       allowHttp: true,

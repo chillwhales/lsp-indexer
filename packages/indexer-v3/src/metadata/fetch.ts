@@ -6,7 +6,7 @@ import { request as requestHttps } from 'node:https';
 import { BlockList, isIP, type LookupFunction } from 'node:net';
 import { bytesToHex, keccak256, toHex } from 'viem';
 import { z } from 'zod';
-import type { MetadataSource } from './source.js';
+import { METADATA_MAX_SOURCE_LOCATIONS, type MetadataSource } from './source.js';
 
 const KECCAK256_UTF8_METHOD_ID = '0x6f357c6a';
 const KECCAK256_BYTES_METHOD_ID = '0x8019f9b1';
@@ -591,6 +591,15 @@ function requestCandidates(
   source: MetadataSource,
   config: MetadataFetchConfig,
 ): MetadataRequestCandidate[] {
+  if (
+    source.contentUris.length === 0 ||
+    source.contentUris.length > METADATA_MAX_SOURCE_LOCATIONS
+  ) {
+    throw new MetadataRequestError(
+      `Metadata source must contain between 1 and ${METADATA_MAX_SOURCE_LOCATIONS} locations`,
+      false,
+    );
+  }
   const candidates: MetadataRequestCandidate[] = [];
   for (const contentUri of source.contentUris) {
     if (!contentUri.toLowerCase().startsWith('ipfs://')) {

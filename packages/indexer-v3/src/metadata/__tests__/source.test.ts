@@ -17,6 +17,7 @@ import {
   createNftMetadataSource,
   findMetadataVerificationTransitions,
   matchesMetadataJob,
+  planMetadataRecoverySources,
   planMetadataSources,
   snapshotMetadataVerification,
 } from '../source.js';
@@ -32,6 +33,10 @@ const tokenId = toHex(42n, { size: 32 });
 const blockHash = toHex(100n, { size: 32 });
 const transactionHash = toHex(200n, { size: 32 });
 const profileContent = { LSP3Profile: { name: 'Alice' } };
+
+function lsp29IndexKey(index: bigint): string {
+  return `${DATA_KEYS.lsp29EncryptedAssetsIndex}${toHex(index, { size: 16 }).slice(2)}`;
+}
 
 function createDataValue(overrides: Partial<DataValueRow> = {}): DataValueRow {
   return {
@@ -263,6 +268,26 @@ describe('metadata source planning', () => {
     });
   });
 
+  it('normalizes case-insensitive IPFS schemes and bounds LSP31 fallback locations', () => {
+    const uppercaseIpfs = createDataValue({
+      dataValue: encodeVerifiableUri(profileContent, 'IPFS://profile'),
+    });
+    expect(createDataValueMetadataSource(runtime, uppercaseIpfs)?.contentUri).toBe(
+      'ipfs://profile',
+    );
+
+    const oversized = encodeLsp31Uri(
+      Array.from({ length: 6 }, (_, index) => ({ backend: 'ipfs', cid: `bafy-${index}` })),
+      computeContentHash(toBytes('encrypted metadata')),
+    );
+    expect(() =>
+      createDataValueMetadataSource(
+        runtime,
+        createDataValue({ dataKey: lsp29IndexKey(0n), dataValue: oversized }),
+      ),
+    ).toThrow('5-location maximum');
+  });
+
   it('ignores unrelated or empty values and rejects unsafe references', () => {
     expect(
       createDataValueMetadataSource(
@@ -341,21 +366,126 @@ describe('metadata source planning', () => {
       lastLogIndex: 0,
     };
     state.universalProfiles.set(profile, verifiedProfile);
-    const mutations = createMutations({ universalProfiles: [verifiedProfile] });
+    const mutations = createMutations({
+      universalProfiles: [verifiedProfile],
+      dataValues: [
+        createDataValue({
+          dataKey: DATA_KEYS.lsp29EncryptedAssetsLength,
+          dataValue: toHex(1n, { size: 16 }),
+          lastBlockNumber: 99,
+          lastBlockHash: toHex(99n, { size: 32 }),
+        }),
+      ],
+    });
     const transitions = findMetadataVerificationTransitions(snapshot, mutations);
 
     expect(transitions).toEqual({
-      profileAddresses: [profile],
-      assetAddresses: [],
-      tokenCollectionAddresses: [],
+      profileTargets: [
+        {
+          address: profile,
+          eligibleBlockNumber: 101,
+          eligibleBlockHash: toHex(101n, { size: 32 }),
+        },
+      ],
+      assetTargets: [],
+      tokenCollectionTargets: [],
       nftTargets: [],
+      lsp29Targets: [
+        {
+          address: profile,
+          eligibleBlockNumber: 101,
+          eligibleBlockHash: toHex(101n, { size: 32 }),
+        },
+      ],
+    });
+    const plan = planMetadataRecoverySources(runtime, state, {
+      dataValues: [
+        {
+          row: createDataValue({ lastBlockNumber: 99 }),
+          eligibleBlockNumber: 101,
+          eligibleBlockHash: toHex(101n, { size: 32 }),
+        },
+      ],
+      nfts: [],
+    });
+    expect(plan.sources).toHaveLength(1);
+    expect(plan.sources[0]).toMatchObject({
+      lastBlockNumber: 99,
+      eligibleBlockNumber: 101,
+      eligibleBlockHash: toHex(101n, { size: 32 }),
+      refreshEligibility: true,
+    });
+  });
+
+  it('uses the authoritative LSP29 length and reacts to length changes', () => {
+    const state = createState();
+    const verifiedProfile: UniversalProfileRow = {
+      id: 'profile-id',
+      network: runtime.network.key,
+      chainId: runtime.network.chainId,
+      address: profile,
+      ownerAddress: null,
+      verification: 'verified',
+      lastBlockNumber: 100,
+      lastBlockHash: blockHash,
+      lastTransactionHash: transactionHash,
+      lastTransactionIndex: 1,
+      lastLogIndex: 2,
+    };
+    state.universalProfiles.set(profile, verifiedProfile);
+    const encrypted = createDataValue({
+      dataKey: lsp29IndexKey(1n),
+      dataValue: encodeLsp31Uri(
+        [
+          { backend: 'ipfs', cid: 'bafy-metadata' },
+          { backend: 'arweave', transactionId: 'arweave-metadata' },
+        ],
+        computeContentHash(toBytes('encrypted metadata')),
+      ),
+    });
+    const mutations = createMutations({ dataValues: [encrypted] });
+
+    expect(planMetadataSources(runtime, state, mutations, []).scopes).toHaveLength(1);
+    expect(planMetadataSources(runtime, state, mutations, []).sources).toEqual([]);
+    expect(
+      planMetadataSources(
+        runtime,
+        state,
+        mutations,
+        [],
+        { dataValues: [], nfts: [] },
+        new Map([[profile, 1n]]),
+      ).sources,
+    ).toEqual([]);
+    expect(
+      planMetadataSources(
+        runtime,
+        state,
+        mutations,
+        [],
+        { dataValues: [], nfts: [] },
+        new Map([[profile, 2n]]),
+      ).sources,
+    ).toHaveLength(1);
+
+    const length = createDataValue({
+      dataKey: DATA_KEYS.lsp29EncryptedAssetsLength,
+      dataValue: toHex(1n, { size: 16 }),
+      lastBlockNumber: 102,
+      lastBlockHash: toHex(102n, { size: 32 }),
     });
     expect(
-      planMetadataSources(runtime, state, mutations, [], {
-        dataValues: [createDataValue({ lastBlockNumber: 99 })],
-        nfts: [],
-      }).sources,
-    ).toHaveLength(1);
+      findMetadataVerificationTransitions(
+        snapshotMetadataVerification(state),
+        createMutations({ dataValues: [length] }),
+      ).lsp29Targets,
+    ).toEqual([
+      {
+        address: profile,
+        eligibleBlockNumber: 102,
+        eligibleBlockHash: toHex(102n, { size: 32 }),
+      },
+    ]);
   });
 
   it('detects LSP8 collection and NFT verification transitions', () => {
@@ -378,10 +508,30 @@ describe('metadata source planning', () => {
         createMutations({ digitalAssets: [verifiedAsset], nfts: [verifiedNft] }),
       ),
     ).toEqual({
-      profileAddresses: [],
-      assetAddresses: [asset],
-      tokenCollectionAddresses: [asset],
-      nftTargets: [{ address: asset, tokenId }],
+      profileTargets: [],
+      assetTargets: [
+        {
+          address: asset,
+          eligibleBlockNumber: 100,
+          eligibleBlockHash: blockHash,
+        },
+      ],
+      tokenCollectionTargets: [
+        {
+          address: asset,
+          eligibleBlockNumber: 100,
+          eligibleBlockHash: blockHash,
+        },
+      ],
+      nftTargets: [
+        {
+          address: asset,
+          tokenId,
+          eligibleBlockNumber: 100,
+          eligibleBlockHash: blockHash,
+        },
+      ],
+      lsp29Targets: [],
     });
   });
 

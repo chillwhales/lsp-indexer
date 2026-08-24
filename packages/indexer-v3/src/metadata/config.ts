@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { RuntimeConfig } from '../config/index.js';
 import { resolveMetadataRequestUrl } from './fetch.js';
+import { METADATA_MAX_SOURCE_LOCATIONS } from './source.js';
 
 const UrlSchema = z.url();
 
@@ -123,9 +124,10 @@ export function loadMetadataWorkerConfig(
     runtime.network.ipfsGateway,
     allowHttp,
   );
-  if (leaseTimeoutMs <= requestTimeoutMs * ipfsGateways.length) {
+  const maximumRequestCandidates = ipfsGateways.length * METADATA_MAX_SOURCE_LOCATIONS;
+  if (leaseTimeoutMs <= requestTimeoutMs * maximumRequestCandidates) {
     throw new Error(
-      'METADATA_LEASE_TIMEOUT_MS must exceed METADATA_REQUEST_TIMEOUT_MS multiplied by the gateway count',
+      'METADATA_LEASE_TIMEOUT_MS must exceed the worst-case timeout across all source locations and gateways',
     );
   }
 

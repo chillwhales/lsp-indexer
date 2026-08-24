@@ -47,6 +47,16 @@ export const DATA_KEYS = {
   lsp29EncryptedAssetRevisionCount: '0xb41f63e335c22bded814',
 } as const;
 
+/** Return whether a current data-value row controls one or more metadata jobs. */
+export function isMetadataControlDataKey(dataKey: string): boolean {
+  return (
+    dataKey === DATA_KEYS.lsp3Profile ||
+    dataKey === DATA_KEYS.lsp4Metadata ||
+    dataKey === DATA_KEYS.lsp29EncryptedAssetsLength ||
+    dataKey.startsWith(DATA_KEYS.lsp29EncryptedAssetsIndex)
+  );
+}
+
 export interface RegistryValue {
   interfaceId: string;
   arrayIndex: bigint;

@@ -160,8 +160,10 @@ server and database pool after in-flight work settles.
 
 Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
 public HTTP(S) target validation. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29
-content is accepted. Retryable transport and HTTP failures use durable, jittered exponential
-backoff; malformed content and exhausted attempts become terminal failures.
+content is accepted. IPFS schemes are normalized case-insensitively. LSP31 sources accept at most
+five supported locations and try each location, including every configured gateway for each IPFS
+entry. Retryable transport and HTTP failures use durable, jittered exponential backoff; malformed
+content and exhausted attempts become terminal failures.
 
 The worker reloads the exact current chain source before fetching and again in the serializable
 publication transaction. A changed URI, hash, token location, or source revision cancels the old
@@ -170,6 +172,11 @@ so a slow response cannot overwrite newer canonical state. Successful content is
 deterministic `metadata_revisions` row with its source provenance. Job state remains internal and
 is exposed through metrics rather than the public API views. An existing deterministic revision is
 immutable; a later fetch for the same chain source cannot replace its published bytes or provenance.
+Repeated identical values retain their first source provenance without resetting the job. Metadata
+recovered after a verification transition waits for that transition to finalize, and collection
+recovery is page-bounded. LSP29 jobs also require their index to remain below the authoritative
+current array length; a length shrink cancels stale slots and the worker rechecks the length before
+fetching or publishing.
 
 ## Configuration
 
@@ -205,7 +212,7 @@ immutable; a later fetch for the same chain source cannot replace its published 
 | `METADATA_MAX_ATTEMPTS`                 | No       | Attempts before terminal failure; defaults to `6`             |
 | `METADATA_RETRY_BASE_MS`                | No       | Initial durable retry delay; defaults to `5000`               |
 | `METADATA_RETRY_MAX_MS`                 | No       | Maximum retry delay; defaults to `1800000`                    |
-| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × configured gateway count          |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × 5 locations × gateway count       |
 | `METADATA_METRICS_PORT`                 | No       | Worker metrics port; defaults to `9091`                       |
 | `METADATA_IPFS_GATEWAYS`                | No       | Ordered comma-separated gateways; defaults to network primary |
 | `METADATA_ALLOW_HTTP`                   | No       | Explicitly permit public plain HTTP; defaults to `false`      |

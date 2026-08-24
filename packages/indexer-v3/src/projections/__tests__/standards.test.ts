@@ -11,6 +11,7 @@ import {
   decodeRegistryValue,
   deriveTokenUri,
   formatTokenId,
+  isMetadataControlDataKey,
 } from '../standards.js';
 
 const address = '0x0000000000000000000000000000000000000042';
@@ -39,6 +40,14 @@ describe('LSP projection value decoders', () => {
     });
     expect(decodeRegistryValue(maximumRegistryValue)?.arrayIndex).toBe(maximumUint128);
     expect(decodeRegistryValue(`${registryValue}00`)).toBeNull();
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp3Profile)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp4Metadata)).toBe(true);
+    expect(
+      isMetadataControlDataKey(
+        `${DATA_KEYS.lsp29EncryptedAssetsIndex}${toHex(7n, { size: 16 }).slice(2)}`,
+      ),
+    ).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp4TokenName)).toBe(false);
   });
 
   it('formats current and legacy LSP8 token IDs and derives stable token URIs', () => {

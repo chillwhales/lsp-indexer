@@ -3,9 +3,11 @@ import {
   asc,
   count,
   eq,
+  gt,
   inArray,
   isNotNull,
   isNull,
+  like,
   lte,
   max,
   min,
@@ -26,16 +28,20 @@ import {
   universalProfiles,
 } from '../db/schema.js';
 import type { PersistenceHandlerContext } from '../db/target.js';
-import { DATA_KEYS } from '../projections/standards.js';
+import { DATA_KEYS, decodeArrayLength } from '../projections/standards.js';
+import { tokenKey } from '../projections/state.js';
 import {
   createDataValueMetadataSource,
   createNftMetadataSource,
+  isCurrentLsp29MetadataRow,
   matchesMetadataJob,
   type MetadataRecoveryCandidates,
   type MetadataSource,
   type MetadataSourcePlan,
   type MetadataSourceScope,
+  type MetadataTransitionTarget,
   type MetadataVerificationTransitions,
+  type RecoveredMetadataCandidate,
 } from './source.js';
 
 const ACTIVE_JOB_STATUSES = ['pending', 'retry'] as const;
@@ -54,7 +60,6 @@ type MetadataTransaction = Parameters<Parameters<NetworkDatabase['transaction']>
 type MetadataQueryExecutor = NetworkDatabase | MetadataTransaction;
 type ProjectionTransaction = PersistenceHandlerContext['tx'];
 type DataValueRow = typeof dataValues.$inferSelect;
-type NftRow = typeof nfts.$inferSelect;
 export type MetadataJob = typeof metadataJobs.$inferSelect;
 export type MetadataJobStatus = MetadataJob['status'];
 
@@ -107,19 +112,107 @@ function scopeCondition(scope: MetadataSourceScope): SQL {
   return condition;
 }
 
-/** Reload metadata rows only for targets whose verification became usable in this transaction. */
-export async function loadMetadataRecoveryCandidates(
+function createMetadataJobRow(source: MetadataSource, now: Date): typeof metadataJobs.$inferInsert {
+  return {
+    id: source.id,
+    network: source.network,
+    chainId: source.chainId,
+    kind: source.kind,
+    status: 'pending',
+    address: source.address,
+    tokenId: source.tokenId,
+    dataKey: source.dataKey,
+    sourceRevision: source.sourceRevision,
+    contentUri: source.contentUri,
+    contentHash: source.contentHash,
+    sourceBlockNumber: source.eligibleBlockNumber,
+    sourceBlockHash: source.eligibleBlockHash,
+    attempts: 0,
+    nextAttemptAt: now,
+    claimedAt: null,
+    lastError: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+async function upsertMetadataJobSources(
+  tx: ProjectionTransaction,
+  sources: readonly MetadataSource[],
+  now: Date,
+  refreshEligibility: boolean,
+): Promise<void> {
+  for (const sourceChunk of chunks(
+    sources.filter((source) => source.refreshEligibility === refreshEligibility),
+  )) {
+    const rows = sourceChunk.map((source) => createMetadataJobRow(source, now));
+    await tx
+      .insert(metadataJobs)
+      .values(rows)
+      .onConflictDoUpdate({
+        target: metadataJobs.id,
+        set: {
+          kind: sql`excluded.kind`,
+          status: 'pending',
+          contentUri: sql`excluded.content_uri`,
+          contentHash: sql`excluded.content_hash`,
+          ...(refreshEligibility
+            ? {
+                sourceBlockNumber: sql`excluded.source_block_number`,
+                sourceBlockHash: sql`excluded.source_block_hash`,
+              }
+            : {
+                sourceBlockNumber: sql`CASE WHEN ${metadataJobs.status} = 'cancelled' THEN excluded.source_block_number ELSE ${metadataJobs.sourceBlockNumber} END`,
+                sourceBlockHash: sql`CASE WHEN ${metadataJobs.status} = 'cancelled' THEN excluded.source_block_hash ELSE ${metadataJobs.sourceBlockHash} END`,
+              }),
+          attempts: 0,
+          nextAttemptAt: sql`excluded.next_attempt_at`,
+          claimedAt: null,
+          lastError: null,
+          updatedAt: sql`excluded.updated_at`,
+        },
+      });
+  }
+}
+
+function targetsByAddress(
+  targets: readonly MetadataTransitionTarget[],
+): Map<string, MetadataTransitionTarget> {
+  return new Map(targets.map((target) => [target.address, target]));
+}
+
+function requiredTarget<T>(targets: ReadonlyMap<string, T>, key: string): T {
+  const target = targets.get(key);
+  if (target == null) throw new Error('Metadata recovery row escaped its bounded target scope');
+  return target;
+}
+
+function dataValueTokenKey(row: DataValueRow): string {
+  if (row.tokenId == null) throw new Error('Recovered token metadata row has no token ID');
+  return tokenKey(row.address, row.tokenId);
+}
+
+function recoverCandidate<T>(
+  row: T,
+  target: MetadataTransitionTarget,
+  lsp29Length?: bigint | null,
+): RecoveredMetadataCandidate<T> {
+  return {
+    row,
+    eligibleBlockNumber: target.eligibleBlockNumber,
+    eligibleBlockHash: target.eligibleBlockHash,
+    ...(lsp29Length === undefined ? {} : { lsp29Length }),
+  };
+}
+
+/** Load authoritative LSP29 array lengths for a bounded set of profile addresses. */
+export async function loadMetadataLsp29Lengths(
   tx: ProjectionTransaction,
   runtime: RuntimeConfig,
-  transitions: MetadataVerificationTransitions,
-): Promise<MetadataRecoveryCandidates> {
-  const recoveredDataValues = new Map<string, DataValueRow>();
-  const recoveredNfts = new Map<string, NftRow>();
-  const contractAddresses = [
-    ...new Set([...transitions.profileAddresses, ...transitions.assetAddresses]),
-  ];
-
-  for (const addressChunk of chunks(contractAddresses)) {
+  addresses: readonly string[],
+): Promise<Map<string, bigint | null>> {
+  const lengths = new Map<string, bigint | null>(addresses.map((address) => [address, null]));
+  for (const addressChunk of chunks([...new Set(addresses)])) {
     const rows = await tx
       .select()
       .from(dataValues)
@@ -128,31 +221,142 @@ export async function loadMetadataRecoveryCandidates(
           eq(dataValues.chainId, runtime.network.chainId),
           inArray(dataValues.address, addressChunk),
           isNull(dataValues.tokenId),
+          eq(dataValues.dataKey, DATA_KEYS.lsp29EncryptedAssetsLength),
         ),
       );
-    for (const row of rows) recoveredDataValues.set(row.id, row);
+    for (const row of rows) lengths.set(row.address, decodeArrayLength(row.dataValue));
+  }
+  return lengths;
+}
+
+/** Yield bounded recovery pages so large verified collections never materialize in memory at once. */
+export async function* loadMetadataRecoveryCandidatePages(
+  tx: ProjectionTransaction,
+  runtime: RuntimeConfig,
+  transitions: MetadataVerificationTransitions,
+): AsyncGenerator<MetadataRecoveryCandidates, void> {
+  for (const targetChunk of chunks(transitions.profileTargets)) {
+    const targets = targetsByAddress(targetChunk);
+    const rows = await tx
+      .select()
+      .from(dataValues)
+      .where(
+        and(
+          eq(dataValues.chainId, runtime.network.chainId),
+          inArray(dataValues.address, [...targets.keys()]),
+          isNull(dataValues.tokenId),
+          eq(dataValues.dataKey, DATA_KEYS.lsp3Profile),
+        ),
+      );
+    if (rows.length > 0) {
+      yield {
+        dataValues: rows.map((row) => recoverCandidate(row, requiredTarget(targets, row.address))),
+        nfts: [],
+      };
+    }
   }
 
-  for (const addressChunk of chunks(transitions.tokenCollectionAddresses)) {
-    const [tokenRows, nftRows] = await Promise.all([
-      tx
+  for (const targetChunk of chunks(transitions.assetTargets)) {
+    const targets = targetsByAddress(targetChunk);
+    const rows = await tx
+      .select()
+      .from(dataValues)
+      .where(
+        and(
+          eq(dataValues.chainId, runtime.network.chainId),
+          inArray(dataValues.address, [...targets.keys()]),
+          isNull(dataValues.tokenId),
+          eq(dataValues.dataKey, DATA_KEYS.lsp4Metadata),
+        ),
+      );
+    if (rows.length > 0) {
+      yield {
+        dataValues: rows.map((row) => recoverCandidate(row, requiredTarget(targets, row.address))),
+        nfts: [],
+      };
+    }
+  }
+
+  for (const targetChunk of chunks(transitions.lsp29Targets)) {
+    const targets = targetsByAddress(targetChunk);
+    const lengths = await loadMetadataLsp29Lengths(tx, runtime, [...targets.keys()]);
+    let afterId: string | null = null;
+    while (true) {
+      const rows = await tx
         .select()
         .from(dataValues)
         .where(
           and(
             eq(dataValues.chainId, runtime.network.chainId),
-            inArray(dataValues.address, addressChunk),
+            inArray(dataValues.address, [...targets.keys()]),
+            isNull(dataValues.tokenId),
+            like(dataValues.dataKey, `${DATA_KEYS.lsp29EncryptedAssetsIndex}%`),
+            afterId == null ? undefined : gt(dataValues.id, afterId),
+          ),
+        )
+        .orderBy(asc(dataValues.id))
+        .limit(WRITE_CHUNK_SIZE);
+      if (rows.length === 0) break;
+      yield {
+        dataValues: rows.map((row) =>
+          recoverCandidate(row, requiredTarget(targets, row.address), lengths.get(row.address)),
+        ),
+        nfts: [],
+      };
+      if (rows.length < WRITE_CHUNK_SIZE) break;
+      afterId = rows.at(-1)?.id ?? null;
+    }
+  }
+
+  for (const targetChunk of chunks(transitions.tokenCollectionTargets)) {
+    const targets = targetsByAddress(targetChunk);
+    let afterDataValueId: string | null = null;
+    while (true) {
+      const rows = await tx
+        .select()
+        .from(dataValues)
+        .where(
+          and(
+            eq(dataValues.chainId, runtime.network.chainId),
+            inArray(dataValues.address, [...targets.keys()]),
             isNotNull(dataValues.tokenId),
             eq(dataValues.dataKey, DATA_KEYS.lsp4Metadata),
+            afterDataValueId == null ? undefined : gt(dataValues.id, afterDataValueId),
           ),
-        ),
-      tx
+        )
+        .orderBy(asc(dataValues.id))
+        .limit(WRITE_CHUNK_SIZE);
+      if (rows.length === 0) break;
+      yield {
+        dataValues: rows.map((row) => recoverCandidate(row, requiredTarget(targets, row.address))),
+        nfts: [],
+      };
+      if (rows.length < WRITE_CHUNK_SIZE) break;
+      afterDataValueId = rows.at(-1)?.id ?? null;
+    }
+
+    let afterNftId: string | null = null;
+    while (true) {
+      const rows = await tx
         .select()
         .from(nfts)
-        .where(and(eq(nfts.chainId, runtime.network.chainId), inArray(nfts.address, addressChunk))),
-    ]);
-    for (const row of tokenRows) recoveredDataValues.set(row.id, row);
-    for (const row of nftRows) recoveredNfts.set(row.id, row);
+        .where(
+          and(
+            eq(nfts.chainId, runtime.network.chainId),
+            inArray(nfts.address, [...targets.keys()]),
+            afterNftId == null ? undefined : gt(nfts.id, afterNftId),
+          ),
+        )
+        .orderBy(asc(nfts.id))
+        .limit(WRITE_CHUNK_SIZE);
+      if (rows.length === 0) break;
+      yield {
+        dataValues: [],
+        nfts: rows.map((row) => recoverCandidate(row, requiredTarget(targets, row.address))),
+      };
+      if (rows.length < WRITE_CHUNK_SIZE) break;
+      afterNftId = rows.at(-1)?.id ?? null;
+    }
   }
 
   for (const targetChunk of chunks(transitions.nftTargets)) {
@@ -169,6 +373,9 @@ export async function loadMetadataRecoveryCandidates(
     if (dataValueScope == null || nftScope == null) {
       throw new Error('Metadata NFT recovery scope must not be empty');
     }
+    const targets = new Map(
+      targetChunk.map((target) => [tokenKey(target.address, target.tokenId), target]),
+    );
     const [tokenRows, nftRows] = await Promise.all([
       tx
         .select()
@@ -185,11 +392,23 @@ export async function loadMetadataRecoveryCandidates(
         .from(nfts)
         .where(and(eq(nfts.chainId, runtime.network.chainId), nftScope)),
     ]);
-    for (const row of tokenRows) recoveredDataValues.set(row.id, row);
-    for (const row of nftRows) recoveredNfts.set(row.id, row);
+    if (tokenRows.length > 0) {
+      yield {
+        dataValues: tokenRows.map((row) =>
+          recoverCandidate(row, requiredTarget(targets, dataValueTokenKey(row))),
+        ),
+        nfts: [],
+      };
+    }
+    if (nftRows.length > 0) {
+      yield {
+        dataValues: [],
+        nfts: nftRows.map((row) =>
+          recoverCandidate(row, requiredTarget(targets, tokenKey(row.address, row.tokenId))),
+        ),
+      };
+    }
   }
-
-  return { dataValues: [...recoveredDataValues.values()], nfts: [...recoveredNfts.values()] };
 }
 
 /** Replace durable jobs for every metadata source changed by one Pipes transaction. */
@@ -227,49 +446,8 @@ export async function applyMetadataSourcePlan(
       .where(or(...conditionChunk));
   }
 
-  const jobRows = plan.sources.map((source): typeof metadataJobs.$inferInsert => ({
-    id: source.id,
-    network: source.network,
-    chainId: source.chainId,
-    kind: source.kind,
-    status: 'pending',
-    address: source.address,
-    tokenId: source.tokenId,
-    dataKey: source.dataKey,
-    sourceRevision: source.sourceRevision,
-    contentUri: source.contentUri,
-    contentHash: source.contentHash,
-    sourceBlockNumber: source.lastBlockNumber,
-    sourceBlockHash: source.lastBlockHash,
-    attempts: 0,
-    nextAttemptAt: now,
-    claimedAt: null,
-    lastError: null,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  for (const rowChunk of chunks(jobRows)) {
-    await tx
-      .insert(metadataJobs)
-      .values(rowChunk)
-      .onConflictDoUpdate({
-        target: metadataJobs.id,
-        set: {
-          kind: sql`excluded.kind`,
-          status: 'pending',
-          contentUri: sql`excluded.content_uri`,
-          contentHash: sql`excluded.content_hash`,
-          sourceBlockNumber: sql`excluded.source_block_number`,
-          sourceBlockHash: sql`excluded.source_block_hash`,
-          attempts: 0,
-          nextAttemptAt: sql`excluded.next_attempt_at`,
-          claimedAt: null,
-          lastError: null,
-          createdAt: sql`excluded.created_at`,
-          updatedAt: sql`excluded.updated_at`,
-        },
-      });
-  }
+  await upsertMetadataJobSources(tx, plan.sources, now, false);
+  await upsertMetadataJobSources(tx, plan.sources, now, true);
 }
 
 /** Atomically claim finalized jobs without blocking another network worker. */
@@ -402,6 +580,24 @@ async function loadCurrentSource(
     }
   }
 
+  let lsp29Length: bigint | null | undefined;
+  if (job.kind === 'lsp29_encrypted_asset') {
+    const lengthQuery = db
+      .select({ dataValue: dataValues.dataValue })
+      .from(dataValues)
+      .where(
+        and(
+          eq(dataValues.chainId, runtime.network.chainId),
+          eq(dataValues.address, job.address),
+          isNull(dataValues.tokenId),
+          eq(dataValues.dataKey, DATA_KEYS.lsp29EncryptedAssetsLength),
+        ),
+      )
+      .limit(1);
+    const lengths = forUpdate ? await lengthQuery.for('update') : await lengthQuery;
+    lsp29Length = lengths[0] == null ? null : decodeArrayLength(lengths[0].dataValue);
+  }
+
   const query = db
     .select()
     .from(dataValues)
@@ -417,6 +613,9 @@ async function loadCurrentSource(
   const rows = forUpdate ? await query.for('update') : await query;
   const row = rows[0];
   if (row == null) return null;
+  if (job.kind === 'lsp29_encrypted_asset' && !isCurrentLsp29MetadataRow(row, lsp29Length)) {
+    return null;
+  }
   try {
     return createDataValueMetadataSource(runtime, row);
   } catch {
