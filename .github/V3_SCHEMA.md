@@ -133,12 +133,14 @@ mapping for every network and reject reserved collisions. Existing chain schemas
 identity table or exactly the configured singleton before it is seeded. A cluster-wide advisory
 lock rejects concurrent migration commands, and reapplying the same plan is idempotent.
 
-The migrator drops all enumerated API views before applying source-table changes, rebuilds them after
-all enabled schemas are current, and attempts restoration when a migration fails. Migration and
-startup inventory the migration table and sequence, cursor, and every expected chain table and
-require the deterministic writer role to own each object. When migrations are pending, the preflight
-audits ownership of the expected objects that already exist without treating not-yet-created latest
-tables as drift; the complete inventory is mandatory after migration. A deterministic live-catalog
+The migrator drops all enumerated API views before applying source-table changes and rebuilds them
+after all enabled schemas are current. View removal, every enabled network migration, and view
+replacement share one PostgreSQL transaction, so a failure on any chain or during the rebuild rolls
+back earlier chain changes and restores the prior views. Migration and startup inventory the
+migration table and sequence, cursor, and every expected chain table and require the deterministic
+writer role to own each object. When migrations are pending, the preflight audits ownership of the
+expected objects that already exist without treating not-yet-created latest tables as drift; the
+complete inventory is mandatory after migration. A deterministic live-catalog
 fingerprint then verifies all non-snapshot tables and sequences, relation settings, columns and
 defaults, constraints, indexes, and sequence parameters. The migrator checks a fully current schema
 before changing it and checks every schema after migration; startup readiness checks it again. A

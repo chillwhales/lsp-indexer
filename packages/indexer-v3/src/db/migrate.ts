@@ -1116,107 +1116,94 @@ async function migrateNetwork(
   network: DatabaseMigrationNetwork,
   migrationsDirectory: string,
 ): Promise<void> {
-  await client.query(`SET ROLE ${quotePostgresIdentifier(network.role)}`);
+  await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(network.role)}`);
   await client.query(
-    `SET search_path TO ${quotePostgresIdentifier(network.schema)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
+    `SET LOCAL search_path TO ${quotePostgresIdentifier(network.schema)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
   );
-  try {
-    await assertExpectedNetworkIdentity(client, network);
-    const db = drizzle(client, { schema });
-    const migrationTable = `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(MIGRATIONS_TABLE)}`;
-    await client.query(`
+  await assertExpectedNetworkIdentity(client, network);
+  const db = drizzle(client, { schema });
+  const migrationTable = `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(MIGRATIONS_TABLE)}`;
+  await client.query(`
       CREATE TABLE IF NOT EXISTS ${migrationTable} (
         id serial PRIMARY KEY,
         hash text NOT NULL,
         created_at bigint NOT NULL
       )
     `);
-    const migrations = readMigrationFiles({ migrationsFolder: migrationsDirectory });
-    const appliedResult = await client.query<MigrationHistoryRow>(
-      `SELECT hash, created_at AS "createdAt" FROM ${migrationTable} ORDER BY created_at`,
-    );
-    if (appliedResult.rows.length > 0) {
-      await ensureChainObjectOwnership(client, network.role, network.schema, false);
+  const migrations = readMigrationFiles({ migrationsFolder: migrationsDirectory });
+  const appliedResult = await client.query<MigrationHistoryRow>(
+    `SELECT hash, created_at AS "createdAt" FROM ${migrationTable} ORDER BY created_at`,
+  );
+  if (appliedResult.rows.length > 0) {
+    await ensureChainObjectOwnership(client, network.role, network.schema, false);
+  }
+  for (const [index, applied] of appliedResult.rows.entries()) {
+    const expected = migrations[index];
+    if (
+      expected == null ||
+      applied.hash !== expected.hash ||
+      Number(applied.createdAt) !== expected.folderMillis
+    ) {
+      throw new Error(`Migration drift detected in "${network.schema}" at migration ${index}`);
     }
-    for (const [index, applied] of appliedResult.rows.entries()) {
-      const expected = migrations[index];
-      if (
-        expected == null ||
-        applied.hash !== expected.hash ||
-        Number(applied.createdAt) !== expected.folderMillis
-      ) {
-        throw new Error(`Migration drift detected in "${network.schema}" at migration ${index}`);
-      }
+  }
+
+  await assertSnapshotEvolutionSafe(
+    client,
+    network.schema,
+    appliedResult.rows.length > 0,
+    appliedResult.rows.length < migrations.length,
+  );
+
+  await db.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtext(${`lsp-indexer-v3:migrations:${network.schema}`})::bigint)`,
+  );
+  for (const migration of migrations.slice(appliedResult.rows.length)) {
+    for (const statement of migration.sql) {
+      if (statement.trim().length > 0) await db.execute(sql.raw(statement));
     }
-
-    await assertSnapshotEvolutionSafe(
-      client,
-      network.schema,
-      appliedResult.rows.length > 0,
-      appliedResult.rows.length < migrations.length,
-    );
-
-    await db.transaction(async (tx): Promise<void> => {
-      await tx.execute(
-        sql`SELECT pg_advisory_xact_lock(hashtext(${`lsp-indexer-v3:migrations:${network.schema}`})::bigint)`,
-      );
-      for (const migration of migrations.slice(appliedResult.rows.length)) {
-        for (const statement of migration.sql) {
-          if (statement.trim().length > 0) await tx.execute(sql.raw(statement));
-        }
-        await tx.execute(sql`
+    await db.execute(sql`
           INSERT INTO ${sql.raw(migrationTable)} (hash, created_at)
           VALUES (${migration.hash}, ${migration.folderMillis})
         `);
-      }
-    });
-    await assertExpectedNetworkIdentity(client, network);
-    await ensureChainObjectOwnership(client, network.role, network.schema);
-    await ensureChainSchemaFingerprint(client, network.schema);
-    await db
-      .insert(networkConfig)
-      .values({
-        network: network.network.key,
-        chainId: network.network.chainId,
-        schemaVersion: DATABASE_SCHEMA_VERSION,
-      })
-      .onConflictDoUpdate({
-        target: [networkConfig.network, networkConfig.chainId],
-        set: { schemaVersion: DATABASE_SCHEMA_VERSION },
-      });
-
-    const publicTableList = publicTables
-      .map((table) => quotePostgresIdentifier(getTableName(table)))
-      .join(', ');
-    await client.query(
-      `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(network.schema)} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
-    );
-    await client.query(
-      `GRANT SELECT ON ${publicTableList} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
-    );
-    await verifyMigrationHistory(client, network.schema, migrationsDirectory);
-  } finally {
-    await client.query('RESET ROLE');
-    await client.query(`SET search_path TO ${quotePostgresIdentifier('public')}`);
   }
+  await assertExpectedNetworkIdentity(client, network);
+  await ensureChainObjectOwnership(client, network.role, network.schema);
+  await ensureChainSchemaFingerprint(client, network.schema);
+  await db
+    .insert(networkConfig)
+    .values({
+      network: network.network.key,
+      chainId: network.network.chainId,
+      schemaVersion: DATABASE_SCHEMA_VERSION,
+    })
+    .onConflictDoUpdate({
+      target: [networkConfig.network, networkConfig.chainId],
+      set: { schemaVersion: DATABASE_SCHEMA_VERSION },
+    });
+
+  const publicTableList = publicTables
+    .map((table) => quotePostgresIdentifier(getTableName(table)))
+    .join(', ');
+  await client.query(
+    `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(network.schema)} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+  );
+  await client.query(
+    `GRANT SELECT ON ${publicTableList} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+  );
+  await verifyMigrationHistory(client, network.schema, migrationsDirectory);
+  await client.query('RESET ROLE');
+  await client.query(`SET LOCAL search_path TO ${quotePostgresIdentifier('public')}`);
 }
 
 async function dropApiViews(client: PoolClient): Promise<void> {
-  await client.query(`SET ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
-  try {
-    await client.query('BEGIN');
-    for (const viewName of publicTables.map(getTableName)) {
-      await client.query(
-        `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
-      );
-    }
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    await client.query('RESET ROLE');
+  await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
+  for (const viewName of publicTables.map(getTableName)) {
+    await client.query(
+      `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
+    );
   }
+  await client.query('RESET ROLE');
 }
 
 async function rebuildApiViews(
@@ -1224,55 +1211,47 @@ async function rebuildApiViews(
   networks: readonly DatabaseMigrationNetwork[],
 ): Promise<string[]> {
   const viewNames = publicTables.map(getTableName);
-  await client.query(`SET ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
+  await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
   await client.query(
-    `SET search_path TO ${quotePostgresIdentifier(API_SCHEMA)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
+    `SET LOCAL search_path TO ${quotePostgresIdentifier(API_SCHEMA)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
   );
-  try {
-    await client.query('BEGIN');
-    for (const viewName of viewNames) {
-      await client.query(
-        `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
-      );
-    }
-    for (const viewName of viewNames) {
-      const view = quotePostgresIdentifier(viewName);
-      const selections = networks
-        .map(
-          (network) =>
-            `SELECT * FROM ${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(viewName)}`,
-        )
-        .join(' UNION ALL ');
-      await client.query(
-        `CREATE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,
-      );
-      await client.query(
-        `REVOKE USAGE ON TYPE ${quotePostgresIdentifier(API_SCHEMA)}.${view} FROM PUBLIC`,
-      );
-    }
-    await ensureApiSchemaInventory(client, viewNames);
+  for (const viewName of viewNames) {
     await client.query(
-      `REVOKE SELECT ON ALL TABLES IN SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+      `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
     );
-    const publicViewList = viewNames
-      .map(
-        (viewName) => `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
-      )
-      .join(', ');
-    await client.query(
-      `GRANT SELECT ON ${publicViewList} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
-    );
-    await client.query(
-      `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
-    );
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    await client.query('RESET ROLE');
-    await client.query(`SET search_path TO ${quotePostgresIdentifier('public')}`);
   }
+  for (const viewName of viewNames) {
+    const view = quotePostgresIdentifier(viewName);
+    const selections = networks
+      .map(
+        (network) =>
+          `SELECT * FROM ${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(viewName)}`,
+      )
+      .join(' UNION ALL ');
+    await client.query(
+      `CREATE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,
+    );
+    await client.query(
+      `REVOKE USAGE ON TYPE ${quotePostgresIdentifier(API_SCHEMA)}.${view} FROM PUBLIC`,
+    );
+  }
+  await ensureApiSchemaInventory(client, viewNames);
+  await client.query(
+    `REVOKE SELECT ON ALL TABLES IN SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+  );
+  const publicViewList = viewNames
+    .map(
+      (viewName) => `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
+    )
+    .join(', ');
+  await client.query(
+    `GRANT SELECT ON ${publicViewList} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+  );
+  await client.query(
+    `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+  );
+  await client.query('RESET ROLE');
+  await client.query(`SET LOCAL search_path TO ${quotePostgresIdentifier('public')}`);
   return viewNames;
 }
 
@@ -1300,12 +1279,14 @@ export async function migrateDatabaseWithPool(
     for (const network of config.networks) {
       await ensureCurrentChainTableOwnership(client, network, migrationsDirectory);
     }
-    await dropApiViews(client);
+    await client.query('BEGIN');
     try {
+      await dropApiViews(client);
       for (const network of config.networks) {
         await migrateNetwork(client, network, migrationsDirectory);
       }
       const publicViews = await rebuildApiViews(client, config.networks);
+      await client.query('COMMIT');
       return {
         networks: config.networks.map((network) => ({
           network: network.network.key,
@@ -1317,16 +1298,7 @@ export async function migrateDatabaseWithPool(
         publicViews,
       };
     } catch (error) {
-      try {
-        await rebuildApiViews(client, config.networks);
-      } catch (restoreError) {
-        const migrationMessage = error instanceof Error ? error.message : String(error);
-        const restoreMessage =
-          restoreError instanceof Error ? restoreError.message : String(restoreError);
-        throw new Error(
-          `Database migration failed (${migrationMessage}) and API views could not be restored (${restoreMessage})`,
-        );
-      }
+      await client.query('ROLLBACK');
       throw error;
     }
   } finally {

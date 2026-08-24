@@ -128,11 +128,13 @@ temporary-database access, and canonical shared-enum usage; `PUBLIC CREATE`, gra
 reachable custom routines are startup failures.
 
 The migrator drops the enumerated API views before source-table migrations and rebuilds them after
-every enabled schema is current, allowing column removal, reordering, and type changes. A rejected
-migration attempts to restore the views before returning. Migration and startup require the writer
-to own the migration table and its sequence, the cursor, and every expected chain table. Before a
-pending migration, the ownership audit permits latest-schema tables that have not been created yet,
-then requires the complete inventory after migration. A deterministic PostgreSQL 17 catalog
+every enabled schema is current, allowing column removal, reordering, and type changes. View
+removal, every enabled network migration, and view replacement share one PostgreSQL transaction; a
+failure on any chain or during the rebuild rolls back earlier chain changes and restores the prior
+views. Migration and startup require the writer to own the migration table and its sequence, the
+cursor, and every expected chain table. Before a pending migration, the ownership audit permits
+latest-schema tables that have not been created yet, then requires the complete inventory after
+migration. A deterministic PostgreSQL 17 catalog
 fingerprint additionally covers all non-snapshot tables and sequences, relation settings, columns
 and defaults, constraints, indexes, and sequence parameters. It runs before changing a fully current
 schema, after every migration, and during startup readiness, so an out-of-band dropped or added

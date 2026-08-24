@@ -586,6 +586,76 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     }
   });
 
+  it('rolls back every network and preserves API views when a later migration fails', async () => {
+    const scratchDatabaseName = `lsp_v3_atomic_${suiteSuffix}`;
+    const scratchUrl = databaseUrl(sourceDatabaseUrl, scratchDatabaseName);
+    const selectedNetworks = ['ethereum-mainnet', 'ethereum-sepolia'].map((networkKey) => {
+      const network = migrationConfig.networks.find(({ network }) => network.key === networkKey);
+      if (network == null) throw new Error(`Expected migration network ${networkKey}`);
+      return network;
+    });
+    const scratchConfig = { connectionString: scratchUrl, networks: selectedNetworks };
+    const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
+      `COMMENT ON TABLE blocks IS 'pending cross-network migration';
+--> statement-breakpoint
+ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
+    );
+    let scratchPool: Pool | undefined;
+    await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(scratchDatabaseName)}`);
+    try {
+      await migrateDatabase(scratchConfig);
+      scratchPool = new Pool({ connectionString: scratchUrl, max: 1 });
+      const viewsBeforeFailure = await scratchPool.query<{ name: string; oid: string }>(`
+        SELECT relation.relname AS name, relation.oid::text AS oid
+        FROM pg_class relation
+        JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'api' AND relation.relkind = 'v'
+        ORDER BY relation.relname
+      `);
+      await scratchPool.query(
+        'ALTER TABLE chain_ethereum_mainnet.metadata_jobs RENAME TO metadata_jobs_pending_migration',
+      );
+
+      await expect(migrateDatabase(scratchConfig, { migrationsDirectory })).rejects.toThrow(
+        'metadata_jobs_pending_migration',
+      );
+
+      for (const network of selectedNetworks) {
+        expect(
+          await countRows(
+            scratchPool,
+            `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier('__drizzle_migrations')}`,
+          ),
+        ).toBe(migrationCount);
+        const tableComment = await scratchPool.query<{ comment: string | null }>(
+          `SELECT obj_description($1::regclass, 'pg_class') AS comment`,
+          [`${network.schema}.blocks`],
+        );
+        expect(tableComment.rows[0]?.comment).toBeNull();
+      }
+      expect(await countRows(scratchPool, 'api.blocks')).toBe(0);
+      const viewsAfterFailure = await scratchPool.query<{ name: string; oid: string }>(`
+        SELECT relation.relname AS name, relation.oid::text AS oid
+        FROM pg_class relation
+        JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'api' AND relation.relkind = 'v'
+        ORDER BY relation.relname
+      `);
+      expect(viewsAfterFailure.rows).toEqual(viewsBeforeFailure.rows);
+      expect(viewsAfterFailure.rows).toHaveLength(14);
+    } finally {
+      await scratchPool?.end();
+      await controlPool.query(
+        'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
+        [scratchDatabaseName],
+      );
+      await controlPool.query(
+        `DROP DATABASE IF EXISTS ${quotePostgresIdentifier(scratchDatabaseName)}`,
+      );
+      await rm(temporaryDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('stores the full unsigned 128-bit ERC725Y array-index range', async () => {
     const issuerAddress = addressFor(230);
     const assetAddress = addressFor(231);

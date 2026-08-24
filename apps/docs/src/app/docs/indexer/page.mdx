@@ -134,12 +134,14 @@ startup.
 
 Before applying table migrations, `db:migrate` removes the enumerated API views so PostgreSQL can
 change source columns that existing views depend on, then rebuilds the views after every enabled
-schema is current. If a migration is rejected, it attempts to restore the views before returning the
-original error. Migration and startup also inventory the migration table, cursor, and every expected
-chain table, plus the migration history sequence, and require the deterministic writer role to own
-each one. A preflight with pending migrations audits all existing expected objects while permitting
-latest-schema tables that the pending migrations have not created yet; the post-migration audit
-requires the complete inventory. A deterministic PostgreSQL 17 live-catalog fingerprint covers all
+schema is current. View removal, all enabled network migrations, and view replacement share one
+PostgreSQL transaction, so a failure on any chain or during the rebuild rolls back earlier chain
+changes and restores the prior views. Migration and startup also inventory the migration table,
+cursor, and every expected chain table, plus the migration history sequence, and require the
+deterministic writer role to own each one. A preflight with pending migrations audits all existing
+expected objects while permitting latest-schema tables that the pending migrations have not created
+yet; the post-migration audit requires the complete inventory. A deterministic PostgreSQL 17
+live-catalog fingerprint covers all
 non-snapshot tables and sequences, relation settings, columns and defaults, constraints, indexes,
 and sequence parameters. Migration verifies a fully current schema before changing it and verifies
 every schema afterward; startup readiness checks it again. Out-of-band added or dropped columns,
