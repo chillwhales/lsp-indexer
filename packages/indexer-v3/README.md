@@ -135,7 +135,8 @@ the cursor at the preceding position.
 Exact replay validates existing deterministic facts but does not reduce them again, preventing
 double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
 deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one
-batch.
+batch. Creator `verified` flags follow later LSP0 verification changes even when the triggering fact
+does not touch the creator registry.
 
 An empty or malformed packed Orb level value clears both level and cooldown while retaining faction.
 CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact

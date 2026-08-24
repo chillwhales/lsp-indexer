@@ -258,6 +258,26 @@ describe('projection state loader', () => {
     expect(state.chillwhalesNfts.has(`${asset}:${tokenId}`)).toBe(true);
   });
 
+  it('loads creator rows that reference profiles being reverified', async () => {
+    const predicates = new Map<unknown, SQL>();
+    const profileEvidence = event(0, {
+      address: asset,
+      eventName: 'Follow',
+      eventDomain: 'lsp26',
+      decoded: { followerAddress: firstProfile, followedAddress: secondProfile },
+    });
+
+    await loadProjectionState(fakeTransaction(new Map(), new Set(), predicates), 42, [
+      profileEvidence,
+    ]);
+
+    const creatorPredicate = predicates.get(creators);
+    if (creatorPredicate == null) throw new Error('Expected a reverse creator predicate');
+    const query = new PgDialect().sqlToQuery(creatorPredicate);
+    expect(query.sql).toContain('"creators"."creator_address" in');
+    expect(query.params).toEqual(expect.arrayContaining([firstProfile, secondProfile]));
+  });
+
   it('loads a full NFT collection only for collection-wide derived-value changes', async () => {
     const selected = new Set<unknown>();
     const predicates = new Map<unknown, SQL>();

@@ -58,6 +58,7 @@ interface ProjectionScope {
   ownedTokenIds: Set<string>;
   followerEdgeIds: Set<string>;
   creatorAssets: Set<string>;
+  creatorProfiles: Set<string>;
   issuerProfiles: Set<string>;
   controllerProfiles: Set<string>;
   extensionIds: Set<string>;
@@ -93,6 +94,7 @@ function createProjectionScope(
     ownedTokenIds: new Set(),
     followerEdgeIds: new Set(),
     creatorAssets: new Set(),
+    creatorProfiles: new Set(),
     issuerProfiles: new Set(),
     controllerProfiles: new Set(),
     extensionIds: new Set(),
@@ -102,6 +104,7 @@ function createProjectionScope(
     for (const candidate of collectEventVerificationCandidates(event)) {
       if (candidate.category === 'universalProfile') {
         scope.profileAddresses.add(candidate.address);
+        scope.creatorProfiles.add(candidate.address);
       } else {
         scope.assetAddresses.add(candidate.address);
       }
@@ -237,6 +240,29 @@ async function loadNftRows(
   return [...new Map([...byId, ...byCollection].map((row) => [row.id, row])).values()];
 }
 
+async function loadCreatorRows(
+  tx: PersistenceHandlerContext['tx'],
+  chainId: number,
+  assetAddresses: readonly string[],
+  creatorAddresses: readonly string[],
+): Promise<CreatorRow[]> {
+  const [byAsset, byCreator] = await Promise.all([
+    loadInChunks(assetAddresses, async (chunk) =>
+      tx
+        .select()
+        .from(creators)
+        .where(and(eq(creators.chainId, chainId), inArray(creators.assetAddress, chunk))),
+    ),
+    loadInChunks(creatorAddresses, async (chunk) =>
+      tx
+        .select()
+        .from(creators)
+        .where(and(eq(creators.chainId, chainId), inArray(creators.creatorAddress, chunk))),
+    ),
+  ]);
+  return [...new Map([...byAsset, ...byCreator].map((row) => [row.id, row])).values()];
+}
+
 /** Load only the current rows that can be touched by this canonical event subset. */
 export async function loadProjectionState(
   tx: PersistenceHandlerContext['tx'],
@@ -296,12 +322,7 @@ export async function loadProjectionState(
         .from(followerEdges)
         .where(and(eq(followerEdges.chainId, chainId), inArray(followerEdges.id, chunk))),
     ),
-    loadInChunks([...scope.creatorAssets], async (chunk) =>
-      tx
-        .select()
-        .from(creators)
-        .where(and(eq(creators.chainId, chainId), inArray(creators.assetAddress, chunk))),
-    ),
+    loadCreatorRows(tx, chainId, [...scope.creatorAssets], [...scope.creatorProfiles]),
     loadInChunks([...scope.issuerProfiles], async (chunk) =>
       tx
         .select()

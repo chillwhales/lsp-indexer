@@ -664,6 +664,52 @@ describe('deterministic v3 domain reducer', () => {
     expect(mutations.dataValues).toHaveLength(changes.length);
   });
 
+  it('refreshes creator verification when the referenced profile changes status', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const creatorIndex = `${DATA_KEYS.lsp4CreatorsIndex}${toHex(0n, { size: 16 }).slice(2)}`;
+    const creatorEntry = dataChanged(runtime, 1, asset, creatorIndex, bob);
+    const state = emptyState();
+    reduceProjectionEvents(
+      runtime,
+      state,
+      [creatorEntry],
+      verifications([creatorEntry], [], new Map([[asset, 'lsp7']])),
+    );
+    expect(state.creators.get(`${asset}:${bob}`)?.verified).toBe(false);
+
+    const profileVerified = event(runtime, 2, 0, {
+      address: controller,
+      eventName: 'Follow',
+      eventDomain: 'lsp26',
+      decoded: { followerAddress: bob, followedAddress: alice },
+    });
+    const promoted = reduceProjectionEvents(
+      runtime,
+      state,
+      [profileVerified],
+      verifications([profileVerified], [alice, bob], new Map()),
+    );
+    expect(promoted.creators).toEqual([
+      expect.objectContaining({ creatorAddress: bob, verified: true, lastBlockNumber: 2 }),
+    ]);
+
+    const profileInvalid = event(runtime, 3, 0, {
+      address: controller,
+      eventName: 'Unfollow',
+      eventDomain: 'lsp26',
+      decoded: { followerAddress: bob, unfollowedAddress: alice },
+    });
+    const demoted = reduceProjectionEvents(
+      runtime,
+      state,
+      [profileInvalid],
+      verifications([profileInvalid], [alice], new Map()),
+    );
+    expect(demoted.creators).toEqual([
+      expect.objectContaining({ creatorAddress: bob, verified: false, lastBlockNumber: 3 }),
+    ]);
+  });
+
   it('treats empty creator, issued-asset, and controller array lengths as zero', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const creatorIndex = `${DATA_KEYS.lsp4CreatorsIndex}${toHex(0n, { size: 16 }).slice(2)}`;

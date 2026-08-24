@@ -292,7 +292,8 @@ while controllers with independent permission maps remain. Other malformed lengt
 transport or result-shape failures abort the batch before the cursor commits. Exact replay can
 validate existing deterministic facts but cannot double-apply balances or supply. Changed creator,
 issued-asset, and controller rows are deleted before reinsertion so unique array indexes may safely
-swap within one batch.
+swap within one batch. A creator's derived `verified` flag is refreshed whenever that address gains
+or loses LSP0 verification, even when the triggering fact is unrelated to the creator registry.
 
 LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
 cooldown, and faction. Clearing or replacing packed Orb level data with fewer than eight bytes

@@ -180,6 +180,19 @@ function clearLsp8State(context: ReducerContext, address: string): void {
   }
 }
 
+function refreshCreatorVerification(
+  context: ReducerContext,
+  event: EventFactRecord,
+  creatorAddress: string,
+  verified: boolean,
+): void {
+  for (const [key, row] of context.state.creators) {
+    if (row.creatorAddress !== creatorAddress || row.verified === verified) continue;
+    context.state.creators.set(key, { ...row, verified, ...provenance(event) });
+    context.changes.creators.add(key);
+  }
+}
+
 function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): void {
   for (const candidate of collectEventVerificationCandidates(event)) {
     const verification = context.verifications.get(
@@ -195,6 +208,7 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
     if (candidate.category === 'universalProfile') {
       const existing = context.state.universalProfiles.get(candidate.address);
       if (verification.status === 'invalid') {
+        refreshCreatorVerification(context, event, candidate.address, false);
         if (existing != null && existing.verification !== 'invalid') {
           context.state.universalProfiles.set(candidate.address, {
             ...existing,
@@ -224,6 +238,7 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         });
         context.changes.universalProfiles.add(candidate.address);
       }
+      refreshCreatorVerification(context, event, candidate.address, true);
     } else {
       const existing = context.state.digitalAssets.get(candidate.address);
       if (verification.status === 'invalid') {

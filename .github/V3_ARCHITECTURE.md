@@ -347,7 +347,9 @@ existing state scope needed by those facts through bounded lookup chunks, applie
 order, deletes stale registry or zero-balance rows, and upserts the resulting current state. A
 transfer affects typed state only when its decoded LSP7/LSP8 domain matches the asset's verified
 standard. The canonical empty ERC725Y array-length value is length zero; malformed non-empty lengths
-do not mutate current arrays. Exact replay can validate an existing fact but cannot apply it twice.
+do not mutate current arrays. Creator rows are reverse-scoped by every reverified profile so their
+derived verification flag cannot drift from current LSP0 support. Exact replay can validate an
+existing fact but cannot apply it twice.
 
 Interface verification is planned per exact `(block number, block hash, category, address)` and
 supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded
