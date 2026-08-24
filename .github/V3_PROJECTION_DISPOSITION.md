@@ -18,6 +18,7 @@ chain-scoped current-state tables.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional
   references remain absent while their source fact/value remains queryable. A later invalid result
   marks an existing core row invalid and blocks further typed mutations until it verifies again.
+  Successful re-verification refreshes the current asset standard and its standard-specific fields.
 - A fresh or reset projection database must start at the configured network origin. An existing
   cursor permits continuation only when `INDEXER_FROM_BLOCK` does not skip the next block.
 - Only event IDs newly inserted in the target transaction reach the reducer. Resetting a cursor and

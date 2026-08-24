@@ -275,10 +275,12 @@ locations.
 
 Invalid interface candidates do not create typed rows. If a previously verified contract later
 fails verification, its core row becomes `invalid` and later facts cannot mutate typed state until
-it verifies again. Raw facts and ERC725Y values remain available. RPC transport or result-shape
-failures abort the batch before the cursor commits. Exact replay can validate existing deterministic
-facts but cannot double-apply balances or supply. Changed creator, issued-asset, and controller rows
-are deleted before reinsertion so unique array indexes may safely swap within one batch.
+it verifies again. A later successful verification refreshes the asset's current standard and
+standard-specific fields, so implementation upgrades do not retain a stale classification. Raw
+facts and ERC725Y values remain available. RPC transport or result-shape failures abort the batch
+before the cursor commits. Exact replay can validate existing deterministic facts but cannot
+double-apply balances or supply. Changed creator, issued-asset, and controller rows are deleted
+before reinsertion so unique array indexes may safely swap within one batch.
 
 LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
 cooldown, and faction. Claim reads happen only at the Portal's available head and use its exact

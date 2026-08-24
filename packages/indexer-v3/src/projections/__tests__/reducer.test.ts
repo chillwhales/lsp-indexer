@@ -180,6 +180,33 @@ describe('deterministic v3 domain reducer', () => {
     expect(state.ownedAssets.has(`${bob}:${asset}`)).toBe(false);
   });
 
+  it('uses the latest verified asset standard after an implementation upgrade', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const lsp7Mint = transfer(runtime, 1, asset, 'lsp7', ZERO_ADDRESS, alice, '10');
+    const state = emptyState();
+    reduceProjectionEvents(
+      runtime,
+      state,
+      [lsp7Mint],
+      verifications([lsp7Mint], [alice], new Map([[asset, 'lsp7']])),
+    );
+
+    const lsp8Mint = transfer(runtime, 2, asset, 'lsp8', ZERO_ADDRESS, bob, '1');
+    const mutations = reduceProjectionEvents(
+      runtime,
+      state,
+      [lsp8Mint],
+      verifications([lsp8Mint], [bob], new Map([[asset, 'lsp8']])),
+    );
+
+    expect(mutations.digitalAssets).toEqual([
+      expect.objectContaining({ address: asset, standard: 'lsp8', decimals: null }),
+    ]);
+    expect(mutations.nfts).toEqual([
+      expect.objectContaining({ address: asset, tokenId, ownerAddress: bob }),
+    ]);
+  });
+
   it('orders LSP7 mint, transfer, and burn facts and produces exact supply and balances', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const events = [

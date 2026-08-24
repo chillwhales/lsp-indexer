@@ -115,7 +115,9 @@ The reducer applies only newly inserted facts in block/transaction/log order and
 
 A failed individual interface call produces no new typed entity. If a previously verified contract
 later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
-until it verifies again. Raw events and ERC725Y values remain stored. A transport or
+until it verifies again. A later successful verification refreshes the asset's current standard and
+standard-specific fields, so implementation upgrades do not retain a stale classification. Raw
+events and ERC725Y values remain stored. A transport or
 malformed-response failure aborts the transaction and leaves the cursor at the preceding position.
 Exact replay validates existing deterministic facts but does not reduce them again, preventing
 double-applied balances and supply. Changed creator, issued-asset, and controller relationships are

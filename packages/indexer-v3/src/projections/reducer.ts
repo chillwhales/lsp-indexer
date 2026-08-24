@@ -211,6 +211,8 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         }
         continue;
       }
+      const standard = verification.standard ?? 'unknown';
+      const decimals = standard === 'lsp7' ? verification.decimals : null;
       if (existing == null) {
         context.state.digitalAssets.set(candidate.address, {
           id: createAddressId('digital-asset', context.runtime.network.chainId, candidate.address),
@@ -218,11 +220,11 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
           chainId: context.runtime.network.chainId,
           address: candidate.address,
           ownerAddress: null,
-          standard: verification.standard ?? 'unknown',
+          standard,
           tokenType: null,
           name: null,
           symbol: null,
-          decimals: verification.decimals,
+          decimals,
           totalSupply: null,
           tokenIdFormat: null,
           tokenIdReferenceContract: null,
@@ -233,17 +235,14 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         context.changes.digitalAssets.add(candidate.address);
       } else if (
         existing.verification !== 'verified' ||
-        (existing.standard === 'unknown' && verification.standard != null) ||
-        (existing.decimals == null && verification.decimals != null)
+        existing.standard !== standard ||
+        existing.decimals !== decimals
       ) {
         context.state.digitalAssets.set(candidate.address, {
           ...existing,
           verification: 'verified',
-          standard:
-            existing.standard === 'unknown'
-              ? (verification.standard ?? 'unknown')
-              : existing.standard,
-          decimals: existing.decimals ?? verification.decimals,
+          standard,
+          decimals,
           ...provenance(event),
         });
         context.changes.digitalAssets.add(candidate.address);
