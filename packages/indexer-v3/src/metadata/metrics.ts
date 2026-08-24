@@ -4,7 +4,11 @@ export interface MetadataMetrics {
   claimed: Counter<'network' | 'kind'>;
   completed: Counter<'network' | 'kind' | 'outcome'>;
   retries: Counter<'network' | 'kind'>;
+  failures: Counter<'network' | 'kind' | 'reason'>;
   backlog: Gauge<'network' | 'status'>;
+  oldestAge: Gauge<'network' | 'status'>;
+  maximumAttempts: Gauge<'network' | 'status'>;
+  attempts: Histogram<'network' | 'kind'>;
   fetchDuration: Histogram<'network' | 'kind'>;
   queueLatency: Histogram<'network' | 'kind'>;
   responseBytes: Histogram<'network' | 'kind'>;
@@ -28,10 +32,31 @@ export function registerMetadataMetrics(metrics: MetricsServer['metrics']): Meta
       help: 'Retryable metadata failures scheduled for another attempt.',
       labelNames: ['network', 'kind'] as const,
     }),
+    failures: metrics.counter({
+      name: 'lsp_indexer_metadata_failures_total',
+      help: 'Metadata fetch failures by bounded reason category.',
+      labelNames: ['network', 'kind', 'reason'] as const,
+    }),
     backlog: metrics.gauge({
       name: 'lsp_indexer_metadata_jobs',
       help: 'Current metadata job rows by lifecycle status.',
       labelNames: ['network', 'status'] as const,
+    }),
+    oldestAge: metrics.gauge({
+      name: 'lsp_indexer_metadata_oldest_age_seconds',
+      help: 'Age of the oldest metadata job in each lifecycle status.',
+      labelNames: ['network', 'status'] as const,
+    }),
+    maximumAttempts: metrics.gauge({
+      name: 'lsp_indexer_metadata_maximum_attempts',
+      help: 'Highest durable attempt count in each lifecycle status.',
+      labelNames: ['network', 'status'] as const,
+    }),
+    attempts: metrics.histogram({
+      name: 'lsp_indexer_metadata_settlement_attempts',
+      help: 'Attempt number at which a metadata job settles or retries.',
+      labelNames: ['network', 'kind'] as const,
+      buckets: [1, 2, 3, 4, 6, 10, 20, 50, 100],
     }),
     fetchDuration: metrics.histogram({
       name: 'lsp_indexer_metadata_fetch_duration_seconds',

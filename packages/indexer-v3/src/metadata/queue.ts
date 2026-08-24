@@ -1,7 +1,29 @@
-import { and, asc, count, eq, inArray, isNull, lte, ne, or, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  isNull,
+  lte,
+  max,
+  min,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
-import { dataValues, indexedHeads, metadataJobs, metadataRevisions, nfts } from '../db/schema.js';
+import {
+  dataValues,
+  digitalAssets,
+  indexedHeads,
+  metadataJobs,
+  metadataRevisions,
+  nfts,
+  universalProfiles,
+} from '../db/schema.js';
 import type { PersistenceHandlerContext } from '../db/target.js';
 import { DATA_KEYS } from '../projections/standards.js';
 import {
@@ -48,6 +70,8 @@ export interface CompletedMetadataContent {
 export interface MetadataBacklogCount {
   status: MetadataJobStatus;
   count: number;
+  oldestCreatedAt: Date | null;
+  maximumAttempts: number;
 }
 
 export type MetadataSettlement = 'succeeded' | 'retry' | 'failed' | 'cancelled' | 'lost_claim';
@@ -229,8 +253,42 @@ async function loadCurrentSource(
   job: MetadataJob,
   forUpdate: boolean,
 ): Promise<MetadataSource | null> {
-  if (job.kind === 'lsp4_token' && job.dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
-    const query = db
+  if (job.kind === 'lsp3_profile' || job.kind === 'lsp29_encrypted_asset') {
+    const profileQuery = db
+      .select({ verification: universalProfiles.verification })
+      .from(universalProfiles)
+      .where(
+        and(
+          eq(universalProfiles.chainId, runtime.network.chainId),
+          eq(universalProfiles.address, job.address),
+        ),
+      )
+      .limit(1);
+    const profiles = forUpdate ? await profileQuery.for('update') : await profileQuery;
+    if (profiles[0]?.verification !== 'verified') return null;
+  } else if (job.kind === 'lsp4_asset' || job.kind === 'lsp4_token') {
+    const assetQuery = db
+      .select({
+        verification: digitalAssets.verification,
+        standard: digitalAssets.standard,
+      })
+      .from(digitalAssets)
+      .where(
+        and(
+          eq(digitalAssets.chainId, runtime.network.chainId),
+          eq(digitalAssets.address, job.address),
+        ),
+      )
+      .limit(1);
+    const assets = forUpdate ? await assetQuery.for('update') : await assetQuery;
+    if (assets[0]?.verification !== 'verified') return null;
+    if (job.kind === 'lsp4_token' && assets[0].standard !== 'lsp8') return null;
+  } else {
+    return null;
+  }
+
+  if (job.kind === 'lsp4_token') {
+    const nftQuery = db
       .select()
       .from(nfts)
       .where(
@@ -241,13 +299,15 @@ async function loadCurrentSource(
         ),
       )
       .limit(1);
-    const rows = forUpdate ? await query.for('update') : await query;
-    const row = rows[0];
-    if (row == null) return null;
-    try {
-      return createNftMetadataSource(runtime, row);
-    } catch {
-      return null;
+    const rows = forUpdate ? await nftQuery.for('update') : await nftQuery;
+    const nft = rows[0];
+    if (nft?.verification !== 'verified') return null;
+    if (job.dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
+      try {
+        return createNftMetadataSource(runtime, nft);
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -374,22 +434,7 @@ export async function completeMetadataJob(
       await tx
         .insert(metadataRevisions)
         .values(values)
-        .onConflictDoUpdate({
-          target: metadataRevisions.id,
-          set: {
-            contentUri: values.contentUri,
-            contentHash: values.contentHash,
-            content: values.content,
-            contentType: values.contentType,
-            contentLength: values.contentLength,
-            fetchedAt: values.fetchedAt,
-            lastBlockNumber: values.lastBlockNumber,
-            lastBlockHash: values.lastBlockHash,
-            lastTransactionHash: values.lastTransactionHash,
-            lastTransactionIndex: values.lastTransactionIndex,
-            lastLogIndex: values.lastLogIndex,
-          },
-        });
+        .onConflictDoNothing({ target: metadataRevisions.id });
       await tx
         .update(metadataJobs)
         .set({ status: 'succeeded', claimedAt: null, lastError: null, updatedAt: result.fetchedAt })
@@ -443,7 +488,12 @@ export async function countMetadataJobs(
   runtime: RuntimeConfig,
 ): Promise<MetadataBacklogCount[]> {
   const rows = await db
-    .select({ status: metadataJobs.status, value: count() })
+    .select({
+      status: metadataJobs.status,
+      value: count(),
+      oldestCreatedAt: min(metadataJobs.createdAt),
+      maximumAttempts: max(metadataJobs.attempts),
+    })
     .from(metadataJobs)
     .where(
       and(
@@ -452,6 +502,14 @@ export async function countMetadataJobs(
       ),
     )
     .groupBy(metadataJobs.status);
-  const values = new Map(rows.map(({ status, value }) => [status, value]));
-  return ALL_JOB_STATUSES.map((status) => ({ status, count: values.get(status) ?? 0 }));
+  const values = new Map(rows.map((row) => [row.status, row]));
+  return ALL_JOB_STATUSES.map((status) => {
+    const row = values.get(status);
+    return {
+      status,
+      count: row?.value ?? 0,
+      oldestCreatedAt: row?.oldestCreatedAt ?? null,
+      maximumAttempts: row?.maximumAttempts ?? 0,
+    };
+  });
 }

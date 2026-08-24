@@ -397,9 +397,11 @@ valid UTF-8 and JSON, kind-specific LSP parsing, and LSP2/LSP31 keccak verificat
 source supplies it. Workers reload the exact source before requesting it and lock/reload it again
 inside a serializable settlement transaction. Publication succeeds only while the claim token,
 natural key, URI, content hash, and source revision still match. Otherwise the job is cancelled and
-the response cannot replace newer canonical state.
+the response cannot replace newer canonical state. Token publication additionally requires both a
+currently verified NFT and a currently verified LSP8 parent collection.
 
-Pipes metrics expose claims, outcomes, retries, backlog by status, queue latency, fetch latency, and
+Pipes metrics expose claims and throughput, outcomes, categorized failures, retries, backlog by
+status, oldest backlog age, maximum and settlement attempts, queue latency, fetch latency, and
 response bytes. The worker requires only its network-scoped database role and can restart or scale
 without Portal or RPC connectivity.
 
@@ -421,8 +423,8 @@ Each source revision has an immutable deterministic job identity, and job state 
 the Pipes rollback target. If unfinalized revision B supersedes a processing job for finalized
 revision A, B snapshots A before cancelling it. Settlement by A's old claim writes nothing. Rolling
 B back removes B and restores A's prior job and lease; normal expired-lease recovery then reclaims A
-and can publish its immutable revision. #385 must include a PostgreSQL integration test for this
-exact A → B → rollback → A recovery sequence.
+and can publish its immutable revision. The #385 PostgreSQL suite executes this exact A → B →
+rollback → A recovery sequence.
 
 ## Query and package boundary
 

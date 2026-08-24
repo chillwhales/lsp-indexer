@@ -1,10 +1,11 @@
 import { keccak256, toHex } from 'viem';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   fetchMetadata,
   resolveMetadataRequestUrl,
   type MetadataFetchConfig,
   type MetadataFetchResult,
+  type MetadataRequestImplementation,
 } from '../fetch.js';
 import type { MetadataSource } from '../source.js';
 
@@ -35,28 +36,32 @@ function createSource(overrides: Partial<MetadataSource> = {}): MetadataSource {
 }
 
 function mockFetch(responses: readonly (Response | Error)[]): {
-  fetchImplementation: typeof fetch;
+  fetchImplementation: MetadataRequestImplementation;
   urls: string[];
+  addresses: string[];
 } {
   const urls: string[] = [];
+  const addresses: string[] = [];
   let index = 0;
-  const fetchImplementation: typeof fetch = (input): Promise<Response> => {
-    urls.push(input instanceof Request ? input.url : input.toString());
+  const fetchImplementation: MetadataRequestImplementation = (url, address): Promise<Response> => {
+    urls.push(url.toString());
+    addresses.push(address.address);
     const response = responses[index++];
     if (response == null) return Promise.reject(new Error('Unexpected metadata request'));
     if (response instanceof Error) return Promise.reject(response);
     return Promise.resolve(response);
   };
-  return { fetchImplementation, urls };
+  return { fetchImplementation, urls, addresses };
 }
 
-function createConfig(fetchImplementation: typeof fetch): MetadataFetchConfig {
+function createConfig(requestImplementation: MetadataRequestImplementation): MetadataFetchConfig {
   return {
-    ipfsGateway: 'https://gateway.example.test/ipfs',
+    ipfsGateways: ['https://gateway.example.test/ipfs'],
+    allowHttp: false,
     requestTimeoutMs: 1_000,
     maxResponseBytes: 1_024,
     maxRedirects: 2,
-    fetchImplementation,
+    requestImplementation,
     lookupImplementation: () => Promise.resolve([{ address: '93.184.216.34', family: 4 }]),
   };
 }
@@ -81,6 +86,12 @@ describe('metadata transport', () => {
     expect(resolveMetadataRequestUrl('ipfs://bafy/path.json', 'https://gateway.test/ipfs/')).toBe(
       'https://gateway.test/ipfs/bafy/path.json',
     );
+    expect(() =>
+      resolveMetadataRequestUrl('http://example.com/metadata', 'https://gateway.test/ipfs'),
+    ).toThrow('disabled');
+    expect(
+      resolveMetadataRequestUrl('http://example.com/metadata', 'https://gateway.test/ipfs', true),
+    ).toBe('http://example.com/metadata');
 
     for (const value of [
       'file:///tmp/metadata',
@@ -92,15 +103,24 @@ describe('metadata transport', () => {
       'http://169.254.1.1/metadata',
       'http://172.16.0.1/metadata',
       'http://192.168.0.1/metadata',
-      'http://224.0.0.1/metadata',
-      'http://[::1]/metadata',
-      'http://[::ffff:127.0.0.1]/metadata',
-      'http://[fd00::1]/metadata',
+      'https://224.0.0.1/metadata',
+      'https://240.0.0.1/metadata',
+      'https://[::1]/metadata',
+      'https://[::ffff:127.0.0.1]/metadata',
+      'https://[2002:7f00:1::]/metadata',
+      'https://[2001:db8::1]/metadata',
+      'https://[fd00::1]/metadata',
     ]) {
       expect(() => resolveMetadataRequestUrl(value, 'https://gateway.test/ipfs')).toThrow();
     }
     expect(() =>
       resolveMetadataRequestUrl('ipfs://../secret', 'https://gateway.test/ipfs'),
+    ).toThrow('malformed');
+    expect(() =>
+      resolveMetadataRequestUrl('ipfs://bafy/%5c..%5csecret', 'https://gateway.test/ipfs'),
+    ).toThrow('malformed');
+    expect(() =>
+      resolveMetadataRequestUrl('ipfs://bafy/%00secret', 'https://gateway.test/ipfs'),
     ).toThrow('malformed');
   });
 
@@ -137,6 +157,59 @@ describe('metadata transport', () => {
     ).resolves.toMatchObject({ ok: true, content: assetContent });
   });
 
+  it('accepts bounded data URIs without opening a network connection', async () => {
+    const mocked = mockFetch([new Error('network must not be used')]);
+    const percentEncoded = await fetchMetadata(
+      createSource({ contentUri: `data:application/json,${encodeURIComponent(body)}` }),
+      createConfig(mocked.fetchImplementation),
+    );
+    const base64Encoded = await fetchMetadata(
+      createSource({ contentUri: `data:application/json;base64,${btoa(body)}` }),
+      createConfig(mocked.fetchImplementation),
+    );
+
+    expect(percentEncoded).toMatchObject({ ok: true, content, contentHash: bodyHash });
+    expect(base64Encoded).toMatchObject({ ok: true, content, contentHash: bodyHash });
+    expect(mocked.urls).toEqual([]);
+
+    await expectFetchFailure(
+      fetchMetadata(createSource({ contentUri: 'data:application/json;base64,%%%=' }), {
+        ...createConfig(mocked.fetchImplementation),
+        maxResponseBytes: 10,
+      }),
+      'invalid encoding',
+      false,
+    );
+  });
+
+  it('fails over across configured IPFS gateways and validated DNS addresses', async () => {
+    const gateways = mockFetch([new Error('primary unavailable'), new Response(body)]);
+    const gatewayResult = await fetchMetadata(createSource({ contentUri: 'ipfs://bafy/profile' }), {
+      ...createConfig(gateways.fetchImplementation),
+      ipfsGateways: [
+        'https://primary-gateway.example.test/ipfs',
+        'https://fallback-gateway.example.test/ipfs',
+      ],
+    });
+    expect(gatewayResult).toMatchObject({ ok: true, content });
+    expect(gateways.urls).toEqual([
+      'https://primary-gateway.example.test/ipfs/bafy/profile',
+      'https://fallback-gateway.example.test/ipfs/bafy/profile',
+    ]);
+
+    const addresses = mockFetch([new Error('first address unavailable'), new Response(body)]);
+    const addressResult = await fetchMetadata(createSource(), {
+      ...createConfig(addresses.fetchImplementation),
+      lookupImplementation: () =>
+        Promise.resolve([
+          { address: '93.184.216.34', family: 4 },
+          { address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 },
+        ]),
+    });
+    expect(addressResult).toMatchObject({ ok: true, content });
+    expect(addresses.addresses).toEqual(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']);
+  });
+
   it('validates LSP29 encrypted metadata with the package schema', async () => {
     const encrypted = {
       LSP29EncryptedAsset: {
@@ -170,8 +243,12 @@ describe('metadata transport', () => {
   });
 
   it('follows bounded redirects and validates every redirect target', async () => {
+    const cancelled = vi.fn();
     const successful = mockFetch([
-      new Response(null, { status: 302, headers: { location: '/current.json' } }),
+      new Response(new ReadableStream({ cancel: cancelled }), {
+        status: 302,
+        headers: { location: '/current.json' },
+      }),
       new Response(body),
     ]);
     await expect(
@@ -181,13 +258,14 @@ describe('metadata transport', () => {
       'https://metadata.example.test/profile.json',
       'https://metadata.example.test/current.json',
     ]);
+    expect(cancelled).toHaveBeenCalledOnce();
 
     const privateRedirect = mockFetch([
-      new Response(null, { status: 307, headers: { location: 'http://127.0.0.1/private' } }),
+      new Response(null, { status: 307, headers: { location: 'https://127.0.0.1/private' } }),
     ]);
     await expectFetchFailure(
       fetchMetadata(createSource(), createConfig(privateRedirect.fetchImplementation)),
-      'private',
+      'non-public',
       false,
     );
 
@@ -218,7 +296,21 @@ describe('metadata transport', () => {
         ...createConfig(mocked.fetchImplementation),
         lookupImplementation: () => Promise.resolve([{ address: '10.0.0.8', family: 4 }]),
       }),
-      'resolves to a private IP',
+      'resolves to a non-public IP',
+      false,
+    );
+    expect(mocked.urls).toEqual([]);
+
+    await expectFetchFailure(
+      fetchMetadata(createSource(), {
+        ...createConfig(mocked.fetchImplementation),
+        lookupImplementation: () =>
+          Promise.resolve([
+            { address: '93.184.216.34', family: 4 },
+            { address: '127.0.0.1', family: 4 },
+          ]),
+      }),
+      'non-public IP',
       false,
     );
     expect(mocked.urls).toEqual([]);
@@ -267,6 +359,22 @@ describe('metadata transport', () => {
     await expect(
       fetchMetadata(createSource(), createConfig(terminalError.fetchImplementation)),
     ).resolves.toMatchObject({ ok: false, retryable: false, error: 'unexpected failure' });
+
+    const plainHttp = mockFetch([new Response(body)]);
+    await expectFetchFailure(
+      fetchMetadata(
+        createSource({ contentUri: 'http://metadata.example.test/profile.json' }),
+        createConfig(plainHttp.fetchImplementation),
+      ),
+      'disabled',
+      false,
+    );
+    await expect(
+      fetchMetadata(createSource({ contentUri: 'http://metadata.example.test/profile.json' }), {
+        ...createConfig(plainHttp.fetchImplementation),
+        allowHttp: true,
+      }),
+    ).resolves.toMatchObject({ ok: true, content });
   });
 
   it('rejects oversized, absent, invalid UTF-8, and HTML bodies', async () => {

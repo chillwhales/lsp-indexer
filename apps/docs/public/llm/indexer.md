@@ -105,9 +105,10 @@ through event modules.
 | `METADATA_MAX_ATTEMPTS`                 | No       | `6`                                                         |
 | `METADATA_RETRY_BASE_MS`                | No       | `5000`                                                      |
 | `METADATA_RETRY_MAX_MS`                 | No       | `1800000`                                                   |
-| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; must exceed the request timeout                   |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × configured gateway count        |
 | `METADATA_METRICS_PORT`                 | No       | `9091`; make unique for colocated network workers           |
-| `METADATA_IPFS_GATEWAY`                 | No       | Selected network's configured gateway                       |
+| `METADATA_IPFS_GATEWAYS`                | No       | Ordered list; defaults to the network's configured gateway  |
+| `METADATA_ALLOW_HTTP`                   | No       | `false`; explicitly permit public plain-HTTP sources        |
 | `METADATA_RUN_ONCE`                     | No       | `false`; process one bounded claim batch and exit           |
 
 Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
@@ -354,14 +355,21 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 Workers use bounded concurrency, durable retry timestamps, jittered exponential backoff,
 `FOR UPDATE SKIP LOCKED`, and expiring processing leases. Multiple replicas may drain the same
-network queue. Each worker reloads the current source before the request and inside the publication
-transaction; a changed URI, hash, or source revision cancels the stale result.
+network queue. Shutdown signals wake idle workers immediately and close their metrics server and
+database pool after in-flight work settles. Each worker reloads the current source before the request and inside the publication
+transaction; a changed URI, hash, verification state, or source revision cancels the stale result.
+Token metadata additionally requires both the NFT and its LSP8 parent collection to remain verified.
+Published deterministic revisions are immutable, so a later fetch for the same chain source cannot
+replace their bytes or provenance.
 
-Requests enforce HTTP(S)-only public targets, timeouts, response-size and redirect limits, UTF-8 and
-JSON parsing, LSP schema checks, and LSP2/LSP31 keccak verification where supplied on chain. Metrics
-on `METADATA_METRICS_PORT` report claims, outcomes, retries, backlog, queue latency, request latency,
-and response bytes. The metadata worker needs only the network database connection; it does not
-open Portal or RPC connections.
+Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
+plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker
+normalizes IP literals, rejects mixed or non-public DNS answers, and pins the socket to a validated
+address while retaining the original hostname for TLS. Requests also enforce deadlines, response
+and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. Metrics on
+`METADATA_METRICS_PORT` report throughput, outcomes, categorized failures, retries, backlog and its
+oldest age and maximum attempts, queue/request latency, and response bytes. The worker needs only
+the network database connection; it does not open Portal or RPC connections.
 
 ### Validate a source
 

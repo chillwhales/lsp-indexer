@@ -155,7 +155,8 @@ Metadata fetching is a separate process for each selected network. It never perf
 work inside the Pipes transaction. A worker claims only jobs at or below the committed finalized
 watermark, uses bounded concurrency and `FOR UPDATE SKIP LOCKED`, and recovers an expired
 `processing` lease after a crash or restart. Multiple replicas for the same network can therefore
-drain one queue safely.
+drain one queue safely. `SIGINT` and `SIGTERM` wake an idle poll immediately and close the metrics
+server and database pool after in-flight work settles.
 
 Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
 public HTTP(S) target validation. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29
@@ -164,48 +165,51 @@ backoff; malformed content and exhausted attempts become terminal failures.
 
 The worker reloads the exact current chain source before fetching and again in the serializable
 publication transaction. A changed URI, hash, token location, or source revision cancels the old
-job, so a slow response cannot overwrite newer canonical state. Successful content is stored as a
+job, and token publication requires both the NFT and its LSP8 parent collection to remain verified,
+so a slow response cannot overwrite newer canonical state. Successful content is stored as a
 deterministic `metadata_revisions` row with its source provenance. Job state remains internal and
-is exposed through metrics rather than the public API views.
+is exposed through metrics rather than the public API views. An existing deterministic revision is
+immutable; a later fetch for the same chain source cannot replace its published bytes or provenance.
 
 ## Configuration
 
-| Variable                                | Required | Purpose                                                     |
-| --------------------------------------- | -------- | ----------------------------------------------------------- |
-| `INDEXER_NETWORK`                       | Yes      | Network key from the catalog                                |
-| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation |
-| `INDEXER_TO_BLOCK`                      | No       | Inclusive end block; required by the bounded source probe   |
-| `SQD_PORTAL_URL`                        | No       | Override the selected network's Portal dataset URL          |
-| `RPC_URL`                               | No       | Generic RPC override                                        |
-| `RPC_URL_LUKSO_MAINNET`                 | No       | LUKSO-specific RPC override; takes priority over `RPC_URL`  |
-| `RPC_URL_ETHEREUM_MAINNET`              | No       | Ethereum-specific RPC override                              |
-| `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Sepolia-specific RPC override                               |
-| `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | Explicitly permit an unbounded run against a historical set |
-| `INDEXER_METRICS_PORT`                  | No       | Local runner metrics port; defaults to `9090`               |
-| `DATABASE_URL`                          | Runtime  | Generic PostgreSQL runtime URL                              |
-| `DATABASE_URL_<NETWORK>`                | No       | Network URL override; takes priority over `DATABASE_URL`    |
-| `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL used only by the one-shot migration command       |
-| `DATABASE_MIGRATION_NETWORKS`           | No       | Comma-separated enabled set; defaults to the full catalog   |
-| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login to grant the network writer role             |
-| `DATABASE_POOL_MAX`                     | No       | Runtime connection limit; defaults to `10`                  |
-| `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | Connection timeout; defaults to `10000`                     |
-| `DATABASE_IDLE_TIMEOUT_MS`              | No       | Idle connection timeout; defaults to `30000`                |
-| `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | Statement timeout; defaults to `60000`                      |
-| `DATABASE_LOCK_TIMEOUT_MS`              | No       | Lock timeout; defaults to `10000`                           |
-| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | Idle transaction timeout; defaults to `60000`               |
-| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
-| `METADATA_CONCURRENCY`                  | No       | Concurrent jobs per worker; defaults to `8`                 |
-| `METADATA_POLL_INTERVAL_MS`             | No       | Idle queue poll interval; defaults to `1000`                |
-| `METADATA_REQUEST_TIMEOUT_MS`           | No       | Per-request timeout; defaults to `15000`                    |
-| `METADATA_MAX_RESPONSE_BYTES`           | No       | Response limit; defaults to `2097152`                       |
-| `METADATA_MAX_REDIRECTS`                | No       | Redirect limit; defaults to `3`                             |
-| `METADATA_MAX_ATTEMPTS`                 | No       | Attempts before terminal failure; defaults to `6`           |
-| `METADATA_RETRY_BASE_MS`                | No       | Initial durable retry delay; defaults to `5000`             |
-| `METADATA_RETRY_MAX_MS`                 | No       | Maximum retry delay; defaults to `1800000`                  |
-| `METADATA_LEASE_TIMEOUT_MS`             | No       | Crash-recovery lease; defaults to `300000`                  |
-| `METADATA_METRICS_PORT`                 | No       | Worker metrics port; defaults to `9091`                     |
-| `METADATA_IPFS_GATEWAY`                 | No       | Override the selected network's gateway                     |
-| `METADATA_RUN_ONCE`                     | No       | Drain one claim batch and exit; defaults to `false`         |
+| Variable                                | Required | Purpose                                                       |
+| --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `INDEXER_NETWORK`                       | Yes      | Network key from the catalog                                  |
+| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation   |
+| `INDEXER_TO_BLOCK`                      | No       | Inclusive end block; required by the bounded source probe     |
+| `SQD_PORTAL_URL`                        | No       | Override the selected network's Portal dataset URL            |
+| `RPC_URL`                               | No       | Generic RPC override                                          |
+| `RPC_URL_LUKSO_MAINNET`                 | No       | LUKSO-specific RPC override; takes priority over `RPC_URL`    |
+| `RPC_URL_ETHEREUM_MAINNET`              | No       | Ethereum-specific RPC override                                |
+| `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Sepolia-specific RPC override                                 |
+| `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | Explicitly permit an unbounded run against a historical set   |
+| `INDEXER_METRICS_PORT`                  | No       | Local runner metrics port; defaults to `9090`                 |
+| `DATABASE_URL`                          | Runtime  | Generic PostgreSQL runtime URL                                |
+| `DATABASE_URL_<NETWORK>`                | No       | Network URL override; takes priority over `DATABASE_URL`      |
+| `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL used only by the one-shot migration command         |
+| `DATABASE_MIGRATION_NETWORKS`           | No       | Comma-separated enabled set; defaults to the full catalog     |
+| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login to grant the network writer role               |
+| `DATABASE_POOL_MAX`                     | No       | Runtime connection limit; defaults to `10`                    |
+| `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | Connection timeout; defaults to `10000`                       |
+| `DATABASE_IDLE_TIMEOUT_MS`              | No       | Idle connection timeout; defaults to `30000`                  |
+| `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | Statement timeout; defaults to `60000`                        |
+| `DATABASE_LOCK_TIMEOUT_MS`              | No       | Lock timeout; defaults to `10000`                             |
+| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | Idle transaction timeout; defaults to `60000`                 |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality   |
+| `METADATA_CONCURRENCY`                  | No       | Concurrent jobs per worker; defaults to `8`                   |
+| `METADATA_POLL_INTERVAL_MS`             | No       | Idle queue poll interval; defaults to `1000`                  |
+| `METADATA_REQUEST_TIMEOUT_MS`           | No       | Per-request timeout; defaults to `15000`                      |
+| `METADATA_MAX_RESPONSE_BYTES`           | No       | Response limit; defaults to `2097152`                         |
+| `METADATA_MAX_REDIRECTS`                | No       | Redirect limit; defaults to `3`                               |
+| `METADATA_MAX_ATTEMPTS`                 | No       | Attempts before terminal failure; defaults to `6`             |
+| `METADATA_RETRY_BASE_MS`                | No       | Initial durable retry delay; defaults to `5000`               |
+| `METADATA_RETRY_MAX_MS`                 | No       | Maximum retry delay; defaults to `1800000`                    |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × configured gateway count          |
+| `METADATA_METRICS_PORT`                 | No       | Worker metrics port; defaults to `9091`                       |
+| `METADATA_IPFS_GATEWAYS`                | No       | Ordered comma-separated gateways; defaults to network primary |
+| `METADATA_ALLOW_HTTP`                   | No       | Explicitly permit public plain HTTP; defaults to `false`      |
+| `METADATA_RUN_ONCE`                     | No       | Drain one claim batch and exit; defaults to `false`           |
 
 URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
 ID, and configured contract bytecode are validated before a network program starts. A
@@ -357,7 +361,11 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 Give each concurrently hosted network worker a unique `METADATA_METRICS_PORT`. Set
 `METADATA_RUN_ONCE=true` to claim at most one bounded batch for a job runner or diagnostic. The
-worker needs database readiness, but it does not require Portal or RPC connectivity.
+worker needs database readiness, but it does not require Portal or RPC connectivity. Inline
+`data:` content is bounded; IPFS uses the ordered `METADATA_IPFS_GATEWAYS` list; HTTPS is the
+network default, and public plain HTTP requires `METADATA_ALLOW_HTTP=true`. Every network hop
+rejects mixed or non-public DNS answers and connects through a validated address while preserving
+the hostname for TLS, closing the DNS-rebinding gap.
 
 Run local validation:
 

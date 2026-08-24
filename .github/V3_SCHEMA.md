@@ -142,13 +142,16 @@ Workers claim only jobs at or below `indexed_heads.finalized_block_number`. Post
 can be reclaimed after a crash. A retry clears that lease and persists `next_attempt_at`. Terminal
 transport/content failures become `failed`; a valid current result becomes `succeeded`.
 
-Settlement locks and rebuilds the current `data_values` or NFT source before locking the exact job
-claim. The source natural key, URI, hash, and revision must still match. If any changed, the job is
-cancelled and no revision is written. A successful serializable transaction upserts the parsed JSON
-and response metadata into `metadata_revisions`, retaining direct event provenance or the derived
-token-location source block. PostgreSQL integration tests cover finality gating, durable retry,
-lease recovery, lost claims, stale-result rejection, successful revision publication, and rollback
-of projection-created jobs.
+Settlement locks and rebuilds the current verified profile, asset, or NFT target and its
+`data_values` or derived NFT source before locking the exact job claim. Verification, natural key,
+URI, hash, and revision must still match; token metadata also requires a verified LSP8 parent
+collection. If any changed, the job is cancelled and no revision is written. A successful
+serializable transaction inserts the parsed JSON and response metadata into
+`metadata_revisions` without ever overwriting an existing immutable revision, retaining direct
+event provenance or the derived token-location source block.
+PostgreSQL integration tests cover finality gating, durable retry, verification revocation, lease
+recovery, lost claims, stale-result rejection, successful revision publication, projection-created
+job rollback, and the finalized A → unfinalized B → rollback → recovered A sequence.
 
 ## Transaction and rollback contract
 

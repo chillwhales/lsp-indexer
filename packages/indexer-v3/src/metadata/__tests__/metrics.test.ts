@@ -17,13 +17,17 @@ describe('metadata metrics', () => {
       'lsp_indexer_metadata_jobs_claimed_total',
       'lsp_indexer_metadata_jobs_completed_total',
       'lsp_indexer_metadata_retries_total',
+      'lsp_indexer_metadata_failures_total',
       'lsp_indexer_metadata_jobs',
+      'lsp_indexer_metadata_oldest_age_seconds',
+      'lsp_indexer_metadata_maximum_attempts',
+      'lsp_indexer_metadata_settlement_attempts',
       'lsp_indexer_metadata_fetch_duration_seconds',
       'lsp_indexer_metadata_queue_latency_seconds',
       'lsp_indexer_metadata_response_bytes',
     ]);
-    expect(counter).toHaveBeenCalledTimes(3);
-    expect(gauge).toHaveBeenCalledOnce();
-    expect(histogram).toHaveBeenCalledTimes(3);
+    expect(counter).toHaveBeenCalledTimes(4);
+    expect(gauge).toHaveBeenCalledTimes(3);
+    expect(histogram).toHaveBeenCalledTimes(4);
   });
 });

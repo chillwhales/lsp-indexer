@@ -3,7 +3,7 @@ import { keccak256, toHex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import type { MetadataWorkerConfig } from './config.js';
-import { fetchMetadata } from './fetch.js';
+import { fetchMetadata, type MetadataRequestImplementation } from './fetch.js';
 import type { MetadataMetrics } from './metrics.js';
 import {
   cancelClaimedMetadataJob,
@@ -23,7 +23,7 @@ export interface RunMetadataWorkerOptions {
   metrics?: MetadataMetrics;
   logger?: Logger;
   signal?: AbortSignal;
-  fetchImplementation?: typeof fetch;
+  requestImplementation?: MetadataRequestImplementation;
   now?: () => Date;
 }
 
@@ -32,8 +32,72 @@ export interface MetadataBatchResult {
   settlements: Record<MetadataSettlement, number>;
 }
 
+export type MetadataFailureReason =
+  | 'timeout'
+  | 'dns'
+  | 'unsafe_target'
+  | 'http_client'
+  | 'http_server'
+  | 'response_size'
+  | 'verification'
+  | 'invalid_content'
+  | 'unsupported'
+  | 'transport'
+  | 'unknown';
+
 function emptySettlements(): Record<MetadataSettlement, number> {
   return { succeeded: 0, retry: 0, failed: 0, cancelled: 0, lost_claim: 0 };
+}
+
+/** Convert unbounded transport/parser messages into a stable, low-cardinality metric label. */
+export function metadataFailureReason(error: string): MetadataFailureReason {
+  const normalized = error.toLowerCase();
+  if (normalized.includes('timed out')) return 'timeout';
+  if (
+    normalized.includes('hostname') ||
+    normalized.includes('dns answer') ||
+    normalized.includes('getaddrinfo') ||
+    normalized.includes('enotfound') ||
+    normalized.includes('eai_again')
+  ) {
+    return 'dns';
+  }
+  if (
+    normalized.includes('non-public') ||
+    normalized.includes('local hostname') ||
+    normalized.includes('http metadata requests are disabled')
+  ) {
+    return 'unsafe_target';
+  }
+  if (/http 4\d\d/.test(normalized)) return 'http_client';
+  if (/http 5\d\d/.test(normalized)) return 'http_server';
+  if (normalized.includes('byte maximum') || normalized.includes('declares')) {
+    return 'response_size';
+  }
+  if (normalized.includes('hash') || normalized.includes('verification method')) {
+    return 'verification';
+  }
+  if (
+    normalized.includes('json') ||
+    normalized.includes('utf-8') ||
+    normalized.includes('html') ||
+    normalized.includes('encoding') ||
+    normalized.includes('does not contain')
+  ) {
+    return 'invalid_content';
+  }
+  if (normalized.includes('unsupported')) return 'unsupported';
+  if (
+    normalized.includes('network') ||
+    normalized.includes('connection') ||
+    normalized.includes('unavailable') ||
+    /\beconn(?:aborted|refused|reset)\b/.test(normalized) ||
+    /\be(?:host|net)unreach\b/.test(normalized) ||
+    /\beproto\b/.test(normalized)
+  ) {
+    return 'transport';
+  }
+  return 'unknown';
 }
 
 /** Return deterministic exponential backoff with bounded per-job jitter. */
@@ -62,6 +126,10 @@ function recordSettlement(
   if (settlement === 'retry') {
     options.metrics?.retries.inc({ network: options.runtime.network.key, kind: job.kind }, 1);
   }
+  options.metrics?.attempts.observe(
+    { network: options.runtime.network.key, kind: job.kind },
+    job.attempts,
+  );
 }
 
 async function processClaimedJob(
@@ -80,13 +148,14 @@ async function processClaimedJob(
   }
 
   const result = await fetchMetadata(source, {
-    ipfsGateway: options.config.ipfsGateway,
+    ipfsGateways: options.config.ipfsGateways,
+    allowHttp: options.config.allowHttp,
     requestTimeoutMs: options.config.requestTimeoutMs,
     maxResponseBytes: options.config.maxResponseBytes,
     maxRedirects: options.config.maxRedirects,
-    ...(options.fetchImplementation == null
+    ...(options.requestImplementation == null
       ? {}
-      : { fetchImplementation: options.fetchImplementation }),
+      : { requestImplementation: options.requestImplementation }),
   });
   options.metrics?.fetchDuration.observe(
     { network: options.runtime.network.key, kind: job.kind },
@@ -119,6 +188,14 @@ async function processClaimedJob(
       now,
       maxAttempts: options.config.maxAttempts,
     });
+    options.metrics?.failures.inc(
+      {
+        network: options.runtime.network.key,
+        kind: job.kind,
+        reason: metadataFailureReason(result.error),
+      },
+      1,
+    );
   }
   recordSettlement(options, job, settlement);
   return settlement;
@@ -126,10 +203,21 @@ async function processClaimedJob(
 
 async function updateBacklogMetrics(options: RunMetadataWorkerOptions): Promise<void> {
   if (options.metrics == null) return;
+  const observedAt = options.now?.() ?? new Date();
   for (const row of await countMetadataJobs(options.db, options.runtime)) {
     options.metrics.backlog.set(
       { network: options.runtime.network.key, status: row.status },
       row.count,
+    );
+    options.metrics.oldestAge.set(
+      { network: options.runtime.network.key, status: row.status },
+      row.oldestCreatedAt == null
+        ? 0
+        : Math.max(0, observedAt.getTime() - row.oldestCreatedAt.getTime()) / 1_000,
+    );
+    options.metrics.maximumAttempts.set(
+      { network: options.runtime.network.key, status: row.status },
+      row.maximumAttempts,
     );
   }
 }
@@ -178,15 +266,14 @@ export async function processMetadataBatch(
 function waitForNextPoll(milliseconds: number, signal?: AbortSignal): Promise<void> {
   if (signal?.aborted === true) return Promise.resolve();
   return new Promise((resolve) => {
-    const timeout = setTimeout(resolve, milliseconds);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timeout);
-        resolve();
-      },
-      { once: true },
-    );
+    const timeout = setTimeout(finish, milliseconds);
+    function finish(): void {
+      clearTimeout(timeout);
+      signal?.removeEventListener('abort', finish);
+      resolve();
+    }
+    signal?.addEventListener('abort', finish, { once: true });
+    if (signal?.aborted === true) finish();
   });
 }
 

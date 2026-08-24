@@ -84,10 +84,14 @@ function assertSupportedContentUri(value: string): string {
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error('Metadata URI must be an absolute IPFS, HTTP, or HTTPS URI');
+    throw new Error('Metadata URI must be an absolute data, IPFS, HTTP, or HTTPS URI');
+  }
+  if (parsed.protocol === 'data:') {
+    if (!value.includes(',')) throw new Error('Metadata data URI is malformed');
+    return value;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error('Metadata URI must use IPFS, HTTP, or HTTPS');
+    throw new Error('Metadata URI must use data, IPFS, HTTP, or HTTPS');
   }
   if (parsed.username !== '' || parsed.password !== '') {
     throw new Error('Metadata URI must not contain credentials');
@@ -155,9 +159,21 @@ function isVerifiedTarget(
   if (kind === 'lsp4_asset') {
     return state.digitalAssets.get(row.address)?.verification === 'verified';
   }
+  const asset = state.digitalAssets.get(row.address);
   return (
+    asset?.verification === 'verified' &&
+    asset.standard === 'lsp8' &&
     row.tokenId != null &&
     state.nfts.get(tokenKey(row.address, row.tokenId))?.verification === 'verified'
+  );
+}
+
+function isVerifiedNftTarget(state: ProjectionState, row: NftRow): boolean {
+  const asset = state.digitalAssets.get(row.address);
+  return (
+    asset?.verification === 'verified' &&
+    asset.standard === 'lsp8' &&
+    row.verification === 'verified'
   );
 }
 
@@ -296,7 +312,7 @@ export function planMetadataSources(
     };
     const key = scopeKey(scope);
     scopes.set(key, scope);
-    if (row.verification !== 'verified') continue;
+    if (!isVerifiedNftTarget(state, row)) continue;
     try {
       const source = createNftMetadataSource(runtime, row);
       if (source != null) sources.set(key, source);

@@ -82,6 +82,33 @@ function createState(): ProjectionState {
   };
 }
 
+function createVerifiedLsp8State(): ProjectionState {
+  const state = createState();
+  state.digitalAssets.set(asset, {
+    id: 'asset-id',
+    network: runtime.network.key,
+    chainId: runtime.network.chainId,
+    address: asset,
+    ownerAddress: profile,
+    standard: 'lsp8',
+    tokenType: 1,
+    name: 'Collection',
+    symbol: 'NFT',
+    decimals: null,
+    totalSupply: '1',
+    tokenIdFormat: 0,
+    tokenIdReferenceContract: null,
+    baseUri: 'ipfs://collection/',
+    verification: 'verified',
+    lastBlockNumber: 100,
+    lastBlockHash: blockHash,
+    lastTransactionHash: transactionHash,
+    lastTransactionIndex: 1,
+    lastLogIndex: 2,
+  });
+  return state;
+}
+
 function createMutations(overrides: Partial<ProjectionMutations> = {}): ProjectionMutations {
   return {
     universalProfiles: [],
@@ -100,6 +127,7 @@ function createMutations(overrides: Partial<ProjectionMutations> = {}): Projecti
     deletedCreatorIds: [],
     deletedIssuedAssetIds: [],
     deletedControllerIds: [],
+    deletedNftCollections: [],
     ...overrides,
   };
 }
@@ -217,6 +245,15 @@ describe('metadata source planning', () => {
       contentHash: null,
       verificationMethod: null,
     });
+    expect(
+      createNftMetadataSource(
+        runtime,
+        createNft({ tokenUri: 'data:application/json,%7B%22LSP4Metadata%22%3A%7B%7D%7D' }),
+      ),
+    ).toMatchObject({
+      kind: 'lsp4_token',
+      contentUri: 'data:application/json,%7B%22LSP4Metadata%22%3A%7B%7D%7D',
+    });
   });
 
   it('ignores unrelated or empty values and rejects unsafe references', () => {
@@ -230,7 +267,7 @@ describe('metadata source planning', () => {
     expect(createNftMetadataSource(runtime, createNft({ tokenUri: null }))).toBeNull();
     expect(() =>
       createNftMetadataSource(runtime, createNft({ tokenUri: 'file:///tmp/metadata.json' })),
-    ).toThrow('IPFS, HTTP, or HTTPS');
+    ).toThrow('data, IPFS, HTTP, or HTTPS');
 
     const unsafe = encodeVerifiableUri(profileContent, 'https://user:password@example.com/profile');
     expect(() =>
@@ -307,15 +344,37 @@ describe('metadata source planning', () => {
     expect(plan.rejected[0]?.reason).toBeTruthy();
   });
 
+  it('requires a verified NFT and LSP8 parent for direct token metadata', () => {
+    const state = createVerifiedLsp8State();
+    const nft = createNft();
+    state.nfts.set(`${asset}:${tokenId}`, nft);
+    const row = createDataValue({
+      address: asset,
+      tokenId,
+      dataKey: DATA_KEYS.lsp4Metadata,
+      dataValue: encodeVerifiableUri({ LSP4Metadata: { name: 'Token' } }, 'ipfs://token'),
+    });
+    const mutations = createMutations({ dataValues: [row] });
+
+    expect(planMetadataSources(runtime, state, mutations, []).sources).toHaveLength(1);
+    state.nfts.set(`${asset}:${tokenId}`, { ...nft, verification: 'invalid' });
+    expect(planMetadataSources(runtime, state, mutations, []).sources).toEqual([]);
+
+    state.nfts.set(`${asset}:${tokenId}`, nft);
+    const currentAsset = state.digitalAssets.get(asset);
+    if (currentAsset == null) throw new Error('Expected asset state fixture');
+    state.digitalAssets.set(asset, { ...currentAsset, standard: 'lsp7' });
+    expect(planMetadataSources(runtime, state, mutations, []).sources).toEqual([]);
+  });
+
   it('queues derived token URIs only for mints and URI derivation changes', () => {
     const nft = createNft();
     const mutations = createMutations({ nfts: [nft] });
+    const state = createVerifiedLsp8State();
 
+    expect(planMetadataSources(runtime, state, mutations, [createEvent()]).sources).toHaveLength(1);
     expect(
-      planMetadataSources(runtime, createState(), mutations, [createEvent()]).sources,
-    ).toHaveLength(1);
-    expect(
-      planMetadataSources(runtime, createState(), mutations, [
+      planMetadataSources(runtime, state, mutations, [
         createEvent({
           eventName: 'DataChanged',
           eventDomain: 'erc725y',
@@ -324,19 +383,26 @@ describe('metadata source planning', () => {
       ]).sources,
     ).toHaveLength(1);
     expect(
-      planMetadataSources(runtime, createState(), mutations, [
+      planMetadataSources(runtime, state, mutations, [
         createEvent({ decoded: { from: profile, to: asset, tokenId, force: true, data: '0x' } }),
       ]).scopes,
     ).toEqual([]);
 
     const invalid = planMetadataSources(
       runtime,
-      createState(),
+      state,
       createMutations({ nfts: [createNft({ verification: 'invalid' })] }),
       [createEvent()],
     );
     expect(invalid.scopes).toHaveLength(1);
     expect(invalid.sources).toEqual([]);
+
+    const currentAsset = state.digitalAssets.get(asset);
+    if (currentAsset == null) throw new Error('Expected asset state fixture');
+    state.digitalAssets.set(asset, { ...currentAsset, verification: 'invalid' });
+    expect(planMetadataSources(runtime, state, mutations, [createEvent()]).sources).toEqual([]);
+    state.digitalAssets.set(asset, { ...currentAsset, standard: 'lsp7' });
+    expect(planMetadataSources(runtime, state, mutations, [createEvent()]).sources).toEqual([]);
   });
 
   it('matches a claim only to its exact current natural source revision', () => {
