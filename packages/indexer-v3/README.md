@@ -48,11 +48,11 @@ PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
 identity. Before advancing the head, the target verifies every parent link after the previously
 indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected
-tip. During forward processing, indexed heads retain the last known finalized watermark when a later
-source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is the
-only path that moves the watermark backwards during a fork. Source-wide finality ahead of a
-historical backfill is clamped to the processed cursor and its hash. A provider that reports a
-different hash at the already-stored finalized height aborts the batch.
+tip. Forward writes cannot lower the indexed head; Pipes snapshot restoration is the only backward
+path. Both current and finalized head identities reference exact canonical block rows. An advancing
+finalized pair must match its locally stored block, while a finalized height outside the stored range
+does not advance the watermark. Lower or omitted finality retains the previous watermark.
+Source-wide finality ahead of a historical backfill is clamped to the processed cursor and its hash.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
@@ -120,6 +120,11 @@ types. The API reader is rejected if it owns a schema, relation, routine, type, 
 direct or effective `PUBLIC` access outside shared-enum usage, API schema usage, and `SELECT` on the
 enumerated public views. Publicly executable custom routines, including default-public `SECURITY
 DEFINER` routines, are rejected.
+
+The migrator drops the enumerated API views before source-table migrations and rebuilds them after
+every enabled schema is current, allowing column removal, reordering, and type changes. A rejected
+migration attempts to restore the views before returning. Migration and startup require the writer
+to own the migration table, cursor, and every expected chain table.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

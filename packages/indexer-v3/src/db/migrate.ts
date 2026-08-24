@@ -10,18 +10,18 @@ import {
   API_READER_ROLE,
   API_SCHEMA,
   DATABASE_SCHEMA_VERSION,
+  MIGRATIONS_TABLE,
   SHARED_ENUMS,
   SHARED_SCHEMA,
   assertPostgresIdentifier,
   createNetworkDatabaseRole,
   quotePostgresIdentifier,
 } from './names.js';
-import { createWriterRoleBoundaryQuery } from './roleBoundary.js';
+import { createChainTableOwnershipQuery, createWriterRoleBoundaryQuery } from './roleBoundary.js';
 import * as schema from './schema.js';
 import { networkConfig, publicTables } from './schema.js';
 
 const defaultMigrationsDirectory = fileURLToPath(new URL('../../drizzle', import.meta.url));
-const MIGRATIONS_TABLE = '__drizzle_migrations';
 const MIGRATION_LOCK_KEY = 'lsp-indexer-v3:database-migration';
 const RESERVED_MIGRATION_SCHEMAS = new Set([
   API_SCHEMA,
@@ -93,6 +93,11 @@ interface RoleDependencyRow extends Record<string, unknown> {
   object: string;
 }
 
+interface ChainTableOwnershipRow extends Record<string, unknown> {
+  tableName: string;
+  owner: string;
+}
+
 interface SchemaOwnerRow {
   owner: string;
 }
@@ -104,6 +109,10 @@ interface CurrentUserRow {
 interface MigrationHistoryRow {
   hash: string;
   createdAt: string;
+}
+
+interface MigrationCountRow {
+  count: string;
 }
 
 interface TableNameRow {
@@ -248,6 +257,49 @@ async function ensureWriterRolePrivilegeBoundary(
     throw new Error(
       `Database writer role "${role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${networkSchema}": ${result.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
+  }
+}
+
+async function ensureChainTableOwnership(
+  client: PoolClient,
+  role: string,
+  networkSchema: string,
+): Promise<void> {
+  const result = await drizzle(client).execute<ChainTableOwnershipRow>(
+    createChainTableOwnershipQuery(role, networkSchema),
+  );
+  if (result.rows.length > 0) {
+    throw new Error(
+      `Database writer role "${role}" must own every expected table in schema "${networkSchema}": ${result.rows.map(({ owner, tableName }) => `${tableName} (owned by ${owner})`).join(', ')}`,
+    );
+  }
+}
+
+async function ensureCurrentChainTableOwnership(
+  client: PoolClient,
+  network: DatabaseMigrationNetwork,
+  migrationsDirectory: string,
+): Promise<void> {
+  const tableExists = await client.query<TableExistsRow>(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM pg_class relation
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       WHERE namespace.nspname = $1
+         AND relation.relname = $2
+         AND relation.relkind IN ('r', 'p')
+     ) AS exists`,
+    [network.schema, MIGRATIONS_TABLE],
+  );
+  if (tableExists.rows[0]?.exists !== true) return;
+
+  const applied = await client.query<MigrationCountRow>(
+    `SELECT count(*)::text AS count
+     FROM ${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(MIGRATIONS_TABLE)}`,
+  );
+  const expectedCount = readMigrationFiles({ migrationsFolder: migrationsDirectory }).length;
+  if (Number(applied.rows[0]?.count) === expectedCount) {
+    await ensureChainTableOwnership(client, network.role, network.schema);
   }
 }
 
@@ -1066,6 +1118,9 @@ async function migrateNetwork(
     const appliedResult = await client.query<MigrationHistoryRow>(
       `SELECT hash, created_at AS "createdAt" FROM ${migrationTable} ORDER BY created_at`,
     );
+    if (appliedResult.rows.length > 0) {
+      await ensureChainTableOwnership(client, network.role, network.schema);
+    }
     for (const [index, applied] of appliedResult.rows.entries()) {
       const expected = migrations[index];
       if (
@@ -1099,6 +1154,7 @@ async function migrateNetwork(
       }
     });
     await assertExpectedNetworkIdentity(client, network);
+    await ensureChainTableOwnership(client, network.role, network.schema);
     await db
       .insert(networkConfig)
       .values({
@@ -1124,6 +1180,24 @@ async function migrateNetwork(
   } finally {
     await client.query('RESET ROLE');
     await client.query(`SET search_path TO ${quotePostgresIdentifier('public')}`);
+  }
+}
+
+async function dropApiViews(client: PoolClient): Promise<void> {
+  await client.query(`SET ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
+  try {
+    await client.query('BEGIN');
+    for (const viewName of publicTables.map(getTableName)) {
+      await client.query(
+        `DROP VIEW IF EXISTS ${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
+      );
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.query('RESET ROLE');
   }
 }
 
@@ -1206,19 +1280,37 @@ export async function migrateDatabaseWithPool(
 
     await prepareRolesAndSchemas(client, config.networks);
     for (const network of config.networks) {
-      await migrateNetwork(client, network, migrationsDirectory);
+      await ensureCurrentChainTableOwnership(client, network, migrationsDirectory);
     }
-    const publicViews = await rebuildApiViews(client, config.networks);
-    return {
-      networks: config.networks.map((network) => ({
-        network: network.network.key,
-        chainId: network.network.chainId,
-        schema: network.schema,
-        role: network.role,
-      })),
-      apiSchema: API_SCHEMA,
-      publicViews,
-    };
+    await dropApiViews(client);
+    try {
+      for (const network of config.networks) {
+        await migrateNetwork(client, network, migrationsDirectory);
+      }
+      const publicViews = await rebuildApiViews(client, config.networks);
+      return {
+        networks: config.networks.map((network) => ({
+          network: network.network.key,
+          chainId: network.network.chainId,
+          schema: network.schema,
+          role: network.role,
+        })),
+        apiSchema: API_SCHEMA,
+        publicViews,
+      };
+    } catch (error) {
+      try {
+        await rebuildApiViews(client, config.networks);
+      } catch (restoreError) {
+        const migrationMessage = error instanceof Error ? error.message : String(error);
+        const restoreMessage =
+          restoreError instanceof Error ? restoreError.message : String(restoreError);
+        throw new Error(
+          `Database migration failed (${migrationMessage}) and API views could not be restored (${restoreMessage})`,
+        );
+      }
+      throw error;
+    }
   } finally {
     try {
       if (lockAcquired) {

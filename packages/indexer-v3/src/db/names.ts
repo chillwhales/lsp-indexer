@@ -6,6 +6,7 @@ export const API_OWNER_ROLE = 'lsp_indexer_v3_api_owner';
 export const API_READER_ROLE = 'lsp_indexer_v3_api_reader';
 export const DATABASE_SCHEMA_VERSION = 1;
 export const CURSOR_TABLE = 'sqd_cursor';
+export const MIGRATIONS_TABLE = '__drizzle_migrations';
 
 export const SHARED_ENUMS = {
   asset_standard: ['unknown', 'lsp7', 'lsp8'],

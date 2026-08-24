@@ -29,6 +29,7 @@ import {
   API_OWNER_ROLE,
   API_READER_ROLE,
   API_SCHEMA,
+  CURSOR_TABLE,
   DATABASE_SCHEMA_VERSION,
   quotePostgresIdentifier,
   SHARED_ENUMS,
@@ -313,8 +314,8 @@ async function runBlocks(
   currentTarget: TestTarget,
   selectedBlocks: PortalBlock[],
   finalized: { number: number; hash: string } | null = {
-    number: block0.header.number,
-    hash: block0.header.hash,
+    number: block1.header.number,
+    hash: block1.header.hash,
   },
 ): Promise<void> {
   const first = selectedBlocks.at(0);
@@ -351,7 +352,9 @@ async function countRows(pool: Pool, qualifiedTable: string): Promise<number> {
   return Number(result.rows[0]?.count ?? 0);
 }
 
-async function createPendingMigrationDirectory(): Promise<{
+async function createPendingMigrationDirectory(
+  statement = 'ALTER TABLE universal_profiles ADD COLUMN forbidden_schema_change text;',
+): Promise<{
   migrationsDirectory: string;
   temporaryDirectory: string;
 }> {
@@ -372,10 +375,7 @@ async function createPendingMigrationDirectory(): Promise<{
     breakpoints: true,
   });
   await writeFile(journalPath, `${JSON.stringify(journal, null, 2)}\n`);
-  await writeFile(
-    join(migrationsDirectory, 'pending_test_schema_change.sql'),
-    'ALTER TABLE universal_profiles ADD COLUMN forbidden_schema_change text;\n',
-  );
+  await writeFile(join(migrationsDirectory, 'pending_test_schema_change.sql'), `${statement}\n`);
   return { migrationsDirectory, temporaryDirectory };
 }
 
@@ -490,6 +490,50 @@ describe.sequential('PostgreSQL persistence', () => {
     );
     expect(columns.rows.map(({ columnName }) => columnName)).toContain('array_index');
     expect(columns.rows.map(({ columnName }) => columnName)).not.toContain('legacy_id');
+  });
+
+  it('drops API views before migrating incompatible public-table columns', async () => {
+    const scratchDatabaseName = `lsp_v3_view_${suiteSuffix}`;
+    const scratchUrl = databaseUrl(sourceDatabaseUrl, scratchDatabaseName);
+    const scratchConfig = {
+      connectionString: scratchUrl,
+      networks: migrationConfig.networks.filter(
+        ({ network }) => network.key === 'ethereum-mainnet',
+      ),
+    };
+    const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
+      'ALTER TABLE blocks ALTER COLUMN id TYPE varchar(128);',
+    );
+    let scratchPool: Pool | undefined;
+    await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(scratchDatabaseName)}`);
+    try {
+      await migrateDatabase(scratchConfig);
+      await expect(migrateDatabase(scratchConfig, { migrationsDirectory })).resolves.toBeDefined();
+
+      scratchPool = new Pool({ connectionString: scratchUrl, max: 1 });
+      const column = await scratchPool.query<{
+        dataType: string;
+        maximumLength: number | null;
+      }>(
+        `SELECT data_type AS "dataType", character_maximum_length AS "maximumLength"
+         FROM information_schema.columns
+         WHERE table_schema = 'chain_ethereum_mainnet'
+           AND table_name = 'blocks'
+           AND column_name = 'id'`,
+      );
+      expect(column.rows[0]).toEqual({ dataType: 'character varying', maximumLength: 128 });
+      expect(await countRows(scratchPool, 'api.blocks')).toBe(0);
+    } finally {
+      await scratchPool?.end();
+      await controlPool.query(
+        'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
+        [scratchDatabaseName],
+      );
+      await controlPool.query(
+        `DROP DATABASE IF EXISTS ${quotePostgresIdentifier(scratchDatabaseName)}`,
+      );
+      await rm(temporaryDirectory, { recursive: true, force: true });
+    }
   });
 
   it('stores the full unsigned 128-bit ERC725Y array-index range', async () => {
@@ -985,6 +1029,29 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('requires the writer to own every expected chain table', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const owner = await testAdminPool.query<{ role: string }>('SELECT current_user AS role');
+    const adminRole = owner.rows[0]?.role;
+    if (adminRole == null) throw new Error('Expected the migration admin role');
+    const qualifiedJobs = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
+    await testAdminPool.query(`ALTER TABLE ${qualifiedJobs} OWNER TO CURRENT_USER`);
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" must own every expected table in schema "${ethereumNetwork.schema}": metadata_jobs (owned by ${adminRole})`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `ALTER TABLE ${qualifiedJobs} OWNER TO ${quotePostgresIdentifier(ethereumNetwork.role)}`,
+      );
+    }
+  });
+
   it('rejects CREATE on the shared schema and grantable shared-enum usage', async () => {
     const ethereumNetwork = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
@@ -1320,8 +1387,8 @@ describe.sequential('PostgreSQL persistence', () => {
   it('preserves a known finalized watermark when a later batch omits finality', async () => {
     const before = (await ethereumDb.select().from(indexedHeads))[0];
     expect(before).toMatchObject({
-      finalizedBlockNumber: block0.header.number,
-      finalizedBlockHash: block0.header.hash,
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
     });
 
     await ethereumPool.query('DELETE FROM sqd_cursor');
@@ -1330,14 +1397,14 @@ describe.sequential('PostgreSQL persistence', () => {
     const after = (await ethereumDb.select().from(indexedHeads))[0];
     expect(after).toMatchObject({
       blockNumber: block2.header.number,
-      finalizedBlockNumber: block0.header.number,
-      finalizedBlockHash: block0.header.hash,
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
     });
   });
 
   it('does not move the finalized watermark backwards during forward processing', async () => {
     await ethereumPool.query('DELETE FROM sqd_cursor');
-    await runBlocks(target, [block1, block2], {
+    await runBlocks(target, [block2], {
       number: block1.header.number,
       hash: block1.header.hash,
     });
@@ -1347,7 +1414,7 @@ describe.sequential('PostgreSQL persistence', () => {
     });
 
     await ethereumPool.query('DELETE FROM sqd_cursor');
-    await runBlocks(target, [block1, block2], {
+    await runBlocks(target, [block2], {
       number: block0.header.number,
       hash: block0.header.hash,
     });
@@ -1361,7 +1428,7 @@ describe.sequential('PostgreSQL persistence', () => {
     const conflictingHash = hashFor(203);
     await ethereumPool.query('DELETE FROM sqd_cursor');
     await expect(
-      runBlocks(target, [block1, block2], {
+      runBlocks(target, [block2], {
         number: block1.header.number,
         hash: conflictingHash,
       }),
@@ -1372,6 +1439,43 @@ describe.sequential('PostgreSQL persistence', () => {
     expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
       finalizedBlockNumber: block1.header.number,
       finalizedBlockHash: block1.header.hash,
+    });
+  });
+
+  it('rejects an advancing finalized hash that disagrees with the canonical block', async () => {
+    const conflictingHash = hashFor(205);
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await expect(
+      runBlocks(target, [block1, block2], {
+        number: block2.header.number,
+        hash: conflictingHash,
+      }),
+    ).rejects.toThrow(
+      `Finalized block ${block2.header.number} conflicts with canonical hash ${block2.header.hash}`,
+    );
+
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      blockNumber: block2.header.number,
+      blockHash: block2.header.hash,
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
+    });
+  });
+
+  it('rejects a lower indexed head outside Pipes rollback', async () => {
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await expect(
+      runBlocks(target, [block1], {
+        number: block1.header.number,
+        hash: block1.header.hash,
+      }),
+    ).rejects.toThrow(
+      `Persistence head cannot move backwards from block ${block2.header.number} to block ${block1.header.number} outside Pipes rollback`,
+    );
+
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      blockNumber: block2.header.number,
+      blockHash: block2.header.hash,
     });
   });
 
@@ -1510,7 +1614,26 @@ describe.sequential('PostgreSQL persistence', () => {
     `;
     const beforeReplay = await testAdminPool.query<{ digest: string }>(checksumQuery);
     await ethereumPool.query('DELETE FROM sqd_cursor');
-    await runBlocks(target, [block1, block2]);
+    await ethereumPool.query(
+      `INSERT INTO ${quotePostgresIdentifier(CURSOR_TABLE)}
+         (id, current_number, current_hash, ${quotePostgresIdentifier('current_timestamp')}, finalized, rollback_chain)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
+      [
+        ethereumRuntime.streamId,
+        block1.header.number,
+        block1.header.hash,
+        new Date(block1.header.timestamp * 1_000),
+        JSON.stringify({ number: block1.header.number, hash: block1.header.hash }),
+        JSON.stringify([
+          {
+            number: block1.header.number,
+            hash: block1.header.hash,
+            timestamp: block1.header.timestamp,
+          },
+        ]),
+      ],
+    );
+    await runBlocks(target, [block2]);
     const afterReplay = await testAdminPool.query<{ digest: string }>(checksumQuery);
     expect(afterReplay.rows[0]?.digest).toBe(beforeReplay.rows[0]?.digest);
 
@@ -1550,23 +1673,23 @@ describe.sequential('PostgreSQL persistence', () => {
     if (target.resolveFork == null) throw new Error('Persistence target must support forks');
     const cursor = await target.resolveFork([
       {
-        number: block0.header.number,
-        hash: block0.header.hash,
-        timestamp: block0.header.timestamp,
+        number: block1.header.number,
+        hash: block1.header.hash,
+        timestamp: block1.header.timestamp,
       },
     ]);
-    expect(cursor).toMatchObject({ number: 0, hash: block0.header.hash });
+    expect(cursor).toMatchObject({ number: 1, hash: block1.header.hash });
 
-    expect(await countRows(ethereumPool, 'blocks')).toBe(0);
-    expect(await countRows(ethereumPool, 'event_facts')).toBe(0);
+    expect(await countRows(ethereumPool, 'blocks')).toBe(1);
+    expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
     expect(await countRows(ethereumPool, 'metadata_jobs')).toBe(0);
-    expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(0);
-    expect(await countRows(ethereumPool, 'indexed_heads')).toBe(0);
+    expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(1);
+    expect(await countRows(ethereumPool, 'indexed_heads')).toBe(1);
     const targetProfile = await ethereumDb
       .select()
       .from(universalProfiles)
       .where(eq(universalProfiles.address, testAddress));
-    expect(targetProfile).toHaveLength(0);
+    expect(targetProfile[0]).toMatchObject({ ownerAddress: firstOwner, lastBlockNumber: 1 });
 
     const sepoliaCollision = await sepoliaDb
       .select()

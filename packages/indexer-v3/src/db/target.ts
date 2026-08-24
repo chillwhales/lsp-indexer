@@ -185,15 +185,13 @@ async function assertCanonicalBlockHistory(
     `Block ${discontinuity.blockNumber} links to parent hash ${discontinuity.parentHash}, but canonical block ${discontinuity.blockNumber - 1} has hash ${discontinuity.canonicalParentHash ?? 'missing'}`,
   );
 }
-/* v8 ignore stop */
-
 async function writeIndexedHead(
   tx: Transaction,
   runtime: RuntimeConfig,
   head: PersistenceHead,
 ): Promise<void> {
   validateHead(runtime, head);
-  const finalizedValues =
+  const requestedFinalizedValues =
     head.finalizedBlockNumber == null || head.finalizedBlockHash == null
       ? undefined
       : {
@@ -211,15 +209,48 @@ async function writeIndexedHead(
       .where(and(eq(indexedHeads.network, head.network), eq(indexedHeads.chainId, head.chainId)))
       .for('update')
   )[0];
+  if (stored != null && head.blockNumber < stored.blockNumber) {
+    throw new Error(
+      `Persistence head cannot move backwards from block ${stored.blockNumber} to block ${head.blockNumber} outside Pipes rollback`,
+    );
+  }
   await assertCanonicalBlockHistory(tx, head, stored?.blockNumber);
-  if (finalizedValues != null) {
+  let finalizedValues = requestedFinalizedValues;
+  if (requestedFinalizedValues != null) {
     if (
-      stored?.finalizedBlockNumber === finalizedValues.finalizedBlockNumber &&
-      stored.finalizedBlockHash?.toLowerCase() !== finalizedValues.finalizedBlockHash
+      stored?.finalizedBlockNumber === requestedFinalizedValues.finalizedBlockNumber &&
+      stored.finalizedBlockHash?.toLowerCase() !== requestedFinalizedValues.finalizedBlockHash
     ) {
       throw new Error(
-        `Finalized block ${finalizedValues.finalizedBlockNumber} conflicts with stored hash ${stored.finalizedBlockHash ?? 'null'}`,
+        `Finalized block ${requestedFinalizedValues.finalizedBlockNumber} conflicts with stored hash ${stored.finalizedBlockHash ?? 'null'}`,
       );
+    }
+    if (
+      stored?.finalizedBlockNumber == null ||
+      requestedFinalizedValues.finalizedBlockNumber > stored.finalizedBlockNumber
+    ) {
+      const canonicalFinalizedBlock = (
+        await tx
+          .select({ hash: blocks.hash })
+          .from(blocks)
+          .where(
+            and(
+              eq(blocks.network, head.network),
+              eq(blocks.chainId, head.chainId),
+              eq(blocks.number, requestedFinalizedValues.finalizedBlockNumber),
+            ),
+          )
+          .limit(1)
+      )[0];
+      if (canonicalFinalizedBlock == null) {
+        finalizedValues = undefined;
+      } else if (
+        canonicalFinalizedBlock.hash.toLowerCase() !== requestedFinalizedValues.finalizedBlockHash
+      ) {
+        throw new Error(
+          `Finalized block ${requestedFinalizedValues.finalizedBlockNumber} conflicts with canonical hash ${canonicalFinalizedBlock.hash}`,
+        );
+      }
     }
   }
   const finalizedUpdate =
@@ -263,6 +294,7 @@ async function writeIndexedHead(
       },
     });
 }
+/* v8 ignore stop */
 
 /** Wire the official Pipes target to every mutable v3 table and one network-scoped cursor. */
 export function createPersistenceTarget<T>(

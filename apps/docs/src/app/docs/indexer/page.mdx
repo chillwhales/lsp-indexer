@@ -99,12 +99,14 @@ keys and are registered with the official Pipes rollback target. A cluster-wide 
 rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
 and indexed heads reference that same exact block identity. Before advancing the head, the target
 validates every parent link after the previously indexed head, so a replay cannot retain a stale
-intermediate block and append a disconnected tip. During forward processing, indexed heads retain a
-known finalized watermark when a later source batch omits finality or reports a lower height; only
-Pipes rollback restoration moves it backwards. When a live source reports finality ahead of a
-historical backfill cursor, the target records the processed cursor and its hash as the highest
-finalized block available locally. A different hash at the stored finalized height aborts the batch.
-The target consumes the loaded database configuration directly, so
+intermediate block and append a disconnected tip. Forward writes cannot move the indexed head
+backwards; only Pipes rollback restoration can do that. Both current and finalized head identities
+must reference exact canonical block rows. During forward processing, indexed heads retain a known
+finalized watermark when a later source batch omits finality or reports a lower height. An advancing
+finalized pair is accepted only when its local canonical block has the same hash; a finalized block
+outside the stored range does not advance the watermark. When a live source reports finality ahead
+of a historical backfill cursor, the target records the processed cursor and its hash as the highest
+finalized block available locally. The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
@@ -122,6 +124,12 @@ stale privilege aborts migration. The inventory includes privileges inherited fr
 `PUBLIC` pseudo-role and implicit default ACLs on reachable user-defined routines and types. Public
 type usage is removed from the shared enums and API view row types, and a publicly executable custom
 routine—including a default-public `SECURITY DEFINER` routine—aborts migration.
+
+Before applying table migrations, `db:migrate` removes the enumerated API views so PostgreSQL can
+change source columns that existing views depend on, then rebuilds the views after every enabled
+schema is current. If a migration is rejected, it attempts to restore the views before returning the
+original error. Migration and startup also inventory the migration table, cursor, and every expected
+chain table and require the deterministic writer role to own each one.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL

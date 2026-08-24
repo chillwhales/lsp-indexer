@@ -1,5 +1,56 @@
-import { sql, type SQL } from 'drizzle-orm';
-import { SHARED_ENUMS, SHARED_SCHEMA, assertPostgresIdentifier } from './names.js';
+import { getTableName, sql, type SQL } from 'drizzle-orm';
+import {
+  MIGRATIONS_TABLE,
+  SHARED_ENUMS,
+  SHARED_SCHEMA,
+  assertPostgresIdentifier,
+} from './names.js';
+import { networkConfig, rollbackTables, sqdCursor } from './schema.js';
+
+const EXPECTED_CHAIN_TABLE_NAMES = [
+  MIGRATIONS_TABLE,
+  getTableName(networkConfig),
+  getTableName(sqdCursor),
+  ...rollbackTables.map(getTableName),
+].sort();
+
+/**
+ * Build the catalog audit that requires the writer to own every migrated chain table.
+ *
+ * @param role Deterministic non-login writer role to inspect.
+ * @param networkSchema Schema containing the expected v3 tables.
+ * @returns A query whose rows describe missing tables or tables owned by another role.
+ * @throws When either identifier is not a canonical PostgreSQL identifier.
+ */
+export function createChainTableOwnershipQuery(role: string, networkSchema: string): SQL {
+  const validatedRole = assertPostgresIdentifier(role, 'database writer role');
+  const validatedSchema = assertPostgresIdentifier(networkSchema, 'network database schema');
+
+  return sql`
+    WITH writer_role AS (
+      SELECT oid
+      FROM pg_roles
+      WHERE rolname = ${validatedRole}
+    ), expected_table(table_name) AS (
+      VALUES ${sql.join(
+        EXPECTED_CHAIN_TABLE_NAMES.map((tableName) => sql`(${tableName})`),
+        sql`, `,
+      )}
+    )
+    SELECT expected_table.table_name AS "tableName",
+           COALESCE(pg_get_userbyid(relation.relowner), 'missing') AS owner
+    FROM expected_table
+    CROSS JOIN writer_role
+    LEFT JOIN pg_namespace namespace
+      ON namespace.nspname = ${validatedSchema}
+    LEFT JOIN pg_class relation
+      ON relation.relnamespace = namespace.oid
+     AND relation.relname = expected_table.table_name
+     AND relation.relkind IN ('r', 'p')
+    WHERE relation.oid IS NULL OR relation.relowner <> writer_role.oid
+    ORDER BY expected_table.table_name
+  `;
+}
 
 /**
  * Build the catalog audit that confines a writer role to one network schema.

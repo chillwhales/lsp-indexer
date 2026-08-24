@@ -70,8 +70,10 @@ the raw identity.
 events therefore cannot publish a new head hash while the old canonical block remains at that
 height. Before advancing the head, the target also validates every parent link after the previously
 indexed height, so a conflicting intermediate block cannot be ignored while a disconnected new tip
-is committed. Deleting a block cascades to its head row, while Pipes orders tracked rollback
-operations so parent blocks are restored before their dependent heads.
+is committed. Forward writes reject a head below the stored height; only snapshot restoration may
+move it backwards. Both the current and finalized head triples have exact block-identity foreign
+keys. Deleting a block cascades to its head row, while Pipes orders tracked rollback operations so
+parent blocks are restored before their dependent heads.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in
@@ -94,9 +96,10 @@ indexed head retains its previously known finalized number and hash. A lower fin
 cannot reduce that watermark during forward processing; only restoration of the tracked head
 snapshot may move it backwards during fork handling. When a live source reports a finalized head
 ahead of the historical cursor being processed, the target records that processed cursor and its
-hash as the highest finalized block available locally. A source that reports a conflicting hash at
-the stored finalized height aborts the transaction. The target takes rollback retention directly
-from the validated network database configuration.
+hash as the highest finalized block available locally. Every advancing finalized pair is checked
+against its local canonical block; a missing local height does not advance the watermark, and a hash
+conflict aborts the transaction. The target takes rollback retention directly from the validated
+network database configuration.
 
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
@@ -123,6 +126,11 @@ and runtime logins before connecting. They also require the deterministic schema
 mapping for every network and reject reserved collisions. Existing chain schemas must have an empty
 identity table or exactly the configured singleton before it is seeded. A cluster-wide advisory
 lock rejects concurrent migration commands, and reapplying the same plan is idempotent.
+
+The migrator drops all enumerated API views before applying source-table changes, rebuilds them after
+all enabled schemas are current, and attempts restoration when a migration fails. Migration and
+startup inventory the migration table, cursor, and every expected chain table and require the
+deterministic writer role to own each object.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,

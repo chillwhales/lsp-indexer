@@ -2,7 +2,14 @@ import { getTableName } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 import { SHARED_ENUMS } from '../names.js';
-import { metadataJobs, networkConfig, publicTables, rollbackTables, sqdCursor } from '../schema.js';
+import {
+  indexedHeads,
+  metadataJobs,
+  networkConfig,
+  publicTables,
+  rollbackTables,
+  sqdCursor,
+} from '../schema.js';
 
 describe('v3 database schema inventory', () => {
   it('registers every mutable application table for Pipes rollback', () => {
@@ -35,5 +42,11 @@ describe('v3 database schema inventory', () => {
       'metadata_kind',
       'verification_status',
     ]);
+  });
+
+  it('anchors current and finalized indexed heads to exact block identities', () => {
+    const foreignKeys = getTableConfig(indexedHeads).foreignKeys.map((key) => key.getName());
+    expect(foreignKeys).toContain('indexed_heads_block_fk');
+    expect(foreignKeys).toContain('indexed_heads_finalized_block_fk');
   });
 });
