@@ -1,0 +1,1 @@
+ALTER TABLE "indexed_heads" ADD CONSTRAINT "indexed_heads_finalized_pair_check" CHECK (("indexed_heads"."finalized_block_number" IS NULL) = ("indexed_heads"."finalized_block_hash" IS NULL));

@@ -104,9 +104,10 @@ backwards; only Pipes rollback restoration can do that. Both current and finaliz
 must reference exact canonical block rows. During forward processing, indexed heads retain a known
 finalized watermark when a later source batch omits finality or reports a lower height. An advancing
 finalized pair is accepted only when its local canonical block has the same hash; a finalized block
-outside the stored range does not advance the watermark. When a live source reports finality ahead
-of a historical backfill cursor, the target records the processed cursor and its hash as the highest
-finalized block available locally. The target consumes the loaded database configuration directly, so
+outside the stored range does not advance the watermark, and the finalized number and hash must
+both be present or both be null. When a live source reports finality ahead of a historical backfill
+cursor, the target records the processed cursor and its hash as the highest finalized block
+available locally. The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
@@ -129,7 +130,10 @@ Before applying table migrations, `db:migrate` removes the enumerated API views 
 change source columns that existing views depend on, then rebuilds the views after every enabled
 schema is current. If a migration is rejected, it attempts to restore the views before returning the
 original error. Migration and startup also inventory the migration table, cursor, and every expected
-chain table and require the deterministic writer role to own each one.
+chain table, plus the migration history sequence, and require the deterministic writer role to own
+each one. A preflight with pending migrations audits all existing expected objects while permitting
+latest-schema tables that the pending migrations have not created yet; the post-migration audit
+requires the complete inventory.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
@@ -200,10 +204,11 @@ INDEXER_TO_BLOCK=22000010 \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
-The probe intentionally refuses an unbounded range. It reports the selected network and stream ID,
-batch count, block count, log count, and first and last blocks, without writing data. It fails unless
-the source returns every block exactly once in ascending order across the inclusive range, so a
-partial response is not reported as a successful diagnostic.
+The probe intentionally refuses an unbounded range and explicitly requests empty blocks as well as
+blocks containing logs. It reports the selected network and stream ID, batch count, block count, log
+count, and first and last blocks, without writing data. It fails unless the source returns every
+block exactly once in ascending order across the inclusive range, so a partial response is not
+reported as a successful diagnostic.
 
 ### LUKSO live-source gate
 

@@ -1,5 +1,6 @@
 import { getTableName, sql, type SQL } from 'drizzle-orm';
 import {
+  MIGRATIONS_SEQUENCE,
   MIGRATIONS_TABLE,
   SHARED_ENUMS,
   SHARED_SCHEMA,
@@ -7,22 +8,48 @@ import {
 } from './names.js';
 import { networkConfig, rollbackTables, sqdCursor } from './schema.js';
 
-const EXPECTED_CHAIN_TABLE_NAMES = [
-  MIGRATIONS_TABLE,
-  getTableName(networkConfig),
-  getTableName(sqdCursor),
-  ...rollbackTables.map(getTableName),
-].sort();
+const EXPECTED_CHAIN_OBJECTS = [
+  { name: MIGRATIONS_TABLE, type: 'table', requiredBeforeLatest: true },
+  { name: MIGRATIONS_SEQUENCE, type: 'sequence', requiredBeforeLatest: true },
+  ...[
+    getTableName(networkConfig),
+    getTableName(sqdCursor),
+    ...rollbackTables.map(getTableName),
+  ].map((name) => ({ name, type: 'table', requiredBeforeLatest: false })),
+].sort((left, right) => left.name.localeCompare(right.name));
+
+/** A missing or incorrectly owned object from a chain schema's storage inventory. */
+export interface ChainObjectOwnershipRow extends Record<string, unknown> {
+  objectName: string;
+  objectType: string;
+  owner: string | null;
+}
+
+/** Format chain-object ownership findings for migration and readiness errors. */
+export function formatChainObjectOwnership(rows: readonly ChainObjectOwnershipRow[]): string {
+  return rows
+    .map(({ objectName, objectType, owner }) =>
+      owner == null
+        ? `${objectName} (${objectType} missing)`
+        : `${objectName} (${objectType} owned by ${owner})`,
+    )
+    .join(', ');
+}
 
 /**
- * Build the catalog audit that requires the writer to own every migrated chain table.
+ * Build the catalog audit that requires the writer to own migrated chain storage objects.
  *
  * @param role Deterministic non-login writer role to inspect.
  * @param networkSchema Schema containing the expected v3 tables.
- * @returns A query whose rows describe missing tables or tables owned by another role.
+ * @param requireAllObjects Whether objects introduced by pending migrations must already exist.
+ * @returns A query whose rows describe missing objects or objects owned by another role.
  * @throws When either identifier is not a canonical PostgreSQL identifier.
  */
-export function createChainTableOwnershipQuery(role: string, networkSchema: string): SQL {
+export function createChainObjectOwnershipQuery(
+  role: string,
+  networkSchema: string,
+  requireAllObjects = true,
+): SQL {
   const validatedRole = assertPostgresIdentifier(role, 'database writer role');
   const validatedSchema = assertPostgresIdentifier(networkSchema, 'network database schema');
 
@@ -31,24 +58,34 @@ export function createChainTableOwnershipQuery(role: string, networkSchema: stri
       SELECT oid
       FROM pg_roles
       WHERE rolname = ${validatedRole}
-    ), expected_table(table_name) AS (
+    ), expected_object(object_name, object_type, required_before_latest) AS (
       VALUES ${sql.join(
-        EXPECTED_CHAIN_TABLE_NAMES.map((tableName) => sql`(${tableName})`),
+        EXPECTED_CHAIN_OBJECTS.map(
+          ({ name, requiredBeforeLatest, type }) =>
+            sql`(${name}, ${type}, ${requiredBeforeLatest}::boolean)`,
+        ),
         sql`, `,
       )}
     )
-    SELECT expected_table.table_name AS "tableName",
-           COALESCE(pg_get_userbyid(relation.relowner), 'missing') AS owner
-    FROM expected_table
+    SELECT expected_object.object_name AS "objectName",
+           expected_object.object_type AS "objectType",
+           pg_get_userbyid(relation.relowner) AS owner
+    FROM expected_object
     CROSS JOIN writer_role
     LEFT JOIN pg_namespace namespace
       ON namespace.nspname = ${validatedSchema}
     LEFT JOIN pg_class relation
       ON relation.relnamespace = namespace.oid
-     AND relation.relname = expected_table.table_name
-     AND relation.relkind IN ('r', 'p')
-    WHERE relation.oid IS NULL OR relation.relowner <> writer_role.oid
-    ORDER BY expected_table.table_name
+     AND relation.relname = expected_object.object_name
+     AND (
+       (expected_object.object_type = 'table' AND relation.relkind IN ('r', 'p'))
+       OR (expected_object.object_type = 'sequence' AND relation.relkind = 'S')
+     )
+    WHERE (
+      relation.oid IS NULL
+      AND (${requireAllObjects}::boolean OR expected_object.required_before_latest)
+    ) OR relation.relowner <> writer_role.oid
+    ORDER BY expected_object.object_name
   `;
 }
 

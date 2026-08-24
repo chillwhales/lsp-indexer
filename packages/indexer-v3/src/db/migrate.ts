@@ -17,7 +17,12 @@ import {
   createNetworkDatabaseRole,
   quotePostgresIdentifier,
 } from './names.js';
-import { createChainTableOwnershipQuery, createWriterRoleBoundaryQuery } from './roleBoundary.js';
+import {
+  createChainObjectOwnershipQuery,
+  createWriterRoleBoundaryQuery,
+  formatChainObjectOwnership,
+  type ChainObjectOwnershipRow,
+} from './roleBoundary.js';
 import * as schema from './schema.js';
 import { networkConfig, publicTables } from './schema.js';
 
@@ -91,11 +96,6 @@ interface ReaderPrivilegeRow {
 interface RoleDependencyRow extends Record<string, unknown> {
   kind: string;
   object: string;
-}
-
-interface ChainTableOwnershipRow extends Record<string, unknown> {
-  tableName: string;
-  owner: string;
 }
 
 interface SchemaOwnerRow {
@@ -260,17 +260,18 @@ async function ensureWriterRolePrivilegeBoundary(
   }
 }
 
-async function ensureChainTableOwnership(
+async function ensureChainObjectOwnership(
   client: PoolClient,
   role: string,
   networkSchema: string,
+  requireAllObjects = true,
 ): Promise<void> {
-  const result = await drizzle(client).execute<ChainTableOwnershipRow>(
-    createChainTableOwnershipQuery(role, networkSchema),
+  const result = await drizzle(client).execute<ChainObjectOwnershipRow>(
+    createChainObjectOwnershipQuery(role, networkSchema, requireAllObjects),
   );
   if (result.rows.length > 0) {
     throw new Error(
-      `Database writer role "${role}" must own every expected table in schema "${networkSchema}": ${result.rows.map(({ owner, tableName }) => `${tableName} (owned by ${owner})`).join(', ')}`,
+      `Database writer role "${role}" must own every expected object in schema "${networkSchema}": ${formatChainObjectOwnership(result.rows)}`,
     );
   }
 }
@@ -299,7 +300,7 @@ async function ensureCurrentChainTableOwnership(
   );
   const expectedCount = readMigrationFiles({ migrationsFolder: migrationsDirectory }).length;
   if (Number(applied.rows[0]?.count) === expectedCount) {
-    await ensureChainTableOwnership(client, network.role, network.schema);
+    await ensureChainObjectOwnership(client, network.role, network.schema);
   }
 }
 
@@ -1119,7 +1120,7 @@ async function migrateNetwork(
       `SELECT hash, created_at AS "createdAt" FROM ${migrationTable} ORDER BY created_at`,
     );
     if (appliedResult.rows.length > 0) {
-      await ensureChainTableOwnership(client, network.role, network.schema);
+      await ensureChainObjectOwnership(client, network.role, network.schema, false);
     }
     for (const [index, applied] of appliedResult.rows.entries()) {
       const expected = migrations[index];
@@ -1154,7 +1155,7 @@ async function migrateNetwork(
       }
     });
     await assertExpectedNetworkIdentity(client, network);
-    await ensureChainTableOwnership(client, network.role, network.schema);
+    await ensureChainObjectOwnership(client, network.role, network.schema);
     await db
       .insert(networkConfig)
       .values({

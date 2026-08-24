@@ -72,8 +72,9 @@ height. Before advancing the head, the target also validates every parent link a
 indexed height, so a conflicting intermediate block cannot be ignored while a disconnected new tip
 is committed. Forward writes reject a head below the stored height; only snapshot restoration may
 move it backwards. Both the current and finalized head triples have exact block-identity foreign
-keys. Deleting a block cascades to its head row, while Pipes orders tracked rollback operations so
-parent blocks are restored before their dependent heads.
+keys, and the finalized number and hash must either both be null or both be present. Deleting a
+block cascades to its head row, while Pipes orders tracked rollback operations so parent blocks are
+restored before their dependent heads.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in
@@ -129,8 +130,10 @@ lock rejects concurrent migration commands, and reapplying the same plan is idem
 
 The migrator drops all enumerated API views before applying source-table changes, rebuilds them after
 all enabled schemas are current, and attempts restoration when a migration fails. Migration and
-startup inventory the migration table, cursor, and every expected chain table and require the
-deterministic writer role to own each object.
+startup inventory the migration table and sequence, cursor, and every expected chain table and
+require the deterministic writer role to own each object. When migrations are pending, the preflight
+audits ownership of the expected objects that already exist without treating not-yet-created latest
+tables as drift; the complete inventory is mandatory after migration.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,

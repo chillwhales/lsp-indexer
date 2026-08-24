@@ -2,7 +2,12 @@ import { sql } from 'drizzle-orm';
 import { getNetworkKeys, type RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
 import { DATABASE_SCHEMA_VERSION, SHARED_SCHEMA, createNetworkDatabaseRole } from './names.js';
-import { createChainTableOwnershipQuery, createWriterRoleBoundaryQuery } from './roleBoundary.js';
+import {
+  createChainObjectOwnershipQuery,
+  createWriterRoleBoundaryQuery,
+  formatChainObjectOwnership,
+  type ChainObjectOwnershipRow,
+} from './roleBoundary.js';
 
 interface DatabaseIdentityRow extends Record<string, unknown> {
   currentRole: string;
@@ -30,11 +35,6 @@ interface ReachableRoleRow extends Record<string, unknown> {
 interface RoleDependencyRow extends Record<string, unknown> {
   kind: string;
   object: string;
-}
-
-interface ChainTableOwnershipRow extends Record<string, unknown> {
-  tableName: string;
-  owner: string;
 }
 
 export interface DatabaseReadiness {
@@ -199,12 +199,12 @@ export async function verifyDatabaseReadiness(
       `Database writer role "${expectedRole}" has privileges, ownership, default privileges, or policy references outside assigned schema "${runtime.databaseSchema}": ${writerPrivilegeResult.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
-  const ownershipResult = await db.execute<ChainTableOwnershipRow>(
-    createChainTableOwnershipQuery(expectedRole, runtime.databaseSchema),
+  const ownershipResult = await db.execute<ChainObjectOwnershipRow>(
+    createChainObjectOwnershipQuery(expectedRole, runtime.databaseSchema),
   );
   if (ownershipResult.rows.length > 0) {
     throw new Error(
-      `Database writer role "${expectedRole}" must own every expected table in schema "${runtime.databaseSchema}": ${ownershipResult.rows.map(({ owner, tableName }) => `${tableName} (owned by ${owner})`).join(', ')}`,
+      `Database writer role "${expectedRole}" must own every expected object in schema "${runtime.databaseSchema}": ${formatChainObjectOwnership(ownershipResult.rows)}`,
     );
   }
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`

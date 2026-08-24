@@ -51,7 +51,8 @@ indexed head, rejecting a replay that retains a stale intermediate block and app
 tip. Forward writes cannot lower the indexed head; Pipes snapshot restoration is the only backward
 path. Both current and finalized head identities reference exact canonical block rows. An advancing
 finalized pair must match its locally stored block, while a finalized height outside the stored range
-does not advance the watermark. Lower or omitted finality retains the previous watermark.
+does not advance the watermark. The finalized number and hash must both be present or both be null.
+Lower or omitted finality retains the previous watermark.
 Source-wide finality ahead of a historical backfill is clamped to the processed cursor and its hash.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
@@ -124,7 +125,9 @@ DEFINER` routines, are rejected.
 The migrator drops the enumerated API views before source-table migrations and rebuilds them after
 every enabled schema is current, allowing column removal, reordering, and type changes. A rejected
 migration attempts to restore the views before returning. Migration and startup require the writer
-to own the migration table, cursor, and every expected chain table.
+to own the migration table and its sequence, the cursor, and every expected chain table. Before a
+pending migration, the ownership audit permits latest-schema tables that have not been created yet,
+then requires the complete inventory after migration.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -173,9 +176,10 @@ INDEXER_TO_BLOCK=22000010 \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
-The probe reports batches, blocks, logs, and the network-scoped stream identity. It refuses to run
-without `INDEXER_TO_BLOCK` and fails unless the source returns every block exactly once in ascending
-order across the inclusive range; it is a source diagnostic, not the domain indexer.
+The probe explicitly requests every block, including blocks without logs. It reports batches,
+blocks, logs, and the network-scoped stream identity, refuses to run without `INDEXER_TO_BLOCK`, and
+fails unless the source returns every block exactly once in ascending order across the inclusive
+range; it is a source diagnostic, not the domain indexer.
 
 Run local validation:
 

@@ -36,6 +36,7 @@ import {
   SHARED_SCHEMA,
 } from '../names.js';
 import { verifyDatabaseReadiness } from '../readiness.js';
+import { createChainObjectOwnershipQuery, type ChainObjectOwnershipRow } from '../roleBoundary.js';
 import {
   blocks,
   creators,
@@ -471,6 +472,48 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects incomplete finalized block identities', async () => {
+    const client = await ethereumPool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `INSERT INTO blocks (id, network, chain_id, number, hash, parent_hash, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          createBlockId(ethereumRuntime.network.chainId, block0.header.number),
+          ethereumRuntime.network.key,
+          ethereumRuntime.network.chainId,
+          block0.header.number,
+          block0.header.hash,
+          block0.header.parentHash,
+          new Date(block0.header.timestamp * 1_000),
+        ],
+      );
+      await expect(
+        client.query(
+          `INSERT INTO indexed_heads (
+             network,
+             chain_id,
+             block_number,
+             block_hash,
+             block_timestamp,
+             finalized_block_number
+           ) VALUES ($1, $2, $3, $4, $5, $3)`,
+          [
+            ethereumRuntime.network.key,
+            ethereumRuntime.network.chainId,
+            block0.header.number,
+            block0.header.hash,
+            new Date(block0.header.timestamp * 1_000),
+          ],
+        ),
+      ).rejects.toMatchObject({ constraint: 'indexed_heads_finalized_pair_check' });
+    } finally {
+      await client.query('ROLLBACK');
+      client.release();
+    }
+  });
+
   it('recreates API views when their public columns are incompatible', async () => {
     const qualifiedView = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier('creators')}`;
     await executeAsRole(testAdminPool, API_OWNER_ROLE, `DROP VIEW ${qualifiedView}`);
@@ -502,15 +545,20 @@ describe.sequential('PostgreSQL persistence', () => {
       ),
     };
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
-      'ALTER TABLE blocks ALTER COLUMN id TYPE varchar(128);',
+      `ALTER TABLE blocks ALTER COLUMN id TYPE varchar(128);
+--> statement-breakpoint
+ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     );
     let scratchPool: Pool | undefined;
     await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(scratchDatabaseName)}`);
     try {
       await migrateDatabase(scratchConfig);
+      scratchPool = new Pool({ connectionString: scratchUrl, max: 1 });
+      await scratchPool.query(
+        'ALTER TABLE chain_ethereum_mainnet.metadata_jobs RENAME TO metadata_jobs_pending_migration',
+      );
       await expect(migrateDatabase(scratchConfig, { migrationsDirectory })).resolves.toBeDefined();
 
-      scratchPool = new Pool({ connectionString: scratchUrl, max: 1 });
       const column = await scratchPool.query<{
         dataType: string;
         maximumLength: number | null;
@@ -1029,7 +1077,7 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
-  it('requires the writer to own every expected chain table', async () => {
+  it('requires the writer to own every expected chain object', async () => {
     const ethereumNetwork = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
     );
@@ -1040,7 +1088,7 @@ describe.sequential('PostgreSQL persistence', () => {
     const qualifiedJobs = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
     await testAdminPool.query(`ALTER TABLE ${qualifiedJobs} OWNER TO CURRENT_USER`);
     try {
-      const expectedError = `Database writer role "${ethereumNetwork.role}" must own every expected table in schema "${ethereumNetwork.schema}": metadata_jobs (owned by ${adminRole})`;
+      const expectedError = `Database writer role "${ethereumNetwork.role}" must own every expected object in schema "${ethereumNetwork.schema}": metadata_jobs (table owned by ${adminRole})`;
       await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
       await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
         expectedError,
@@ -1048,6 +1096,66 @@ describe.sequential('PostgreSQL persistence', () => {
     } finally {
       await testAdminPool.query(
         `ALTER TABLE ${qualifiedJobs} OWNER TO ${quotePostgresIdentifier(ethereumNetwork.role)}`,
+      );
+    }
+  });
+
+  it('allows pending migrations to introduce missing latest-schema tables', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const qualifiedJobs = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
+    const pendingJobs = quotePostgresIdentifier('metadata_jobs_pending_migration');
+    await testAdminPool.query(`ALTER TABLE ${qualifiedJobs} RENAME TO ${pendingJobs}`);
+    try {
+      const partialInventory = await ethereumDb.execute<ChainObjectOwnershipRow>(
+        createChainObjectOwnershipQuery(ethereumNetwork.role, ethereumNetwork.schema, false),
+      );
+      expect(partialInventory.rows).not.toContainEqual(
+        expect.objectContaining({ objectName: 'metadata_jobs' }),
+      );
+
+      const completeInventory = await ethereumDb.execute<ChainObjectOwnershipRow>(
+        createChainObjectOwnershipQuery(ethereumNetwork.role, ethereumNetwork.schema),
+      );
+      expect(completeInventory.rows).toContainEqual({
+        objectName: 'metadata_jobs',
+        objectType: 'table',
+        owner: null,
+      });
+    } finally {
+      await testAdminPool.query(
+        `ALTER TABLE ${quotePostgresIdentifier(ethereumNetwork.schema)}.${pendingJobs} RENAME TO ${quotePostgresIdentifier('metadata_jobs')}`,
+      );
+    }
+  });
+
+  it('requires the writer to own the migration history sequence', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const owner = await testAdminPool.query<{ role: string }>('SELECT current_user AS role');
+    const adminRole = owner.rows[0]?.role;
+    if (adminRole == null) throw new Error('Expected the migration admin role');
+    const qualifiedSchema = quotePostgresIdentifier(ethereumNetwork.schema);
+    const qualifiedSequence = `${qualifiedSchema}.${quotePostgresIdentifier('__drizzle_migrations_id_seq')}`;
+    const qualifiedMigrationTable = `${qualifiedSchema}.${quotePostgresIdentifier('__drizzle_migrations')}`;
+    await testAdminPool.query(`ALTER SEQUENCE ${qualifiedSequence} OWNED BY NONE`);
+    await testAdminPool.query(`ALTER SEQUENCE ${qualifiedSequence} OWNER TO CURRENT_USER`);
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" must own every expected object in schema "${ethereumNetwork.schema}": __drizzle_migrations_id_seq (sequence owned by ${adminRole})`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `ALTER SEQUENCE ${qualifiedSequence} OWNER TO ${quotePostgresIdentifier(ethereumNetwork.role)}`,
+      );
+      await testAdminPool.query(
+        `ALTER SEQUENCE ${qualifiedSequence} OWNED BY ${qualifiedMigrationTable}.id`,
       );
     }
   });

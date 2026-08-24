@@ -45,8 +45,10 @@ describe('v3 database schema inventory', () => {
   });
 
   it('anchors current and finalized indexed heads to exact block identities', () => {
-    const foreignKeys = getTableConfig(indexedHeads).foreignKeys.map((key) => key.getName());
+    const config = getTableConfig(indexedHeads);
+    const foreignKeys = config.foreignKeys.map((key) => key.getName());
     expect(foreignKeys).toContain('indexed_heads_block_fk');
     expect(foreignKeys).toContain('indexed_heads_finalized_block_fk');
+    expect(config.checks.map(({ name }) => name)).toContain('indexed_heads_finalized_pair_check');
   });
 });

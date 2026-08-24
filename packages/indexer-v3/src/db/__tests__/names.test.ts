@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MIGRATIONS_SEQUENCE,
   assertPostgresIdentifier,
   createNetworkDatabaseRole,
   createNetworkDatabaseVariable,
@@ -16,6 +17,7 @@ describe('database names', () => {
     expect(createRuntimeLoginVariable('ethereum-sepolia')).toBe(
       'DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA',
     );
+    expect(MIGRATIONS_SEQUENCE).toBe('__drizzle_migrations_id_seq');
     expect(quotePostgresIdentifier('_internal')).toBe('"_internal"');
   });
 

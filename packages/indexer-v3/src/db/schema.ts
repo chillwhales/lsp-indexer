@@ -739,6 +739,10 @@ export const indexedHeads = pgTable(
       'indexed_heads_finalized_hash_check',
       sql`${table.finalizedBlockHash} IS NULL OR ${table.finalizedBlockHash} ~ '^0x[0-9a-f]{64}$'`,
     ),
+    check(
+      'indexed_heads_finalized_pair_check',
+      sql`(${table.finalizedBlockNumber} IS NULL) = (${table.finalizedBlockHash} IS NULL)`,
+    ),
   ],
 );
 
