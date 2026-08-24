@@ -1,0 +1,7207 @@
+schema {
+  query: query_root
+  subscription: subscription_root
+}
+
+"""whether this query should be cached (Hasura Cloud only)"""
+directive @cached(
+  """refresh the cache entry"""
+  refresh: Boolean! = false
+
+  """measured in seconds"""
+  ttl: Int! = 60
+) on QUERY
+
+"""
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
+"""
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+
+"""
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_array_comparison_exp {
+  """is the array contained in the given array value"""
+  _contained_in: [String!]
+
+  """does the array contain the given value"""
+  _contains: [String!]
+  _eq: [String!]
+  _gt: [String!]
+  _gte: [String!]
+  _in: [[String!]!]
+  _is_null: Boolean
+  _lt: [String!]
+  _lte: [String!]
+  _neq: [String!]
+  _nin: [[String!]!]
+}
+
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+
+  """does the column match the given case-insensitive pattern"""
+  _ilike: String
+  _in: [String!]
+
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: String
+  _is_null: Boolean
+
+  """does the column match the given pattern"""
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+
+  """does the column NOT match the given case-insensitive pattern"""
+  _nilike: String
+  _nin: [String!]
+
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: String
+
+  """does the column NOT match the given pattern"""
+  _nlike: String
+
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: String
+
+  """does the column NOT match the given SQL regular expression"""
+  _nsimilar: String
+
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: String
+
+  """does the column match the given SQL regular expression"""
+  _similar: String
+}
+
+scalar asset_standard
+
+"""
+Boolean expression to compare columns of type "asset_standard". All fields are combined with logical 'AND'.
+"""
+input asset_standard_comparison_exp {
+  _eq: asset_standard
+  _gt: asset_standard
+  _gte: asset_standard
+  _in: [asset_standard!]
+  _is_null: Boolean
+  _lt: asset_standard
+  _lte: asset_standard
+  _neq: asset_standard
+  _nin: [asset_standard!]
+}
+
+scalar bigint
+
+"""
+Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'.
+"""
+input bigint_comparison_exp {
+  _eq: bigint
+  _gt: bigint
+  _gte: bigint
+  _in: [bigint!]
+  _is_null: Boolean
+  _lt: bigint
+  _lte: bigint
+  _neq: bigint
+  _nin: [bigint!]
+}
+
+"""
+columns and relationships of "api.blocks"
+"""
+type block {
+  chain_id: bigint
+
+  """An array relationship"""
+  events(
+    """distinct select on columns"""
+    distinct_on: [event_fact_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [event_fact_order_by!]
+
+    """filter the rows returned"""
+    where: event_fact_bool_exp
+  ): [event_fact!]!
+
+  """An aggregate relationship"""
+  events_aggregate(
+    """distinct select on columns"""
+    distinct_on: [event_fact_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [event_fact_order_by!]
+
+    """filter the rows returned"""
+    where: event_fact_bool_exp
+  ): event_fact_aggregate!
+  hash: String
+  id: String
+  network: String
+  number: bigint
+  parent_hash: String
+  timestamp: timestamptz
+}
+
+"""
+aggregated selection of "api.blocks"
+"""
+type block_aggregate {
+  aggregate: block_aggregate_fields
+  nodes: [block!]!
+}
+
+"""
+aggregate fields of "api.blocks"
+"""
+type block_aggregate_fields {
+  avg: block_avg_fields
+  count(columns: [block_select_column!], distinct: Boolean): Int!
+  max: block_max_fields
+  min: block_min_fields
+  stddev: block_stddev_fields
+  stddev_pop: block_stddev_pop_fields
+  stddev_samp: block_stddev_samp_fields
+  sum: block_sum_fields
+  var_pop: block_var_pop_fields
+  var_samp: block_var_samp_fields
+  variance: block_variance_fields
+}
+
+"""aggregate avg on columns"""
+type block_avg_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.blocks". All fields are combined with a logical 'AND'.
+"""
+input block_bool_exp {
+  _and: [block_bool_exp!]
+  _not: block_bool_exp
+  _or: [block_bool_exp!]
+  chain_id: bigint_comparison_exp
+  events: event_fact_bool_exp
+  events_aggregate: event_fact_aggregate_bool_exp
+  hash: String_comparison_exp
+  id: String_comparison_exp
+  network: String_comparison_exp
+  number: bigint_comparison_exp
+  parent_hash: String_comparison_exp
+  timestamp: timestamptz_comparison_exp
+}
+
+"""aggregate max on columns"""
+type block_max_fields {
+  chain_id: bigint
+  hash: String
+  id: String
+  network: String
+  number: bigint
+  parent_hash: String
+  timestamp: timestamptz
+}
+
+"""aggregate min on columns"""
+type block_min_fields {
+  chain_id: bigint
+  hash: String
+  id: String
+  network: String
+  number: bigint
+  parent_hash: String
+  timestamp: timestamptz
+}
+
+"""Ordering options when selecting data from "api.blocks"."""
+input block_order_by {
+  chain_id: order_by
+  events_aggregate: event_fact_aggregate_order_by
+  hash: order_by
+  id: order_by
+  network: order_by
+  number: order_by
+  parent_hash: order_by
+  timestamp: order_by
+}
+
+"""
+select columns of table "api.blocks"
+"""
+enum block_select_column {
+  """column name"""
+  chain_id
+
+  """column name"""
+  hash
+
+  """column name"""
+  id
+
+  """column name"""
+  network
+
+  """column name"""
+  number
+
+  """column name"""
+  parent_hash
+
+  """column name"""
+  timestamp
+}
+
+"""aggregate stddev on columns"""
+type block_stddev_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type block_stddev_pop_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type block_stddev_samp_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""aggregate sum on columns"""
+type block_sum_fields {
+  chain_id: bigint
+  number: bigint
+}
+
+"""aggregate var_pop on columns"""
+type block_var_pop_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""aggregate var_samp on columns"""
+type block_var_samp_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""aggregate variance on columns"""
+type block_variance_fields {
+  chain_id: Float
+  number: Float
+}
+
+"""
+columns and relationships of "api.chillwhales_nfts"
+"""
+type chillwhales_nft {
+  address: String
+  chain_id: bigint
+  chill_claimed: Boolean
+  claim_check_after_block: bigint
+  cooldown_expiry: bigint
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  faction: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  level: Int
+  network: String
+
+  """An object relationship"""
+  nft: nft
+  orbs_claimed: Boolean
+  token_id: String
+}
+
+"""
+aggregated selection of "api.chillwhales_nfts"
+"""
+type chillwhales_nft_aggregate {
+  aggregate: chillwhales_nft_aggregate_fields
+  nodes: [chillwhales_nft!]!
+}
+
+"""
+aggregate fields of "api.chillwhales_nfts"
+"""
+type chillwhales_nft_aggregate_fields {
+  avg: chillwhales_nft_avg_fields
+  count(columns: [chillwhales_nft_select_column!], distinct: Boolean): Int!
+  max: chillwhales_nft_max_fields
+  min: chillwhales_nft_min_fields
+  stddev: chillwhales_nft_stddev_fields
+  stddev_pop: chillwhales_nft_stddev_pop_fields
+  stddev_samp: chillwhales_nft_stddev_samp_fields
+  sum: chillwhales_nft_sum_fields
+  var_pop: chillwhales_nft_var_pop_fields
+  var_samp: chillwhales_nft_var_samp_fields
+  variance: chillwhales_nft_variance_fields
+}
+
+"""aggregate avg on columns"""
+type chillwhales_nft_avg_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.chillwhales_nfts". All fields are combined with a logical 'AND'.
+"""
+input chillwhales_nft_bool_exp {
+  _and: [chillwhales_nft_bool_exp!]
+  _not: chillwhales_nft_bool_exp
+  _or: [chillwhales_nft_bool_exp!]
+  address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  chill_claimed: Boolean_comparison_exp
+  claim_check_after_block: bigint_comparison_exp
+  cooldown_expiry: bigint_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  faction: String_comparison_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  level: Int_comparison_exp
+  network: String_comparison_exp
+  nft: nft_bool_exp
+  orbs_claimed: Boolean_comparison_exp
+  token_id: String_comparison_exp
+}
+
+"""aggregate max on columns"""
+type chillwhales_nft_max_fields {
+  address: String
+  chain_id: bigint
+  claim_check_after_block: bigint
+  cooldown_expiry: bigint
+  faction: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  level: Int
+  network: String
+  token_id: String
+}
+
+"""aggregate min on columns"""
+type chillwhales_nft_min_fields {
+  address: String
+  chain_id: bigint
+  claim_check_after_block: bigint
+  cooldown_expiry: bigint
+  faction: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  level: Int
+  network: String
+  token_id: String
+}
+
+"""Ordering options when selecting data from "api.chillwhales_nfts"."""
+input chillwhales_nft_order_by {
+  address: order_by
+  chain_id: order_by
+  chill_claimed: order_by
+  claim_check_after_block: order_by
+  cooldown_expiry: order_by
+  digitalAsset: digital_asset_order_by
+  faction: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  level: order_by
+  network: order_by
+  nft: nft_order_by
+  orbs_claimed: order_by
+  token_id: order_by
+}
+
+"""
+select columns of table "api.chillwhales_nfts"
+"""
+enum chillwhales_nft_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  chill_claimed
+
+  """column name"""
+  claim_check_after_block
+
+  """column name"""
+  cooldown_expiry
+
+  """column name"""
+  faction
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  level
+
+  """column name"""
+  network
+
+  """column name"""
+  orbs_claimed
+
+  """column name"""
+  token_id
+}
+
+"""aggregate stddev on columns"""
+type chillwhales_nft_stddev_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type chillwhales_nft_stddev_pop_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type chillwhales_nft_stddev_samp_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""aggregate sum on columns"""
+type chillwhales_nft_sum_fields {
+  chain_id: bigint
+  claim_check_after_block: bigint
+  cooldown_expiry: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+  level: Int
+}
+
+"""aggregate var_pop on columns"""
+type chillwhales_nft_var_pop_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""aggregate var_samp on columns"""
+type chillwhales_nft_var_samp_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""aggregate variance on columns"""
+type chillwhales_nft_variance_fields {
+  chain_id: Float
+  claim_check_after_block: Float
+  cooldown_expiry: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  level: Float
+}
+
+"""
+columns and relationships of "api.data_values"
+"""
+type data_value {
+  address: String
+  chain_id: bigint
+  data_key: String
+  data_value: String
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+
+  """An object relationship"""
+  nft: nft
+  token_id: String
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.data_values"
+"""
+type data_value_aggregate {
+  aggregate: data_value_aggregate_fields
+  nodes: [data_value!]!
+}
+
+input data_value_aggregate_bool_exp {
+  count: data_value_aggregate_bool_exp_count
+}
+
+input data_value_aggregate_bool_exp_count {
+  arguments: [data_value_select_column!]
+  distinct: Boolean
+  filter: data_value_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.data_values"
+"""
+type data_value_aggregate_fields {
+  avg: data_value_avg_fields
+  count(columns: [data_value_select_column!], distinct: Boolean): Int!
+  max: data_value_max_fields
+  min: data_value_min_fields
+  stddev: data_value_stddev_fields
+  stddev_pop: data_value_stddev_pop_fields
+  stddev_samp: data_value_stddev_samp_fields
+  sum: data_value_sum_fields
+  var_pop: data_value_var_pop_fields
+  var_samp: data_value_var_samp_fields
+  variance: data_value_variance_fields
+}
+
+"""
+order by aggregate values of table "api.data_values"
+"""
+input data_value_aggregate_order_by {
+  avg: data_value_avg_order_by
+  count: order_by
+  max: data_value_max_order_by
+  min: data_value_min_order_by
+  stddev: data_value_stddev_order_by
+  stddev_pop: data_value_stddev_pop_order_by
+  stddev_samp: data_value_stddev_samp_order_by
+  sum: data_value_sum_order_by
+  var_pop: data_value_var_pop_order_by
+  var_samp: data_value_var_samp_order_by
+  variance: data_value_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type data_value_avg_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.data_values"
+"""
+input data_value_avg_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.data_values". All fields are combined with a logical 'AND'.
+"""
+input data_value_bool_exp {
+  _and: [data_value_bool_exp!]
+  _not: data_value_bool_exp
+  _or: [data_value_bool_exp!]
+  address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  data_key: String_comparison_exp
+  data_value: String_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  nft: nft_bool_exp
+  token_id: String_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type data_value_max_fields {
+  address: String
+  chain_id: bigint
+  data_key: String
+  data_value: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  token_id: String
+}
+
+"""
+order by max() on columns of table "api.data_values"
+"""
+input data_value_max_order_by {
+  address: order_by
+  chain_id: order_by
+  data_key: order_by
+  data_value: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  token_id: order_by
+}
+
+"""aggregate min on columns"""
+type data_value_min_fields {
+  address: String
+  chain_id: bigint
+  data_key: String
+  data_value: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  token_id: String
+}
+
+"""
+order by min() on columns of table "api.data_values"
+"""
+input data_value_min_order_by {
+  address: order_by
+  chain_id: order_by
+  data_key: order_by
+  data_value: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  token_id: order_by
+}
+
+"""Ordering options when selecting data from "api.data_values"."""
+input data_value_order_by {
+  address: order_by
+  chain_id: order_by
+  data_key: order_by
+  data_value: order_by
+  digitalAsset: digital_asset_order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  nft: nft_order_by
+  token_id: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.data_values"
+"""
+enum data_value_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  data_key
+
+  """column name"""
+  data_value
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  token_id
+}
+
+"""aggregate stddev on columns"""
+type data_value_stddev_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.data_values"
+"""
+input data_value_stddev_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type data_value_stddev_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.data_values"
+"""
+input data_value_stddev_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type data_value_stddev_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.data_values"
+"""
+input data_value_stddev_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type data_value_sum_fields {
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.data_values"
+"""
+input data_value_sum_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type data_value_var_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.data_values"
+"""
+input data_value_var_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type data_value_var_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.data_values"
+"""
+input data_value_var_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type data_value_variance_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.data_values"
+"""
+input data_value_variance_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.digital_assets"
+"""
+type digital_asset {
+  address: String
+  base_uri: String
+  chain_id: bigint
+
+  """An array relationship"""
+  dataValues(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): [data_value!]!
+
+  """An aggregate relationship"""
+  dataValues_aggregate(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): data_value_aggregate!
+  decimals: Int
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+
+  """An array relationship"""
+  lsp4Creators(
+    """distinct select on columns"""
+    distinct_on: [lsp4_creator_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp4_creator_order_by!]
+
+    """filter the rows returned"""
+    where: lsp4_creator_bool_exp
+  ): [lsp4_creator!]!
+
+  """An aggregate relationship"""
+  lsp4Creators_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp4_creator_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp4_creator_order_by!]
+
+    """filter the rows returned"""
+    where: lsp4_creator_bool_exp
+  ): lsp4_creator_aggregate!
+
+  """An array relationship"""
+  lsp12IssuedBy(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): [lsp12_issued_asset!]!
+
+  """An aggregate relationship"""
+  lsp12IssuedBy_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): lsp12_issued_asset_aggregate!
+
+  """An array relationship"""
+  metadataRevisions(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): [metadata_revision!]!
+
+  """An aggregate relationship"""
+  metadataRevisions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): metadata_revision_aggregate!
+  name: String
+  network: String
+
+  """An array relationship"""
+  nfts(
+    """distinct select on columns"""
+    distinct_on: [nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [nft_order_by!]
+
+    """filter the rows returned"""
+    where: nft_bool_exp
+  ): [nft!]!
+
+  """An aggregate relationship"""
+  nfts_aggregate(
+    """distinct select on columns"""
+    distinct_on: [nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [nft_order_by!]
+
+    """filter the rows returned"""
+    where: nft_bool_exp
+  ): nft_aggregate!
+
+  """An array relationship"""
+  ownedAssets(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): [owned_asset!]!
+
+  """An aggregate relationship"""
+  ownedAssets_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): owned_asset_aggregate!
+
+  """An array relationship"""
+  ownedTokens(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """An aggregate relationship"""
+  ownedTokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+  owner_address: String
+  standard: asset_standard
+  symbol: String
+  token_id_format: Int
+  token_id_reference_contract: String
+  token_type: Int
+  total_supply: numeric
+  verification: verification_status
+}
+
+"""
+aggregated selection of "api.digital_assets"
+"""
+type digital_asset_aggregate {
+  aggregate: digital_asset_aggregate_fields
+  nodes: [digital_asset!]!
+}
+
+"""
+aggregate fields of "api.digital_assets"
+"""
+type digital_asset_aggregate_fields {
+  avg: digital_asset_avg_fields
+  count(columns: [digital_asset_select_column!], distinct: Boolean): Int!
+  max: digital_asset_max_fields
+  min: digital_asset_min_fields
+  stddev: digital_asset_stddev_fields
+  stddev_pop: digital_asset_stddev_pop_fields
+  stddev_samp: digital_asset_stddev_samp_fields
+  sum: digital_asset_sum_fields
+  var_pop: digital_asset_var_pop_fields
+  var_samp: digital_asset_var_samp_fields
+  variance: digital_asset_variance_fields
+}
+
+"""aggregate avg on columns"""
+type digital_asset_avg_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.digital_assets". All fields are combined with a logical 'AND'.
+"""
+input digital_asset_bool_exp {
+  _and: [digital_asset_bool_exp!]
+  _not: digital_asset_bool_exp
+  _or: [digital_asset_bool_exp!]
+  address: String_comparison_exp
+  base_uri: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  dataValues: data_value_bool_exp
+  dataValues_aggregate: data_value_aggregate_bool_exp
+  decimals: Int_comparison_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  lsp4Creators: lsp4_creator_bool_exp
+  lsp4Creators_aggregate: lsp4_creator_aggregate_bool_exp
+  lsp12IssuedBy: lsp12_issued_asset_bool_exp
+  lsp12IssuedBy_aggregate: lsp12_issued_asset_aggregate_bool_exp
+  metadataRevisions: metadata_revision_bool_exp
+  metadataRevisions_aggregate: metadata_revision_aggregate_bool_exp
+  name: String_comparison_exp
+  network: String_comparison_exp
+  nfts: nft_bool_exp
+  nfts_aggregate: nft_aggregate_bool_exp
+  ownedAssets: owned_asset_bool_exp
+  ownedAssets_aggregate: owned_asset_aggregate_bool_exp
+  ownedTokens: owned_token_bool_exp
+  ownedTokens_aggregate: owned_token_aggregate_bool_exp
+  owner_address: String_comparison_exp
+  standard: asset_standard_comparison_exp
+  symbol: String_comparison_exp
+  token_id_format: Int_comparison_exp
+  token_id_reference_contract: String_comparison_exp
+  token_type: Int_comparison_exp
+  total_supply: numeric_comparison_exp
+  verification: verification_status_comparison_exp
+}
+
+"""aggregate max on columns"""
+type digital_asset_max_fields {
+  address: String
+  base_uri: String
+  chain_id: bigint
+  decimals: Int
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  name: String
+  network: String
+  owner_address: String
+  standard: asset_standard
+  symbol: String
+  token_id_format: Int
+  token_id_reference_contract: String
+  token_type: Int
+  total_supply: numeric
+  verification: verification_status
+}
+
+"""aggregate min on columns"""
+type digital_asset_min_fields {
+  address: String
+  base_uri: String
+  chain_id: bigint
+  decimals: Int
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  name: String
+  network: String
+  owner_address: String
+  standard: asset_standard
+  symbol: String
+  token_id_format: Int
+  token_id_reference_contract: String
+  token_type: Int
+  total_supply: numeric
+  verification: verification_status
+}
+
+"""Ordering options when selecting data from "api.digital_assets"."""
+input digital_asset_order_by {
+  address: order_by
+  base_uri: order_by
+  chain_id: order_by
+  dataValues_aggregate: data_value_aggregate_order_by
+  decimals: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  lsp4Creators_aggregate: lsp4_creator_aggregate_order_by
+  lsp12IssuedBy_aggregate: lsp12_issued_asset_aggregate_order_by
+  metadataRevisions_aggregate: metadata_revision_aggregate_order_by
+  name: order_by
+  network: order_by
+  nfts_aggregate: nft_aggregate_order_by
+  ownedAssets_aggregate: owned_asset_aggregate_order_by
+  ownedTokens_aggregate: owned_token_aggregate_order_by
+  owner_address: order_by
+  standard: order_by
+  symbol: order_by
+  token_id_format: order_by
+  token_id_reference_contract: order_by
+  token_type: order_by
+  total_supply: order_by
+  verification: order_by
+}
+
+"""
+select columns of table "api.digital_assets"
+"""
+enum digital_asset_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  base_uri
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  decimals
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  name
+
+  """column name"""
+  network
+
+  """column name"""
+  owner_address
+
+  """column name"""
+  standard
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id_format
+
+  """column name"""
+  token_id_reference_contract
+
+  """column name"""
+  token_type
+
+  """column name"""
+  total_supply
+
+  """column name"""
+  verification
+}
+
+"""aggregate stddev on columns"""
+type digital_asset_stddev_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type digital_asset_stddev_pop_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type digital_asset_stddev_samp_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""aggregate sum on columns"""
+type digital_asset_sum_fields {
+  chain_id: bigint
+  decimals: Int
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+  token_id_format: Int
+  token_type: Int
+  total_supply: numeric
+}
+
+"""aggregate var_pop on columns"""
+type digital_asset_var_pop_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""aggregate var_samp on columns"""
+type digital_asset_var_samp_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""aggregate variance on columns"""
+type digital_asset_variance_fields {
+  chain_id: Float
+  decimals: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+  token_id_format: Float
+  token_type: Float
+  total_supply: Float
+}
+
+"""
+columns and relationships of "api.event_facts"
+"""
+type event_fact {
+  address: String
+
+  """An object relationship"""
+  block: block
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  data: String
+  decoded(
+    """JSON select path"""
+    path: String
+  ): jsonb
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  event_domain: String
+  event_name: String
+  id: String
+  log_index: Int
+  network: String
+  parent_hash: String
+  topic0: String
+  topics: [String!]
+  transaction_hash: String
+  transaction_index: Int
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.event_facts"
+"""
+type event_fact_aggregate {
+  aggregate: event_fact_aggregate_fields
+  nodes: [event_fact!]!
+}
+
+input event_fact_aggregate_bool_exp {
+  count: event_fact_aggregate_bool_exp_count
+}
+
+input event_fact_aggregate_bool_exp_count {
+  arguments: [event_fact_select_column!]
+  distinct: Boolean
+  filter: event_fact_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.event_facts"
+"""
+type event_fact_aggregate_fields {
+  avg: event_fact_avg_fields
+  count(columns: [event_fact_select_column!], distinct: Boolean): Int!
+  max: event_fact_max_fields
+  min: event_fact_min_fields
+  stddev: event_fact_stddev_fields
+  stddev_pop: event_fact_stddev_pop_fields
+  stddev_samp: event_fact_stddev_samp_fields
+  sum: event_fact_sum_fields
+  var_pop: event_fact_var_pop_fields
+  var_samp: event_fact_var_samp_fields
+  variance: event_fact_variance_fields
+}
+
+"""
+order by aggregate values of table "api.event_facts"
+"""
+input event_fact_aggregate_order_by {
+  avg: event_fact_avg_order_by
+  count: order_by
+  max: event_fact_max_order_by
+  min: event_fact_min_order_by
+  stddev: event_fact_stddev_order_by
+  stddev_pop: event_fact_stddev_pop_order_by
+  stddev_samp: event_fact_stddev_samp_order_by
+  sum: event_fact_sum_order_by
+  var_pop: event_fact_var_pop_order_by
+  var_samp: event_fact_var_samp_order_by
+  variance: event_fact_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type event_fact_avg_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.event_facts"
+"""
+input event_fact_avg_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.event_facts". All fields are combined with a logical 'AND'.
+"""
+input event_fact_bool_exp {
+  _and: [event_fact_bool_exp!]
+  _not: event_fact_bool_exp
+  _or: [event_fact_bool_exp!]
+  address: String_comparison_exp
+  block: block_bool_exp
+  block_hash: String_comparison_exp
+  block_number: bigint_comparison_exp
+  block_timestamp: timestamptz_comparison_exp
+  chain_id: bigint_comparison_exp
+  data: String_comparison_exp
+  decoded: jsonb_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  event_domain: String_comparison_exp
+  event_name: String_comparison_exp
+  id: String_comparison_exp
+  log_index: Int_comparison_exp
+  network: String_comparison_exp
+  parent_hash: String_comparison_exp
+  topic0: String_comparison_exp
+  topics: String_array_comparison_exp
+  transaction_hash: String_comparison_exp
+  transaction_index: Int_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type event_fact_max_fields {
+  address: String
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  data: String
+  event_domain: String
+  event_name: String
+  id: String
+  log_index: Int
+  network: String
+  parent_hash: String
+  topic0: String
+  topics: [String!]
+  transaction_hash: String
+  transaction_index: Int
+}
+
+"""
+order by max() on columns of table "api.event_facts"
+"""
+input event_fact_max_order_by {
+  address: order_by
+  block_hash: order_by
+  block_number: order_by
+  block_timestamp: order_by
+  chain_id: order_by
+  data: order_by
+  event_domain: order_by
+  event_name: order_by
+  id: order_by
+  log_index: order_by
+  network: order_by
+  parent_hash: order_by
+  topic0: order_by
+  topics: order_by
+  transaction_hash: order_by
+  transaction_index: order_by
+}
+
+"""aggregate min on columns"""
+type event_fact_min_fields {
+  address: String
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  data: String
+  event_domain: String
+  event_name: String
+  id: String
+  log_index: Int
+  network: String
+  parent_hash: String
+  topic0: String
+  topics: [String!]
+  transaction_hash: String
+  transaction_index: Int
+}
+
+"""
+order by min() on columns of table "api.event_facts"
+"""
+input event_fact_min_order_by {
+  address: order_by
+  block_hash: order_by
+  block_number: order_by
+  block_timestamp: order_by
+  chain_id: order_by
+  data: order_by
+  event_domain: order_by
+  event_name: order_by
+  id: order_by
+  log_index: order_by
+  network: order_by
+  parent_hash: order_by
+  topic0: order_by
+  topics: order_by
+  transaction_hash: order_by
+  transaction_index: order_by
+}
+
+"""Ordering options when selecting data from "api.event_facts"."""
+input event_fact_order_by {
+  address: order_by
+  block: block_order_by
+  block_hash: order_by
+  block_number: order_by
+  block_timestamp: order_by
+  chain_id: order_by
+  data: order_by
+  decoded: order_by
+  digitalAsset: digital_asset_order_by
+  event_domain: order_by
+  event_name: order_by
+  id: order_by
+  log_index: order_by
+  network: order_by
+  parent_hash: order_by
+  topic0: order_by
+  topics: order_by
+  transaction_hash: order_by
+  transaction_index: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.event_facts"
+"""
+enum event_fact_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  block_hash
+
+  """column name"""
+  block_number
+
+  """column name"""
+  block_timestamp
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  data
+
+  """column name"""
+  decoded
+
+  """column name"""
+  event_domain
+
+  """column name"""
+  event_name
+
+  """column name"""
+  id
+
+  """column name"""
+  log_index
+
+  """column name"""
+  network
+
+  """column name"""
+  parent_hash
+
+  """column name"""
+  topic0
+
+  """column name"""
+  topics
+
+  """column name"""
+  transaction_hash
+
+  """column name"""
+  transaction_index
+}
+
+"""aggregate stddev on columns"""
+type event_fact_stddev_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.event_facts"
+"""
+input event_fact_stddev_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type event_fact_stddev_pop_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.event_facts"
+"""
+input event_fact_stddev_pop_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type event_fact_stddev_samp_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.event_facts"
+"""
+input event_fact_stddev_samp_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type event_fact_sum_fields {
+  block_number: bigint
+  chain_id: bigint
+  log_index: Int
+  transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.event_facts"
+"""
+input event_fact_sum_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type event_fact_var_pop_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.event_facts"
+"""
+input event_fact_var_pop_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type event_fact_var_samp_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.event_facts"
+"""
+input event_fact_var_samp_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type event_fact_variance_fields {
+  block_number: Float
+  chain_id: Float
+  log_index: Float
+  transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.event_facts"
+"""
+input event_fact_variance_order_by {
+  block_number: order_by
+  chain_id: order_by
+  log_index: order_by
+  transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.follower_edges"
+"""
+type follower {
+  chain_id: bigint
+
+  """An object relationship"""
+  followedUniversalProfile: universal_profile
+  followed_address: String
+  followed_at: timestamptz
+
+  """An object relationship"""
+  followerUniversalProfile: universal_profile
+  follower_address: String
+  id: String
+  is_following: Boolean
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  unfollowed_at: timestamptz
+}
+
+"""
+aggregated selection of "api.follower_edges"
+"""
+type follower_aggregate {
+  aggregate: follower_aggregate_fields
+  nodes: [follower!]!
+}
+
+input follower_aggregate_bool_exp {
+  bool_and: follower_aggregate_bool_exp_bool_and
+  bool_or: follower_aggregate_bool_exp_bool_or
+  count: follower_aggregate_bool_exp_count
+}
+
+input follower_aggregate_bool_exp_bool_and {
+  arguments: follower_select_column_follower_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: follower_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input follower_aggregate_bool_exp_bool_or {
+  arguments: follower_select_column_follower_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: follower_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input follower_aggregate_bool_exp_count {
+  arguments: [follower_select_column!]
+  distinct: Boolean
+  filter: follower_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.follower_edges"
+"""
+type follower_aggregate_fields {
+  avg: follower_avg_fields
+  count(columns: [follower_select_column!], distinct: Boolean): Int!
+  max: follower_max_fields
+  min: follower_min_fields
+  stddev: follower_stddev_fields
+  stddev_pop: follower_stddev_pop_fields
+  stddev_samp: follower_stddev_samp_fields
+  sum: follower_sum_fields
+  var_pop: follower_var_pop_fields
+  var_samp: follower_var_samp_fields
+  variance: follower_variance_fields
+}
+
+"""
+order by aggregate values of table "api.follower_edges"
+"""
+input follower_aggregate_order_by {
+  avg: follower_avg_order_by
+  count: order_by
+  max: follower_max_order_by
+  min: follower_min_order_by
+  stddev: follower_stddev_order_by
+  stddev_pop: follower_stddev_pop_order_by
+  stddev_samp: follower_stddev_samp_order_by
+  sum: follower_sum_order_by
+  var_pop: follower_var_pop_order_by
+  var_samp: follower_var_samp_order_by
+  variance: follower_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type follower_avg_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.follower_edges"
+"""
+input follower_avg_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.follower_edges". All fields are combined with a logical 'AND'.
+"""
+input follower_bool_exp {
+  _and: [follower_bool_exp!]
+  _not: follower_bool_exp
+  _or: [follower_bool_exp!]
+  chain_id: bigint_comparison_exp
+  followedUniversalProfile: universal_profile_bool_exp
+  followed_address: String_comparison_exp
+  followed_at: timestamptz_comparison_exp
+  followerUniversalProfile: universal_profile_bool_exp
+  follower_address: String_comparison_exp
+  id: String_comparison_exp
+  is_following: Boolean_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  unfollowed_at: timestamptz_comparison_exp
+}
+
+"""aggregate max on columns"""
+type follower_max_fields {
+  chain_id: bigint
+  followed_address: String
+  followed_at: timestamptz
+  follower_address: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  unfollowed_at: timestamptz
+}
+
+"""
+order by max() on columns of table "api.follower_edges"
+"""
+input follower_max_order_by {
+  chain_id: order_by
+  followed_address: order_by
+  followed_at: order_by
+  follower_address: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  unfollowed_at: order_by
+}
+
+"""aggregate min on columns"""
+type follower_min_fields {
+  chain_id: bigint
+  followed_address: String
+  followed_at: timestamptz
+  follower_address: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  unfollowed_at: timestamptz
+}
+
+"""
+order by min() on columns of table "api.follower_edges"
+"""
+input follower_min_order_by {
+  chain_id: order_by
+  followed_address: order_by
+  followed_at: order_by
+  follower_address: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  unfollowed_at: order_by
+}
+
+"""Ordering options when selecting data from "api.follower_edges"."""
+input follower_order_by {
+  chain_id: order_by
+  followedUniversalProfile: universal_profile_order_by
+  followed_address: order_by
+  followed_at: order_by
+  followerUniversalProfile: universal_profile_order_by
+  follower_address: order_by
+  id: order_by
+  is_following: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  unfollowed_at: order_by
+}
+
+"""
+select columns of table "api.follower_edges"
+"""
+enum follower_select_column {
+  """column name"""
+  chain_id
+
+  """column name"""
+  followed_address
+
+  """column name"""
+  followed_at
+
+  """column name"""
+  follower_address
+
+  """column name"""
+  id
+
+  """column name"""
+  is_following
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  unfollowed_at
+}
+
+"""
+select "follower_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api.follower_edges"
+"""
+enum follower_select_column_follower_aggregate_bool_exp_bool_and_arguments_columns {
+  """column name"""
+  is_following
+}
+
+"""
+select "follower_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api.follower_edges"
+"""
+enum follower_select_column_follower_aggregate_bool_exp_bool_or_arguments_columns {
+  """column name"""
+  is_following
+}
+
+"""aggregate stddev on columns"""
+type follower_stddev_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.follower_edges"
+"""
+input follower_stddev_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type follower_stddev_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.follower_edges"
+"""
+input follower_stddev_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type follower_stddev_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.follower_edges"
+"""
+input follower_stddev_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type follower_sum_fields {
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.follower_edges"
+"""
+input follower_sum_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type follower_var_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.follower_edges"
+"""
+input follower_var_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type follower_var_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.follower_edges"
+"""
+input follower_var_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type follower_variance_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.follower_edges"
+"""
+input follower_variance_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.indexed_heads"
+"""
+type indexed_head {
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  finalized_block_hash: String
+  finalized_block_number: bigint
+  network: String
+  updated_at: timestamptz
+}
+
+"""
+aggregated selection of "api.indexed_heads"
+"""
+type indexed_head_aggregate {
+  aggregate: indexed_head_aggregate_fields
+  nodes: [indexed_head!]!
+}
+
+"""
+aggregate fields of "api.indexed_heads"
+"""
+type indexed_head_aggregate_fields {
+  avg: indexed_head_avg_fields
+  count(columns: [indexed_head_select_column!], distinct: Boolean): Int!
+  max: indexed_head_max_fields
+  min: indexed_head_min_fields
+  stddev: indexed_head_stddev_fields
+  stddev_pop: indexed_head_stddev_pop_fields
+  stddev_samp: indexed_head_stddev_samp_fields
+  sum: indexed_head_sum_fields
+  var_pop: indexed_head_var_pop_fields
+  var_samp: indexed_head_var_samp_fields
+  variance: indexed_head_variance_fields
+}
+
+"""aggregate avg on columns"""
+type indexed_head_avg_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.indexed_heads". All fields are combined with a logical 'AND'.
+"""
+input indexed_head_bool_exp {
+  _and: [indexed_head_bool_exp!]
+  _not: indexed_head_bool_exp
+  _or: [indexed_head_bool_exp!]
+  block_hash: String_comparison_exp
+  block_number: bigint_comparison_exp
+  block_timestamp: timestamptz_comparison_exp
+  chain_id: bigint_comparison_exp
+  finalized_block_hash: String_comparison_exp
+  finalized_block_number: bigint_comparison_exp
+  network: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""aggregate max on columns"""
+type indexed_head_max_fields {
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  finalized_block_hash: String
+  finalized_block_number: bigint
+  network: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type indexed_head_min_fields {
+  block_hash: String
+  block_number: bigint
+  block_timestamp: timestamptz
+  chain_id: bigint
+  finalized_block_hash: String
+  finalized_block_number: bigint
+  network: String
+  updated_at: timestamptz
+}
+
+"""Ordering options when selecting data from "api.indexed_heads"."""
+input indexed_head_order_by {
+  block_hash: order_by
+  block_number: order_by
+  block_timestamp: order_by
+  chain_id: order_by
+  finalized_block_hash: order_by
+  finalized_block_number: order_by
+  network: order_by
+  updated_at: order_by
+}
+
+"""
+select columns of table "api.indexed_heads"
+"""
+enum indexed_head_select_column {
+  """column name"""
+  block_hash
+
+  """column name"""
+  block_number
+
+  """column name"""
+  block_timestamp
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  finalized_block_hash
+
+  """column name"""
+  finalized_block_number
+
+  """column name"""
+  network
+
+  """column name"""
+  updated_at
+}
+
+"""aggregate stddev on columns"""
+type indexed_head_stddev_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type indexed_head_stddev_pop_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type indexed_head_stddev_samp_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""aggregate sum on columns"""
+type indexed_head_sum_fields {
+  block_number: bigint
+  chain_id: bigint
+  finalized_block_number: bigint
+}
+
+"""aggregate var_pop on columns"""
+type indexed_head_var_pop_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""aggregate var_samp on columns"""
+type indexed_head_var_samp_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+"""aggregate variance on columns"""
+type indexed_head_variance_fields {
+  block_number: Float
+  chain_id: Float
+  finalized_block_number: Float
+}
+
+scalar jsonb
+
+input jsonb_cast_exp {
+  String: String_comparison_exp
+}
+
+"""
+Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+"""
+input jsonb_comparison_exp {
+  _cast: jsonb_cast_exp
+
+  """is the column contained in the given json value"""
+  _contained_in: jsonb
+
+  """does the column contain the given json value at the top level"""
+  _contains: jsonb
+  _eq: jsonb
+  _gt: jsonb
+  _gte: jsonb
+
+  """does the string exist as a top-level key in the column"""
+  _has_key: String
+
+  """do all of these strings exist as top-level keys in the column"""
+  _has_keys_all: [String!]
+
+  """do any of these strings exist as top-level keys in the column"""
+  _has_keys_any: [String!]
+  _in: [jsonb!]
+  _is_null: Boolean
+  _lt: jsonb
+  _lte: jsonb
+  _neq: jsonb
+  _nin: [jsonb!]
+}
+
+"""
+columns and relationships of "api.creators"
+"""
+type lsp4_creator {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+
+  """An object relationship"""
+  creatorProfile: universal_profile
+  creator_address: String
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  id: String
+  interface_id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  verified: Boolean
+}
+
+"""
+aggregated selection of "api.creators"
+"""
+type lsp4_creator_aggregate {
+  aggregate: lsp4_creator_aggregate_fields
+  nodes: [lsp4_creator!]!
+}
+
+input lsp4_creator_aggregate_bool_exp {
+  bool_and: lsp4_creator_aggregate_bool_exp_bool_and
+  bool_or: lsp4_creator_aggregate_bool_exp_bool_or
+  count: lsp4_creator_aggregate_bool_exp_count
+}
+
+input lsp4_creator_aggregate_bool_exp_bool_and {
+  arguments: lsp4_creator_select_column_lsp4_creator_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: lsp4_creator_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input lsp4_creator_aggregate_bool_exp_bool_or {
+  arguments: lsp4_creator_select_column_lsp4_creator_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: lsp4_creator_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input lsp4_creator_aggregate_bool_exp_count {
+  arguments: [lsp4_creator_select_column!]
+  distinct: Boolean
+  filter: lsp4_creator_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.creators"
+"""
+type lsp4_creator_aggregate_fields {
+  avg: lsp4_creator_avg_fields
+  count(columns: [lsp4_creator_select_column!], distinct: Boolean): Int!
+  max: lsp4_creator_max_fields
+  min: lsp4_creator_min_fields
+  stddev: lsp4_creator_stddev_fields
+  stddev_pop: lsp4_creator_stddev_pop_fields
+  stddev_samp: lsp4_creator_stddev_samp_fields
+  sum: lsp4_creator_sum_fields
+  var_pop: lsp4_creator_var_pop_fields
+  var_samp: lsp4_creator_var_samp_fields
+  variance: lsp4_creator_variance_fields
+}
+
+"""
+order by aggregate values of table "api.creators"
+"""
+input lsp4_creator_aggregate_order_by {
+  avg: lsp4_creator_avg_order_by
+  count: order_by
+  max: lsp4_creator_max_order_by
+  min: lsp4_creator_min_order_by
+  stddev: lsp4_creator_stddev_order_by
+  stddev_pop: lsp4_creator_stddev_pop_order_by
+  stddev_samp: lsp4_creator_stddev_samp_order_by
+  sum: lsp4_creator_sum_order_by
+  var_pop: lsp4_creator_var_pop_order_by
+  var_samp: lsp4_creator_var_samp_order_by
+  variance: lsp4_creator_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type lsp4_creator_avg_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.creators"
+"""
+input lsp4_creator_avg_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.creators". All fields are combined with a logical 'AND'.
+"""
+input lsp4_creator_bool_exp {
+  _and: [lsp4_creator_bool_exp!]
+  _not: lsp4_creator_bool_exp
+  _or: [lsp4_creator_bool_exp!]
+  array_index: numeric_comparison_exp
+  asset_address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  creatorProfile: universal_profile_bool_exp
+  creator_address: String_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  id: String_comparison_exp
+  interface_id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  verified: Boolean_comparison_exp
+}
+
+"""aggregate max on columns"""
+type lsp4_creator_max_fields {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+  creator_address: String
+  id: String
+  interface_id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+}
+
+"""
+order by max() on columns of table "api.creators"
+"""
+input lsp4_creator_max_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  creator_address: order_by
+  id: order_by
+  interface_id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+}
+
+"""aggregate min on columns"""
+type lsp4_creator_min_fields {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+  creator_address: String
+  id: String
+  interface_id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+}
+
+"""
+order by min() on columns of table "api.creators"
+"""
+input lsp4_creator_min_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  creator_address: order_by
+  id: order_by
+  interface_id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+}
+
+"""Ordering options when selecting data from "api.creators"."""
+input lsp4_creator_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  creatorProfile: universal_profile_order_by
+  creator_address: order_by
+  digitalAsset: digital_asset_order_by
+  id: order_by
+  interface_id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  verified: order_by
+}
+
+"""
+select columns of table "api.creators"
+"""
+enum lsp4_creator_select_column {
+  """column name"""
+  array_index
+
+  """column name"""
+  asset_address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  creator_address
+
+  """column name"""
+  id
+
+  """column name"""
+  interface_id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  verified
+}
+
+"""
+select "lsp4_creator_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api.creators"
+"""
+enum lsp4_creator_select_column_lsp4_creator_aggregate_bool_exp_bool_and_arguments_columns {
+  """column name"""
+  verified
+}
+
+"""
+select "lsp4_creator_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api.creators"
+"""
+enum lsp4_creator_select_column_lsp4_creator_aggregate_bool_exp_bool_or_arguments_columns {
+  """column name"""
+  verified
+}
+
+"""aggregate stddev on columns"""
+type lsp4_creator_stddev_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.creators"
+"""
+input lsp4_creator_stddev_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type lsp4_creator_stddev_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.creators"
+"""
+input lsp4_creator_stddev_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type lsp4_creator_stddev_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.creators"
+"""
+input lsp4_creator_stddev_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type lsp4_creator_sum_fields {
+  array_index: numeric
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.creators"
+"""
+input lsp4_creator_sum_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type lsp4_creator_var_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.creators"
+"""
+input lsp4_creator_var_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type lsp4_creator_var_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.creators"
+"""
+input lsp4_creator_var_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type lsp4_creator_variance_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.creators"
+"""
+input lsp4_creator_variance_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.controllers"
+"""
+type lsp6_controller {
+  allowed_calls(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  allowed_data_keys(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  array_index: numeric
+  chain_id: bigint
+
+  """An object relationship"""
+  controllerProfile: universal_profile
+  controller_address: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  permissions: String
+  profile_address: String
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.controllers"
+"""
+type lsp6_controller_aggregate {
+  aggregate: lsp6_controller_aggregate_fields
+  nodes: [lsp6_controller!]!
+}
+
+input lsp6_controller_aggregate_bool_exp {
+  count: lsp6_controller_aggregate_bool_exp_count
+}
+
+input lsp6_controller_aggregate_bool_exp_count {
+  arguments: [lsp6_controller_select_column!]
+  distinct: Boolean
+  filter: lsp6_controller_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.controllers"
+"""
+type lsp6_controller_aggregate_fields {
+  avg: lsp6_controller_avg_fields
+  count(columns: [lsp6_controller_select_column!], distinct: Boolean): Int!
+  max: lsp6_controller_max_fields
+  min: lsp6_controller_min_fields
+  stddev: lsp6_controller_stddev_fields
+  stddev_pop: lsp6_controller_stddev_pop_fields
+  stddev_samp: lsp6_controller_stddev_samp_fields
+  sum: lsp6_controller_sum_fields
+  var_pop: lsp6_controller_var_pop_fields
+  var_samp: lsp6_controller_var_samp_fields
+  variance: lsp6_controller_variance_fields
+}
+
+"""
+order by aggregate values of table "api.controllers"
+"""
+input lsp6_controller_aggregate_order_by {
+  avg: lsp6_controller_avg_order_by
+  count: order_by
+  max: lsp6_controller_max_order_by
+  min: lsp6_controller_min_order_by
+  stddev: lsp6_controller_stddev_order_by
+  stddev_pop: lsp6_controller_stddev_pop_order_by
+  stddev_samp: lsp6_controller_stddev_samp_order_by
+  sum: lsp6_controller_sum_order_by
+  var_pop: lsp6_controller_var_pop_order_by
+  var_samp: lsp6_controller_var_samp_order_by
+  variance: lsp6_controller_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type lsp6_controller_avg_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.controllers"
+"""
+input lsp6_controller_avg_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.controllers". All fields are combined with a logical 'AND'.
+"""
+input lsp6_controller_bool_exp {
+  _and: [lsp6_controller_bool_exp!]
+  _not: lsp6_controller_bool_exp
+  _or: [lsp6_controller_bool_exp!]
+  allowed_calls: jsonb_comparison_exp
+  allowed_data_keys: jsonb_comparison_exp
+  array_index: numeric_comparison_exp
+  chain_id: bigint_comparison_exp
+  controllerProfile: universal_profile_bool_exp
+  controller_address: String_comparison_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  permissions: String_comparison_exp
+  profile_address: String_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type lsp6_controller_max_fields {
+  array_index: numeric
+  chain_id: bigint
+  controller_address: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  permissions: String
+  profile_address: String
+}
+
+"""
+order by max() on columns of table "api.controllers"
+"""
+input lsp6_controller_max_order_by {
+  array_index: order_by
+  chain_id: order_by
+  controller_address: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  permissions: order_by
+  profile_address: order_by
+}
+
+"""aggregate min on columns"""
+type lsp6_controller_min_fields {
+  array_index: numeric
+  chain_id: bigint
+  controller_address: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  permissions: String
+  profile_address: String
+}
+
+"""
+order by min() on columns of table "api.controllers"
+"""
+input lsp6_controller_min_order_by {
+  array_index: order_by
+  chain_id: order_by
+  controller_address: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  permissions: order_by
+  profile_address: order_by
+}
+
+"""Ordering options when selecting data from "api.controllers"."""
+input lsp6_controller_order_by {
+  allowed_calls: order_by
+  allowed_data_keys: order_by
+  array_index: order_by
+  chain_id: order_by
+  controllerProfile: universal_profile_order_by
+  controller_address: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  permissions: order_by
+  profile_address: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.controllers"
+"""
+enum lsp6_controller_select_column {
+  """column name"""
+  allowed_calls
+
+  """column name"""
+  allowed_data_keys
+
+  """column name"""
+  array_index
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  controller_address
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  permissions
+
+  """column name"""
+  profile_address
+}
+
+"""aggregate stddev on columns"""
+type lsp6_controller_stddev_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.controllers"
+"""
+input lsp6_controller_stddev_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type lsp6_controller_stddev_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.controllers"
+"""
+input lsp6_controller_stddev_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type lsp6_controller_stddev_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.controllers"
+"""
+input lsp6_controller_stddev_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type lsp6_controller_sum_fields {
+  array_index: numeric
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.controllers"
+"""
+input lsp6_controller_sum_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type lsp6_controller_var_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.controllers"
+"""
+input lsp6_controller_var_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type lsp6_controller_var_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.controllers"
+"""
+input lsp6_controller_var_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type lsp6_controller_variance_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.controllers"
+"""
+input lsp6_controller_variance_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.issued_assets"
+"""
+type lsp12_issued_asset {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  id: String
+  interface_id: String
+  issuer_address: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.issued_assets"
+"""
+type lsp12_issued_asset_aggregate {
+  aggregate: lsp12_issued_asset_aggregate_fields
+  nodes: [lsp12_issued_asset!]!
+}
+
+input lsp12_issued_asset_aggregate_bool_exp {
+  count: lsp12_issued_asset_aggregate_bool_exp_count
+}
+
+input lsp12_issued_asset_aggregate_bool_exp_count {
+  arguments: [lsp12_issued_asset_select_column!]
+  distinct: Boolean
+  filter: lsp12_issued_asset_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.issued_assets"
+"""
+type lsp12_issued_asset_aggregate_fields {
+  avg: lsp12_issued_asset_avg_fields
+  count(columns: [lsp12_issued_asset_select_column!], distinct: Boolean): Int!
+  max: lsp12_issued_asset_max_fields
+  min: lsp12_issued_asset_min_fields
+  stddev: lsp12_issued_asset_stddev_fields
+  stddev_pop: lsp12_issued_asset_stddev_pop_fields
+  stddev_samp: lsp12_issued_asset_stddev_samp_fields
+  sum: lsp12_issued_asset_sum_fields
+  var_pop: lsp12_issued_asset_var_pop_fields
+  var_samp: lsp12_issued_asset_var_samp_fields
+  variance: lsp12_issued_asset_variance_fields
+}
+
+"""
+order by aggregate values of table "api.issued_assets"
+"""
+input lsp12_issued_asset_aggregate_order_by {
+  avg: lsp12_issued_asset_avg_order_by
+  count: order_by
+  max: lsp12_issued_asset_max_order_by
+  min: lsp12_issued_asset_min_order_by
+  stddev: lsp12_issued_asset_stddev_order_by
+  stddev_pop: lsp12_issued_asset_stddev_pop_order_by
+  stddev_samp: lsp12_issued_asset_stddev_samp_order_by
+  sum: lsp12_issued_asset_sum_order_by
+  var_pop: lsp12_issued_asset_var_pop_order_by
+  var_samp: lsp12_issued_asset_var_samp_order_by
+  variance: lsp12_issued_asset_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type lsp12_issued_asset_avg_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_avg_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.issued_assets". All fields are combined with a logical 'AND'.
+"""
+input lsp12_issued_asset_bool_exp {
+  _and: [lsp12_issued_asset_bool_exp!]
+  _not: lsp12_issued_asset_bool_exp
+  _or: [lsp12_issued_asset_bool_exp!]
+  array_index: numeric_comparison_exp
+  asset_address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  id: String_comparison_exp
+  interface_id: String_comparison_exp
+  issuer_address: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type lsp12_issued_asset_max_fields {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+  id: String
+  interface_id: String
+  issuer_address: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+}
+
+"""
+order by max() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_max_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  id: order_by
+  interface_id: order_by
+  issuer_address: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+}
+
+"""aggregate min on columns"""
+type lsp12_issued_asset_min_fields {
+  array_index: numeric
+  asset_address: String
+  chain_id: bigint
+  id: String
+  interface_id: String
+  issuer_address: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+}
+
+"""
+order by min() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_min_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  id: order_by
+  interface_id: order_by
+  issuer_address: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+}
+
+"""Ordering options when selecting data from "api.issued_assets"."""
+input lsp12_issued_asset_order_by {
+  array_index: order_by
+  asset_address: order_by
+  chain_id: order_by
+  digitalAsset: digital_asset_order_by
+  id: order_by
+  interface_id: order_by
+  issuer_address: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.issued_assets"
+"""
+enum lsp12_issued_asset_select_column {
+  """column name"""
+  array_index
+
+  """column name"""
+  asset_address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  id
+
+  """column name"""
+  interface_id
+
+  """column name"""
+  issuer_address
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+}
+
+"""aggregate stddev on columns"""
+type lsp12_issued_asset_stddev_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_stddev_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type lsp12_issued_asset_stddev_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_stddev_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type lsp12_issued_asset_stddev_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_stddev_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type lsp12_issued_asset_sum_fields {
+  array_index: numeric
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_sum_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type lsp12_issued_asset_var_pop_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_var_pop_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type lsp12_issued_asset_var_samp_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_var_samp_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type lsp12_issued_asset_variance_fields {
+  array_index: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.issued_assets"
+"""
+input lsp12_issued_asset_variance_order_by {
+  array_index: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+scalar metadata_kind
+
+"""
+Boolean expression to compare columns of type "metadata_kind". All fields are combined with logical 'AND'.
+"""
+input metadata_kind_comparison_exp {
+  _eq: metadata_kind
+  _gt: metadata_kind
+  _gte: metadata_kind
+  _in: [metadata_kind!]
+  _is_null: Boolean
+  _lt: metadata_kind
+  _lte: metadata_kind
+  _neq: metadata_kind
+  _nin: [metadata_kind!]
+}
+
+"""
+columns and relationships of "api.metadata_revisions"
+"""
+type metadata_revision {
+  address: String
+  chain_id: bigint
+  content(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  content_hash: String
+  content_length: Int
+  content_type: String
+  content_uri: String
+  data_key: String
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  fetched_at: timestamptz
+  id: String
+  kind: metadata_kind
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+
+  """An object relationship"""
+  nft: nft
+  source_revision: String
+  token_id: String
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.metadata_revisions"
+"""
+type metadata_revision_aggregate {
+  aggregate: metadata_revision_aggregate_fields
+  nodes: [metadata_revision!]!
+}
+
+input metadata_revision_aggregate_bool_exp {
+  count: metadata_revision_aggregate_bool_exp_count
+}
+
+input metadata_revision_aggregate_bool_exp_count {
+  arguments: [metadata_revision_select_column!]
+  distinct: Boolean
+  filter: metadata_revision_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.metadata_revisions"
+"""
+type metadata_revision_aggregate_fields {
+  avg: metadata_revision_avg_fields
+  count(columns: [metadata_revision_select_column!], distinct: Boolean): Int!
+  max: metadata_revision_max_fields
+  min: metadata_revision_min_fields
+  stddev: metadata_revision_stddev_fields
+  stddev_pop: metadata_revision_stddev_pop_fields
+  stddev_samp: metadata_revision_stddev_samp_fields
+  sum: metadata_revision_sum_fields
+  var_pop: metadata_revision_var_pop_fields
+  var_samp: metadata_revision_var_samp_fields
+  variance: metadata_revision_variance_fields
+}
+
+"""
+order by aggregate values of table "api.metadata_revisions"
+"""
+input metadata_revision_aggregate_order_by {
+  avg: metadata_revision_avg_order_by
+  count: order_by
+  max: metadata_revision_max_order_by
+  min: metadata_revision_min_order_by
+  stddev: metadata_revision_stddev_order_by
+  stddev_pop: metadata_revision_stddev_pop_order_by
+  stddev_samp: metadata_revision_stddev_samp_order_by
+  sum: metadata_revision_sum_order_by
+  var_pop: metadata_revision_var_pop_order_by
+  var_samp: metadata_revision_var_samp_order_by
+  variance: metadata_revision_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type metadata_revision_avg_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_avg_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.metadata_revisions". All fields are combined with a logical 'AND'.
+"""
+input metadata_revision_bool_exp {
+  _and: [metadata_revision_bool_exp!]
+  _not: metadata_revision_bool_exp
+  _or: [metadata_revision_bool_exp!]
+  address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  content: jsonb_comparison_exp
+  content_hash: String_comparison_exp
+  content_length: Int_comparison_exp
+  content_type: String_comparison_exp
+  content_uri: String_comparison_exp
+  data_key: String_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  fetched_at: timestamptz_comparison_exp
+  id: String_comparison_exp
+  kind: metadata_kind_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  nft: nft_bool_exp
+  source_revision: String_comparison_exp
+  token_id: String_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type metadata_revision_max_fields {
+  address: String
+  chain_id: bigint
+  content_hash: String
+  content_length: Int
+  content_type: String
+  content_uri: String
+  data_key: String
+  fetched_at: timestamptz
+  id: String
+  kind: metadata_kind
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  source_revision: String
+  token_id: String
+}
+
+"""
+order by max() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_max_order_by {
+  address: order_by
+  chain_id: order_by
+  content_hash: order_by
+  content_length: order_by
+  content_type: order_by
+  content_uri: order_by
+  data_key: order_by
+  fetched_at: order_by
+  id: order_by
+  kind: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  source_revision: order_by
+  token_id: order_by
+}
+
+"""aggregate min on columns"""
+type metadata_revision_min_fields {
+  address: String
+  chain_id: bigint
+  content_hash: String
+  content_length: Int
+  content_type: String
+  content_uri: String
+  data_key: String
+  fetched_at: timestamptz
+  id: String
+  kind: metadata_kind
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  source_revision: String
+  token_id: String
+}
+
+"""
+order by min() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_min_order_by {
+  address: order_by
+  chain_id: order_by
+  content_hash: order_by
+  content_length: order_by
+  content_type: order_by
+  content_uri: order_by
+  data_key: order_by
+  fetched_at: order_by
+  id: order_by
+  kind: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  source_revision: order_by
+  token_id: order_by
+}
+
+"""Ordering options when selecting data from "api.metadata_revisions"."""
+input metadata_revision_order_by {
+  address: order_by
+  chain_id: order_by
+  content: order_by
+  content_hash: order_by
+  content_length: order_by
+  content_type: order_by
+  content_uri: order_by
+  data_key: order_by
+  digitalAsset: digital_asset_order_by
+  fetched_at: order_by
+  id: order_by
+  kind: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  nft: nft_order_by
+  source_revision: order_by
+  token_id: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.metadata_revisions"
+"""
+enum metadata_revision_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  content
+
+  """column name"""
+  content_hash
+
+  """column name"""
+  content_length
+
+  """column name"""
+  content_type
+
+  """column name"""
+  content_uri
+
+  """column name"""
+  data_key
+
+  """column name"""
+  fetched_at
+
+  """column name"""
+  id
+
+  """column name"""
+  kind
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  source_revision
+
+  """column name"""
+  token_id
+}
+
+"""aggregate stddev on columns"""
+type metadata_revision_stddev_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_stddev_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type metadata_revision_stddev_pop_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_stddev_pop_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type metadata_revision_stddev_samp_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_stddev_samp_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type metadata_revision_sum_fields {
+  chain_id: bigint
+  content_length: Int
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_sum_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type metadata_revision_var_pop_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_var_pop_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type metadata_revision_var_samp_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_var_samp_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type metadata_revision_variance_fields {
+  chain_id: Float
+  content_length: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.metadata_revisions"
+"""
+input metadata_revision_variance_order_by {
+  chain_id: order_by
+  content_length: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.nfts"
+"""
+type nft {
+  address: String
+  chain_id: bigint
+
+  """An object relationship"""
+  chillwhales: chillwhales_nft
+
+  """An array relationship"""
+  dataValues(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): [data_value!]!
+
+  """An aggregate relationship"""
+  dataValues_aggregate(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): data_value_aggregate!
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  formatted_token_id: String
+  id: String
+  is_burned: Boolean
+  is_minted: Boolean
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+
+  """An array relationship"""
+  metadataRevisions(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): [metadata_revision!]!
+
+  """An aggregate relationship"""
+  metadataRevisions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): metadata_revision_aggregate!
+  network: String
+
+  """An object relationship"""
+  ownedToken: owned_token
+
+  """An array relationship"""
+  ownedTokens(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """An aggregate relationship"""
+  ownedTokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+  owner_address: String
+  token_id: String
+  token_uri: String
+  verification: verification_status
+}
+
+"""
+aggregated selection of "api.nfts"
+"""
+type nft_aggregate {
+  aggregate: nft_aggregate_fields
+  nodes: [nft!]!
+}
+
+input nft_aggregate_bool_exp {
+  bool_and: nft_aggregate_bool_exp_bool_and
+  bool_or: nft_aggregate_bool_exp_bool_or
+  count: nft_aggregate_bool_exp_count
+}
+
+input nft_aggregate_bool_exp_bool_and {
+  arguments: nft_select_column_nft_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: nft_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input nft_aggregate_bool_exp_bool_or {
+  arguments: nft_select_column_nft_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: nft_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input nft_aggregate_bool_exp_count {
+  arguments: [nft_select_column!]
+  distinct: Boolean
+  filter: nft_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.nfts"
+"""
+type nft_aggregate_fields {
+  avg: nft_avg_fields
+  count(columns: [nft_select_column!], distinct: Boolean): Int!
+  max: nft_max_fields
+  min: nft_min_fields
+  stddev: nft_stddev_fields
+  stddev_pop: nft_stddev_pop_fields
+  stddev_samp: nft_stddev_samp_fields
+  sum: nft_sum_fields
+  var_pop: nft_var_pop_fields
+  var_samp: nft_var_samp_fields
+  variance: nft_variance_fields
+}
+
+"""
+order by aggregate values of table "api.nfts"
+"""
+input nft_aggregate_order_by {
+  avg: nft_avg_order_by
+  count: order_by
+  max: nft_max_order_by
+  min: nft_min_order_by
+  stddev: nft_stddev_order_by
+  stddev_pop: nft_stddev_pop_order_by
+  stddev_samp: nft_stddev_samp_order_by
+  sum: nft_sum_order_by
+  var_pop: nft_var_pop_order_by
+  var_samp: nft_var_samp_order_by
+  variance: nft_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type nft_avg_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.nfts"
+"""
+input nft_avg_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.nfts". All fields are combined with a logical 'AND'.
+"""
+input nft_bool_exp {
+  _and: [nft_bool_exp!]
+  _not: nft_bool_exp
+  _or: [nft_bool_exp!]
+  address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  chillwhales: chillwhales_nft_bool_exp
+  dataValues: data_value_bool_exp
+  dataValues_aggregate: data_value_aggregate_bool_exp
+  digitalAsset: digital_asset_bool_exp
+  formatted_token_id: String_comparison_exp
+  id: String_comparison_exp
+  is_burned: Boolean_comparison_exp
+  is_minted: Boolean_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  metadataRevisions: metadata_revision_bool_exp
+  metadataRevisions_aggregate: metadata_revision_aggregate_bool_exp
+  network: String_comparison_exp
+  ownedToken: owned_token_bool_exp
+  ownedTokens: owned_token_bool_exp
+  ownedTokens_aggregate: owned_token_aggregate_bool_exp
+  owner_address: String_comparison_exp
+  token_id: String_comparison_exp
+  token_uri: String_comparison_exp
+  verification: verification_status_comparison_exp
+}
+
+"""aggregate max on columns"""
+type nft_max_fields {
+  address: String
+  chain_id: bigint
+  formatted_token_id: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  token_id: String
+  token_uri: String
+  verification: verification_status
+}
+
+"""
+order by max() on columns of table "api.nfts"
+"""
+input nft_max_order_by {
+  address: order_by
+  chain_id: order_by
+  formatted_token_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+  token_id: order_by
+  token_uri: order_by
+  verification: order_by
+}
+
+"""aggregate min on columns"""
+type nft_min_fields {
+  address: String
+  chain_id: bigint
+  formatted_token_id: String
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  token_id: String
+  token_uri: String
+  verification: verification_status
+}
+
+"""
+order by min() on columns of table "api.nfts"
+"""
+input nft_min_order_by {
+  address: order_by
+  chain_id: order_by
+  formatted_token_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+  token_id: order_by
+  token_uri: order_by
+  verification: order_by
+}
+
+"""Ordering options when selecting data from "api.nfts"."""
+input nft_order_by {
+  address: order_by
+  chain_id: order_by
+  chillwhales: chillwhales_nft_order_by
+  dataValues_aggregate: data_value_aggregate_order_by
+  digitalAsset: digital_asset_order_by
+  formatted_token_id: order_by
+  id: order_by
+  is_burned: order_by
+  is_minted: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  metadataRevisions_aggregate: metadata_revision_aggregate_order_by
+  network: order_by
+  ownedToken: owned_token_order_by
+  ownedTokens_aggregate: owned_token_aggregate_order_by
+  owner_address: order_by
+  token_id: order_by
+  token_uri: order_by
+  verification: order_by
+}
+
+"""
+select columns of table "api.nfts"
+"""
+enum nft_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  formatted_token_id
+
+  """column name"""
+  id
+
+  """column name"""
+  is_burned
+
+  """column name"""
+  is_minted
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  owner_address
+
+  """column name"""
+  token_id
+
+  """column name"""
+  token_uri
+
+  """column name"""
+  verification
+}
+
+"""
+select "nft_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api.nfts"
+"""
+enum nft_select_column_nft_aggregate_bool_exp_bool_and_arguments_columns {
+  """column name"""
+  is_burned
+
+  """column name"""
+  is_minted
+}
+
+"""
+select "nft_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api.nfts"
+"""
+enum nft_select_column_nft_aggregate_bool_exp_bool_or_arguments_columns {
+  """column name"""
+  is_burned
+
+  """column name"""
+  is_minted
+}
+
+"""aggregate stddev on columns"""
+type nft_stddev_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.nfts"
+"""
+input nft_stddev_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type nft_stddev_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.nfts"
+"""
+input nft_stddev_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type nft_stddev_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.nfts"
+"""
+input nft_stddev_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type nft_sum_fields {
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.nfts"
+"""
+input nft_sum_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type nft_var_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.nfts"
+"""
+input nft_var_pop_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type nft_var_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.nfts"
+"""
+input nft_var_samp_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type nft_variance_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.nfts"
+"""
+input nft_variance_order_by {
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+scalar numeric
+
+"""
+Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
+"""
+input numeric_comparison_exp {
+  _eq: numeric
+  _gt: numeric
+  _gte: numeric
+  _in: [numeric!]
+  _is_null: Boolean
+  _lt: numeric
+  _lte: numeric
+  _neq: numeric
+  _nin: [numeric!]
+}
+
+"""column ordering options"""
+enum order_by {
+  """in ascending order, nulls last"""
+  asc
+
+  """in ascending order, nulls first"""
+  asc_nulls_first
+
+  """in ascending order, nulls last"""
+  asc_nulls_last
+
+  """in descending order, nulls first"""
+  desc
+
+  """in descending order, nulls first"""
+  desc_nulls_first
+
+  """in descending order, nulls last"""
+  desc_nulls_last
+}
+
+"""
+columns and relationships of "api.owned_assets"
+"""
+type owned_asset {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+
+  """An array relationship"""
+  tokenIds(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """An aggregate relationship"""
+  tokenIds_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.owned_assets"
+"""
+type owned_asset_aggregate {
+  aggregate: owned_asset_aggregate_fields
+  nodes: [owned_asset!]!
+}
+
+input owned_asset_aggregate_bool_exp {
+  count: owned_asset_aggregate_bool_exp_count
+}
+
+input owned_asset_aggregate_bool_exp_count {
+  arguments: [owned_asset_select_column!]
+  distinct: Boolean
+  filter: owned_asset_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.owned_assets"
+"""
+type owned_asset_aggregate_fields {
+  avg: owned_asset_avg_fields
+  count(columns: [owned_asset_select_column!], distinct: Boolean): Int!
+  max: owned_asset_max_fields
+  min: owned_asset_min_fields
+  stddev: owned_asset_stddev_fields
+  stddev_pop: owned_asset_stddev_pop_fields
+  stddev_samp: owned_asset_stddev_samp_fields
+  sum: owned_asset_sum_fields
+  var_pop: owned_asset_var_pop_fields
+  var_samp: owned_asset_var_samp_fields
+  variance: owned_asset_variance_fields
+}
+
+"""
+order by aggregate values of table "api.owned_assets"
+"""
+input owned_asset_aggregate_order_by {
+  avg: owned_asset_avg_order_by
+  count: order_by
+  max: owned_asset_max_order_by
+  min: owned_asset_min_order_by
+  stddev: owned_asset_stddev_order_by
+  stddev_pop: owned_asset_stddev_pop_order_by
+  stddev_samp: owned_asset_stddev_samp_order_by
+  sum: owned_asset_sum_order_by
+  var_pop: owned_asset_var_pop_order_by
+  var_samp: owned_asset_var_samp_order_by
+  variance: owned_asset_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type owned_asset_avg_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.owned_assets"
+"""
+input owned_asset_avg_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.owned_assets". All fields are combined with a logical 'AND'.
+"""
+input owned_asset_bool_exp {
+  _and: [owned_asset_bool_exp!]
+  _not: owned_asset_bool_exp
+  _or: [owned_asset_bool_exp!]
+  asset_address: String_comparison_exp
+  balance: numeric_comparison_exp
+  chain_id: bigint_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  owner_address: String_comparison_exp
+  tokenIds: owned_token_bool_exp
+  tokenIds_aggregate: owned_token_aggregate_bool_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type owned_asset_max_fields {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+}
+
+"""
+order by max() on columns of table "api.owned_assets"
+"""
+input owned_asset_max_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+}
+
+"""aggregate min on columns"""
+type owned_asset_min_fields {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+}
+
+"""
+order by min() on columns of table "api.owned_assets"
+"""
+input owned_asset_min_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+}
+
+"""Ordering options when selecting data from "api.owned_assets"."""
+input owned_asset_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  digitalAsset: digital_asset_order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+  tokenIds_aggregate: owned_token_aggregate_order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.owned_assets"
+"""
+enum owned_asset_select_column {
+  """column name"""
+  asset_address
+
+  """column name"""
+  balance
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  owner_address
+}
+
+"""aggregate stddev on columns"""
+type owned_asset_stddev_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.owned_assets"
+"""
+input owned_asset_stddev_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type owned_asset_stddev_pop_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.owned_assets"
+"""
+input owned_asset_stddev_pop_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type owned_asset_stddev_samp_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.owned_assets"
+"""
+input owned_asset_stddev_samp_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type owned_asset_sum_fields {
+  balance: numeric
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.owned_assets"
+"""
+input owned_asset_sum_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type owned_asset_var_pop_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.owned_assets"
+"""
+input owned_asset_var_pop_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type owned_asset_var_samp_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.owned_assets"
+"""
+input owned_asset_var_samp_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type owned_asset_variance_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.owned_assets"
+"""
+input owned_asset_variance_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+columns and relationships of "api.owned_tokens"
+"""
+type owned_token {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+
+  """An object relationship"""
+  digitalAsset: digital_asset
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+
+  """An object relationship"""
+  nft: nft
+
+  """An object relationship"""
+  ownedAsset: owned_asset
+  owner_address: String
+  token_id: String
+
+  """An object relationship"""
+  universalProfile: universal_profile
+}
+
+"""
+aggregated selection of "api.owned_tokens"
+"""
+type owned_token_aggregate {
+  aggregate: owned_token_aggregate_fields
+  nodes: [owned_token!]!
+}
+
+input owned_token_aggregate_bool_exp {
+  count: owned_token_aggregate_bool_exp_count
+}
+
+input owned_token_aggregate_bool_exp_count {
+  arguments: [owned_token_select_column!]
+  distinct: Boolean
+  filter: owned_token_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "api.owned_tokens"
+"""
+type owned_token_aggregate_fields {
+  avg: owned_token_avg_fields
+  count(columns: [owned_token_select_column!], distinct: Boolean): Int!
+  max: owned_token_max_fields
+  min: owned_token_min_fields
+  stddev: owned_token_stddev_fields
+  stddev_pop: owned_token_stddev_pop_fields
+  stddev_samp: owned_token_stddev_samp_fields
+  sum: owned_token_sum_fields
+  var_pop: owned_token_var_pop_fields
+  var_samp: owned_token_var_samp_fields
+  variance: owned_token_variance_fields
+}
+
+"""
+order by aggregate values of table "api.owned_tokens"
+"""
+input owned_token_aggregate_order_by {
+  avg: owned_token_avg_order_by
+  count: order_by
+  max: owned_token_max_order_by
+  min: owned_token_min_order_by
+  stddev: owned_token_stddev_order_by
+  stddev_pop: owned_token_stddev_pop_order_by
+  stddev_samp: owned_token_stddev_samp_order_by
+  sum: owned_token_sum_order_by
+  var_pop: owned_token_var_pop_order_by
+  var_samp: owned_token_var_samp_order_by
+  variance: owned_token_variance_order_by
+}
+
+"""aggregate avg on columns"""
+type owned_token_avg_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by avg() on columns of table "api.owned_tokens"
+"""
+input owned_token_avg_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "api.owned_tokens". All fields are combined with a logical 'AND'.
+"""
+input owned_token_bool_exp {
+  _and: [owned_token_bool_exp!]
+  _not: owned_token_bool_exp
+  _or: [owned_token_bool_exp!]
+  asset_address: String_comparison_exp
+  balance: numeric_comparison_exp
+  chain_id: bigint_comparison_exp
+  digitalAsset: digital_asset_bool_exp
+  id: String_comparison_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  network: String_comparison_exp
+  nft: nft_bool_exp
+  ownedAsset: owned_asset_bool_exp
+  owner_address: String_comparison_exp
+  token_id: String_comparison_exp
+  universalProfile: universal_profile_bool_exp
+}
+
+"""aggregate max on columns"""
+type owned_token_max_fields {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  token_id: String
+}
+
+"""
+order by max() on columns of table "api.owned_tokens"
+"""
+input owned_token_max_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+  token_id: order_by
+}
+
+"""aggregate min on columns"""
+type owned_token_min_fields {
+  asset_address: String
+  balance: numeric
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  token_id: String
+}
+
+"""
+order by min() on columns of table "api.owned_tokens"
+"""
+input owned_token_min_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  owner_address: order_by
+  token_id: order_by
+}
+
+"""Ordering options when selecting data from "api.owned_tokens"."""
+input owned_token_order_by {
+  asset_address: order_by
+  balance: order_by
+  chain_id: order_by
+  digitalAsset: digital_asset_order_by
+  id: order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  network: order_by
+  nft: nft_order_by
+  ownedAsset: owned_asset_order_by
+  owner_address: order_by
+  token_id: order_by
+  universalProfile: universal_profile_order_by
+}
+
+"""
+select columns of table "api.owned_tokens"
+"""
+enum owned_token_select_column {
+  """column name"""
+  asset_address
+
+  """column name"""
+  balance
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  owner_address
+
+  """column name"""
+  token_id
+}
+
+"""aggregate stddev on columns"""
+type owned_token_stddev_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev() on columns of table "api.owned_tokens"
+"""
+input owned_token_stddev_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type owned_token_stddev_pop_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_pop() on columns of table "api.owned_tokens"
+"""
+input owned_token_stddev_pop_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type owned_token_stddev_samp_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by stddev_samp() on columns of table "api.owned_tokens"
+"""
+input owned_token_stddev_samp_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate sum on columns"""
+type owned_token_sum_fields {
+  balance: numeric
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""
+order by sum() on columns of table "api.owned_tokens"
+"""
+input owned_token_sum_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_pop on columns"""
+type owned_token_var_pop_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_pop() on columns of table "api.owned_tokens"
+"""
+input owned_token_var_pop_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate var_samp on columns"""
+type owned_token_var_samp_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by var_samp() on columns of table "api.owned_tokens"
+"""
+input owned_token_var_samp_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+"""aggregate variance on columns"""
+type owned_token_variance_fields {
+  balance: Float
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+order by variance() on columns of table "api.owned_tokens"
+"""
+input owned_token_variance_order_by {
+  balance: order_by
+  chain_id: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_index: order_by
+}
+
+type query_root {
+  """
+  fetch data from the table: "api.blocks"
+  """
+  block(
+    """distinct select on columns"""
+    distinct_on: [block_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [block_order_by!]
+
+    """filter the rows returned"""
+    where: block_bool_exp
+  ): [block!]!
+
+  """
+  fetch aggregated fields from the table: "api.blocks"
+  """
+  block_aggregate(
+    """distinct select on columns"""
+    distinct_on: [block_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [block_order_by!]
+
+    """filter the rows returned"""
+    where: block_bool_exp
+  ): block_aggregate!
+
+  """
+  fetch data from the table: "api.chillwhales_nfts"
+  """
+  chillwhales_nft(
+    """distinct select on columns"""
+    distinct_on: [chillwhales_nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [chillwhales_nft_order_by!]
+
+    """filter the rows returned"""
+    where: chillwhales_nft_bool_exp
+  ): [chillwhales_nft!]!
+
+  """
+  fetch aggregated fields from the table: "api.chillwhales_nfts"
+  """
+  chillwhales_nft_aggregate(
+    """distinct select on columns"""
+    distinct_on: [chillwhales_nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [chillwhales_nft_order_by!]
+
+    """filter the rows returned"""
+    where: chillwhales_nft_bool_exp
+  ): chillwhales_nft_aggregate!
+
+  """
+  fetch data from the table: "api.data_values"
+  """
+  data_value(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): [data_value!]!
+
+  """
+  fetch aggregated fields from the table: "api.data_values"
+  """
+  data_value_aggregate(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): data_value_aggregate!
+
+  """
+  fetch data from the table: "api.digital_assets"
+  """
+  digital_asset(
+    """distinct select on columns"""
+    distinct_on: [digital_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [digital_asset_order_by!]
+
+    """filter the rows returned"""
+    where: digital_asset_bool_exp
+  ): [digital_asset!]!
+
+  """
+  fetch aggregated fields from the table: "api.digital_assets"
+  """
+  digital_asset_aggregate(
+    """distinct select on columns"""
+    distinct_on: [digital_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [digital_asset_order_by!]
+
+    """filter the rows returned"""
+    where: digital_asset_bool_exp
+  ): digital_asset_aggregate!
+
+  """
+  fetch data from the table: "api.event_facts"
+  """
+  event_fact(
+    """distinct select on columns"""
+    distinct_on: [event_fact_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [event_fact_order_by!]
+
+    """filter the rows returned"""
+    where: event_fact_bool_exp
+  ): [event_fact!]!
+
+  """
+  fetch aggregated fields from the table: "api.event_facts"
+  """
+  event_fact_aggregate(
+    """distinct select on columns"""
+    distinct_on: [event_fact_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [event_fact_order_by!]
+
+    """filter the rows returned"""
+    where: event_fact_bool_exp
+  ): event_fact_aggregate!
+
+  """
+  fetch data from the table: "api.follower_edges"
+  """
+  follower(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): [follower!]!
+
+  """
+  fetch aggregated fields from the table: "api.follower_edges"
+  """
+  follower_aggregate(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): follower_aggregate!
+
+  """
+  fetch data from the table: "api.indexed_heads"
+  """
+  indexed_head(
+    """distinct select on columns"""
+    distinct_on: [indexed_head_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [indexed_head_order_by!]
+
+    """filter the rows returned"""
+    where: indexed_head_bool_exp
+  ): [indexed_head!]!
+
+  """
+  fetch aggregated fields from the table: "api.indexed_heads"
+  """
+  indexed_head_aggregate(
+    """distinct select on columns"""
+    distinct_on: [indexed_head_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [indexed_head_order_by!]
+
+    """filter the rows returned"""
+    where: indexed_head_bool_exp
+  ): indexed_head_aggregate!
+
+  """
+  fetch data from the table: "api.creators"
+  """
+  lsp4_creator(
+    """distinct select on columns"""
+    distinct_on: [lsp4_creator_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp4_creator_order_by!]
+
+    """filter the rows returned"""
+    where: lsp4_creator_bool_exp
+  ): [lsp4_creator!]!
+
+  """
+  fetch aggregated fields from the table: "api.creators"
+  """
+  lsp4_creator_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp4_creator_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp4_creator_order_by!]
+
+    """filter the rows returned"""
+    where: lsp4_creator_bool_exp
+  ): lsp4_creator_aggregate!
+
+  """
+  fetch data from the table: "api.controllers"
+  """
+  lsp6_controller(
+    """distinct select on columns"""
+    distinct_on: [lsp6_controller_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp6_controller_order_by!]
+
+    """filter the rows returned"""
+    where: lsp6_controller_bool_exp
+  ): [lsp6_controller!]!
+
+  """
+  fetch aggregated fields from the table: "api.controllers"
+  """
+  lsp6_controller_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp6_controller_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp6_controller_order_by!]
+
+    """filter the rows returned"""
+    where: lsp6_controller_bool_exp
+  ): lsp6_controller_aggregate!
+
+  """
+  fetch data from the table: "api.issued_assets"
+  """
+  lsp12_issued_asset(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): [lsp12_issued_asset!]!
+
+  """
+  fetch aggregated fields from the table: "api.issued_assets"
+  """
+  lsp12_issued_asset_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): lsp12_issued_asset_aggregate!
+
+  """
+  fetch data from the table: "api.metadata_revisions"
+  """
+  metadata_revision(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): [metadata_revision!]!
+
+  """
+  fetch aggregated fields from the table: "api.metadata_revisions"
+  """
+  metadata_revision_aggregate(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): metadata_revision_aggregate!
+
+  """
+  fetch data from the table: "api.nfts"
+  """
+  nft(
+    """distinct select on columns"""
+    distinct_on: [nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [nft_order_by!]
+
+    """filter the rows returned"""
+    where: nft_bool_exp
+  ): [nft!]!
+
+  """
+  fetch aggregated fields from the table: "api.nfts"
+  """
+  nft_aggregate(
+    """distinct select on columns"""
+    distinct_on: [nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [nft_order_by!]
+
+    """filter the rows returned"""
+    where: nft_bool_exp
+  ): nft_aggregate!
+
+  """
+  fetch data from the table: "api.owned_assets"
+  """
+  owned_asset(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): [owned_asset!]!
+
+  """
+  fetch aggregated fields from the table: "api.owned_assets"
+  """
+  owned_asset_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): owned_asset_aggregate!
+
+  """
+  fetch data from the table: "api.owned_tokens"
+  """
+  owned_token(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """
+  fetch aggregated fields from the table: "api.owned_tokens"
+  """
+  owned_token_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+
+  """
+  fetch data from the table: "api.universal_profiles"
+  """
+  universal_profile(
+    """distinct select on columns"""
+    distinct_on: [universal_profile_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [universal_profile_order_by!]
+
+    """filter the rows returned"""
+    where: universal_profile_bool_exp
+  ): [universal_profile!]!
+
+  """
+  fetch aggregated fields from the table: "api.universal_profiles"
+  """
+  universal_profile_aggregate(
+    """distinct select on columns"""
+    distinct_on: [universal_profile_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [universal_profile_order_by!]
+
+    """filter the rows returned"""
+    where: universal_profile_bool_exp
+  ): universal_profile_aggregate!
+}
+
+type subscription_root {
+  """
+  fetch data from the table: "api.blocks"
+  """
+  block(
+    """distinct select on columns"""
+    distinct_on: [block_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [block_order_by!]
+
+    """filter the rows returned"""
+    where: block_bool_exp
+  ): [block!]!
+
+  """
+  fetch data from the table: "api.chillwhales_nfts"
+  """
+  chillwhales_nft(
+    """distinct select on columns"""
+    distinct_on: [chillwhales_nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [chillwhales_nft_order_by!]
+
+    """filter the rows returned"""
+    where: chillwhales_nft_bool_exp
+  ): [chillwhales_nft!]!
+
+  """
+  fetch data from the table: "api.data_values"
+  """
+  data_value(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): [data_value!]!
+
+  """
+  fetch data from the table: "api.digital_assets"
+  """
+  digital_asset(
+    """distinct select on columns"""
+    distinct_on: [digital_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [digital_asset_order_by!]
+
+    """filter the rows returned"""
+    where: digital_asset_bool_exp
+  ): [digital_asset!]!
+
+  """
+  fetch data from the table: "api.event_facts"
+  """
+  event_fact(
+    """distinct select on columns"""
+    distinct_on: [event_fact_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [event_fact_order_by!]
+
+    """filter the rows returned"""
+    where: event_fact_bool_exp
+  ): [event_fact!]!
+
+  """
+  fetch data from the table: "api.follower_edges"
+  """
+  follower(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): [follower!]!
+
+  """
+  fetch data from the table: "api.indexed_heads"
+  """
+  indexed_head(
+    """distinct select on columns"""
+    distinct_on: [indexed_head_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [indexed_head_order_by!]
+
+    """filter the rows returned"""
+    where: indexed_head_bool_exp
+  ): [indexed_head!]!
+
+  """
+  fetch data from the table: "api.creators"
+  """
+  lsp4_creator(
+    """distinct select on columns"""
+    distinct_on: [lsp4_creator_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp4_creator_order_by!]
+
+    """filter the rows returned"""
+    where: lsp4_creator_bool_exp
+  ): [lsp4_creator!]!
+
+  """
+  fetch data from the table: "api.controllers"
+  """
+  lsp6_controller(
+    """distinct select on columns"""
+    distinct_on: [lsp6_controller_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp6_controller_order_by!]
+
+    """filter the rows returned"""
+    where: lsp6_controller_bool_exp
+  ): [lsp6_controller!]!
+
+  """
+  fetch data from the table: "api.issued_assets"
+  """
+  lsp12_issued_asset(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): [lsp12_issued_asset!]!
+
+  """
+  fetch data from the table: "api.metadata_revisions"
+  """
+  metadata_revision(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): [metadata_revision!]!
+
+  """
+  fetch data from the table: "api.nfts"
+  """
+  nft(
+    """distinct select on columns"""
+    distinct_on: [nft_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [nft_order_by!]
+
+    """filter the rows returned"""
+    where: nft_bool_exp
+  ): [nft!]!
+
+  """
+  fetch data from the table: "api.owned_assets"
+  """
+  owned_asset(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): [owned_asset!]!
+
+  """
+  fetch data from the table: "api.owned_tokens"
+  """
+  owned_token(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """
+  fetch data from the table: "api.universal_profiles"
+  """
+  universal_profile(
+    """distinct select on columns"""
+    distinct_on: [universal_profile_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [universal_profile_order_by!]
+
+    """filter the rows returned"""
+    where: universal_profile_bool_exp
+  ): [universal_profile!]!
+}
+
+scalar timestamptz
+
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+
+"""
+columns and relationships of "api.universal_profiles"
+"""
+type universal_profile {
+  address: String
+  chain_id: bigint
+
+  """An array relationship"""
+  controllers(
+    """distinct select on columns"""
+    distinct_on: [lsp6_controller_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp6_controller_order_by!]
+
+    """filter the rows returned"""
+    where: lsp6_controller_bool_exp
+  ): [lsp6_controller!]!
+
+  """An aggregate relationship"""
+  controllers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp6_controller_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp6_controller_order_by!]
+
+    """filter the rows returned"""
+    where: lsp6_controller_bool_exp
+  ): lsp6_controller_aggregate!
+
+  """An array relationship"""
+  dataValues(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): [data_value!]!
+
+  """An aggregate relationship"""
+  dataValues_aggregate(
+    """distinct select on columns"""
+    distinct_on: [data_value_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [data_value_order_by!]
+
+    """filter the rows returned"""
+    where: data_value_bool_exp
+  ): data_value_aggregate!
+
+  """An array relationship"""
+  followed(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): [follower!]!
+
+  """An array relationship"""
+  followedBy(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): [follower!]!
+
+  """An aggregate relationship"""
+  followedBy_aggregate(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): follower_aggregate!
+
+  """An aggregate relationship"""
+  followed_aggregate(
+    """distinct select on columns"""
+    distinct_on: [follower_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [follower_order_by!]
+
+    """filter the rows returned"""
+    where: follower_bool_exp
+  ): follower_aggregate!
+  id: String
+
+  """An array relationship"""
+  issuedAssets(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): [lsp12_issued_asset!]!
+
+  """An aggregate relationship"""
+  issuedAssets_aggregate(
+    """distinct select on columns"""
+    distinct_on: [lsp12_issued_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [lsp12_issued_asset_order_by!]
+
+    """filter the rows returned"""
+    where: lsp12_issued_asset_bool_exp
+  ): lsp12_issued_asset_aggregate!
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+
+  """An array relationship"""
+  metadataRevisions(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): [metadata_revision!]!
+
+  """An aggregate relationship"""
+  metadataRevisions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [metadata_revision_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [metadata_revision_order_by!]
+
+    """filter the rows returned"""
+    where: metadata_revision_bool_exp
+  ): metadata_revision_aggregate!
+  network: String
+
+  """An array relationship"""
+  ownedAssets(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): [owned_asset!]!
+
+  """An aggregate relationship"""
+  ownedAssets_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_asset_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_asset_order_by!]
+
+    """filter the rows returned"""
+    where: owned_asset_bool_exp
+  ): owned_asset_aggregate!
+
+  """An array relationship"""
+  ownedTokens(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """An aggregate relationship"""
+  ownedTokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+  owner_address: String
+  verification: verification_status
+}
+
+"""
+aggregated selection of "api.universal_profiles"
+"""
+type universal_profile_aggregate {
+  aggregate: universal_profile_aggregate_fields
+  nodes: [universal_profile!]!
+}
+
+"""
+aggregate fields of "api.universal_profiles"
+"""
+type universal_profile_aggregate_fields {
+  avg: universal_profile_avg_fields
+  count(columns: [universal_profile_select_column!], distinct: Boolean): Int!
+  max: universal_profile_max_fields
+  min: universal_profile_min_fields
+  stddev: universal_profile_stddev_fields
+  stddev_pop: universal_profile_stddev_pop_fields
+  stddev_samp: universal_profile_stddev_samp_fields
+  sum: universal_profile_sum_fields
+  var_pop: universal_profile_var_pop_fields
+  var_samp: universal_profile_var_samp_fields
+  variance: universal_profile_variance_fields
+}
+
+"""aggregate avg on columns"""
+type universal_profile_avg_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.universal_profiles". All fields are combined with a logical 'AND'.
+"""
+input universal_profile_bool_exp {
+  _and: [universal_profile_bool_exp!]
+  _not: universal_profile_bool_exp
+  _or: [universal_profile_bool_exp!]
+  address: String_comparison_exp
+  chain_id: bigint_comparison_exp
+  controllers: lsp6_controller_bool_exp
+  controllers_aggregate: lsp6_controller_aggregate_bool_exp
+  dataValues: data_value_bool_exp
+  dataValues_aggregate: data_value_aggregate_bool_exp
+  followed: follower_bool_exp
+  followedBy: follower_bool_exp
+  followedBy_aggregate: follower_aggregate_bool_exp
+  followed_aggregate: follower_aggregate_bool_exp
+  id: String_comparison_exp
+  issuedAssets: lsp12_issued_asset_bool_exp
+  issuedAssets_aggregate: lsp12_issued_asset_aggregate_bool_exp
+  last_block_hash: String_comparison_exp
+  last_block_number: bigint_comparison_exp
+  last_log_index: Int_comparison_exp
+  last_transaction_hash: String_comparison_exp
+  last_transaction_index: Int_comparison_exp
+  metadataRevisions: metadata_revision_bool_exp
+  metadataRevisions_aggregate: metadata_revision_aggregate_bool_exp
+  network: String_comparison_exp
+  ownedAssets: owned_asset_bool_exp
+  ownedAssets_aggregate: owned_asset_aggregate_bool_exp
+  ownedTokens: owned_token_bool_exp
+  ownedTokens_aggregate: owned_token_aggregate_bool_exp
+  owner_address: String_comparison_exp
+  verification: verification_status_comparison_exp
+}
+
+"""aggregate max on columns"""
+type universal_profile_max_fields {
+  address: String
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  verification: verification_status
+}
+
+"""aggregate min on columns"""
+type universal_profile_min_fields {
+  address: String
+  chain_id: bigint
+  id: String
+  last_block_hash: String
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_hash: String
+  last_transaction_index: Int
+  network: String
+  owner_address: String
+  verification: verification_status
+}
+
+"""Ordering options when selecting data from "api.universal_profiles"."""
+input universal_profile_order_by {
+  address: order_by
+  chain_id: order_by
+  controllers_aggregate: lsp6_controller_aggregate_order_by
+  dataValues_aggregate: data_value_aggregate_order_by
+  followedBy_aggregate: follower_aggregate_order_by
+  followed_aggregate: follower_aggregate_order_by
+  id: order_by
+  issuedAssets_aggregate: lsp12_issued_asset_aggregate_order_by
+  last_block_hash: order_by
+  last_block_number: order_by
+  last_log_index: order_by
+  last_transaction_hash: order_by
+  last_transaction_index: order_by
+  metadataRevisions_aggregate: metadata_revision_aggregate_order_by
+  network: order_by
+  ownedAssets_aggregate: owned_asset_aggregate_order_by
+  ownedTokens_aggregate: owned_token_aggregate_order_by
+  owner_address: order_by
+  verification: order_by
+}
+
+"""
+select columns of table "api.universal_profiles"
+"""
+enum universal_profile_select_column {
+  """column name"""
+  address
+
+  """column name"""
+  chain_id
+
+  """column name"""
+  id
+
+  """column name"""
+  last_block_hash
+
+  """column name"""
+  last_block_number
+
+  """column name"""
+  last_log_index
+
+  """column name"""
+  last_transaction_hash
+
+  """column name"""
+  last_transaction_index
+
+  """column name"""
+  network
+
+  """column name"""
+  owner_address
+
+  """column name"""
+  verification
+}
+
+"""aggregate stddev on columns"""
+type universal_profile_stddev_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type universal_profile_stddev_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type universal_profile_stddev_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""aggregate sum on columns"""
+type universal_profile_sum_fields {
+  chain_id: bigint
+  last_block_number: bigint
+  last_log_index: Int
+  last_transaction_index: Int
+}
+
+"""aggregate var_pop on columns"""
+type universal_profile_var_pop_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""aggregate var_samp on columns"""
+type universal_profile_var_samp_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+"""aggregate variance on columns"""
+type universal_profile_variance_fields {
+  chain_id: Float
+  last_block_number: Float
+  last_log_index: Float
+  last_transaction_index: Float
+}
+
+scalar verification_status
+
+"""
+Boolean expression to compare columns of type "verification_status". All fields are combined with logical 'AND'.
+"""
+input verification_status_comparison_exp {
+  _eq: verification_status
+  _gt: verification_status
+  _gte: verification_status
+  _in: [verification_status!]
+  _is_null: Boolean
+  _lt: verification_status
+  _lte: verification_status
+  _neq: verification_status
+  _nin: [verification_status!]
+}

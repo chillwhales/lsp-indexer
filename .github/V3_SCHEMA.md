@@ -3,7 +3,8 @@
 Status: implemented through domain projections for
 [#382](https://github.com/chillwhales/lsp-indexer/issues/382) and
 [#384](https://github.com/chillwhales/lsp-indexer/issues/384), including the metadata lifecycle in
-[#385](https://github.com/chillwhales/lsp-indexer/issues/385)
+[#385](https://github.com/chillwhales/lsp-indexer/issues/385) and the public Hasura contract in
+[#386](https://github.com/chillwhales/lsp-indexer/issues/386)
 
 This document is the persistence contract between the Pipes ingestion work, domain reducers,
 metadata workers, Hasura, and the v3 consumer packages. The Drizzle definitions and generated SQL
@@ -222,11 +223,24 @@ views in `api` with `UNION ALL` selections. Internal jobs, cursor history, netwo
 migration history, and rollback artifacts are intentionally absent. Unexpected API relations abort
 the rebuild. The shared namespace is accepted only when it contains the four canonical enums and
 their generated array types. The reader may not own a schema, relation, routine, type, or database
-and may hold only API/shared schema usage, canonical enum usage, and `SELECT` on the 14 enumerated
+and may hold only API/shared schema usage, canonical enum usage, and `SELECT` on the 15 enumerated
 views. Effective access inherited from `PUBLIC` is included in that inventory; implicit public type
 usage is removed from API view types and shared enums, while a publicly executable user-defined
 routine aborts migration. Hasura and future packages must join, filter, cache, and subscribe with
 both `network` and `chain_id`.
+
+The migration owner grants view access to the non-login `lsp_indexer_v3_api_reader` role. When
+`DATABASE_API_LOGIN` names an existing login, the migrator grants it only that reader role with
+`INHERIT TRUE`, `SET FALSE`, and `ADMIN FALSE`. Its `api,lsp_v3,public` search path is scoped to the
+migrated database. Hasura's `v3` source uses the login through
+`HASURA_GRAPHQL_V3_DATABASE_URL`; it does not connect to physical chain schemas with a writer or
+migration credential.
+
+Generated Hasura metadata exposes a select, aggregate, and live-query subscription root for all 15
+views to the `public` role. It exposes no mutations, metadata jobs, or primary-key roots. Every
+paginated domain root has the stable suffix `chain_id, id`; `indexed_head` uses
+`chain_id, network`. The complete root, relationship, scalar, and subscription contract is in
+[V3_API.md](./V3_API.md).
 
 Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. An ordinary
 pending migration therefore fails before execution whenever any snapshot table exists, even if

@@ -4,6 +4,7 @@ export const API_SCHEMA = 'api';
 export const SHARED_SCHEMA = 'lsp_v3';
 export const API_OWNER_ROLE = 'lsp_indexer_v3_api_owner';
 export const API_READER_ROLE = 'lsp_indexer_v3_api_reader';
+export const API_LOGIN_VARIABLE = 'DATABASE_API_LOGIN';
 export const DATABASE_SCHEMA_VERSION = 2;
 export const CURSOR_TABLE = 'sqd_cursor';
 export const MIGRATIONS_TABLE = '__drizzle_migrations';

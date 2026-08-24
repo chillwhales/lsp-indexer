@@ -47,8 +47,10 @@ describe('database configuration', () => {
   it('loads every configured network into the default migration plan', () => {
     const config = loadDatabaseMigrationConfig({
       DATABASE_ADMIN_URL: 'postgresql://admin.example.test/indexer',
+      DATABASE_API_LOGIN: 'lsp_v3_api',
       DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: 'runtime_eth',
     });
+    expect(config.apiLogin).toBe('lsp_v3_api');
 
     expect(config.networks).toHaveLength(3);
     expect(config.networks.find(({ network }) => network.chainId === 1)).toMatchObject({
@@ -77,6 +79,22 @@ describe('database configuration', () => {
         DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA: 'shared_runtime',
       }),
     ).toThrow('distinct login role');
+  });
+
+  it('requires the API login to be a distinct canonical role', () => {
+    expect(() =>
+      loadDatabaseMigrationConfig({
+        DATABASE_ADMIN_URL: 'postgresql://example.test/indexer',
+        DATABASE_API_LOGIN: 'shared_runtime',
+        DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: 'shared_runtime',
+      }),
+    ).toThrow('DATABASE_API_LOGIN must differ from every runtime login');
+    expect(() =>
+      loadDatabaseMigrationConfig({
+        DATABASE_ADMIN_URL: 'postgresql://example.test/indexer',
+        DATABASE_API_LOGIN: 'Unsafe API Login',
+      }),
+    ).toThrow('DATABASE_API_LOGIN must be a lowercase PostgreSQL identifier');
   });
 
   it('accepts an explicit rollback retention below the default floor when it exceeds finality', () => {

@@ -21,6 +21,7 @@ export default tseslint.config(
 
       // Config files — not source code
       '**/vitest.config.ts',
+      '**/vitest.hasura.config.ts',
       '**/vitest.integration.config.ts',
       '**/vitest.setup.ts',
       '**/tsup.config.ts',

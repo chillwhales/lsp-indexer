@@ -6,8 +6,9 @@ Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 > single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
 > PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
 > deterministic LSP domain projections. It also includes finalized, durable metadata workers for
-> LSP3, LSP4, LSP8, and LSP29 sources. It does not yet expose the final v3 GraphQL/package contract,
-> so it is not a replacement for the production v2 indexer.
+> LSP3, LSP4, LSP8, and LSP29 sources plus a generated, read-only multi-chain Hasura query and
+> subscription contract. The v3 Node, React, and Next.js packages and production acceptance gates
+> are not complete, so it is not a replacement for the production v2 indexer.
 
 ## Requirements
 
@@ -63,7 +64,9 @@ lowercase bytes32 values, and start with the separately indexed `topic0`.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
-track only the `api` views, not chain schemas or internal job/cursor tables.
+track only the `api` views, not chain schemas or internal job/cursor tables. Every public row has
+`network` and `chain_id`; every manual relationship maps `chain_id` so identical addresses on
+different networks stay isolated.
 
 ## Raw event ingestion
 
@@ -206,6 +209,7 @@ shrink cancels stale slots and the worker rechecks the length before fetching or
 | `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL used only by the one-shot migration command         |
 | `DATABASE_MIGRATION_NETWORKS`           | No       | Comma-separated enabled set; defaults to the full catalog     |
 | `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login to grant the network writer role               |
+| `DATABASE_API_LOGIN`                    | No       | Existing Hasura login granted only the API reader role        |
 | `DATABASE_POOL_MAX`                     | No       | Runtime connection limit; defaults to `10`                    |
 | `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | Connection timeout; defaults to `10000`                       |
 | `DATABASE_IDLE_TIMEOUT_MS`              | No       | Idle connection timeout; defaults to `30000`                  |
@@ -226,6 +230,10 @@ shrink cancels stale slots and the worker rechecks the length before fetching or
 | `METADATA_IPFS_GATEWAYS`                | No       | Ordered comma-separated gateways; defaults to network primary |
 | `METADATA_ALLOW_HTTP`                   | No       | Explicitly permit public plain HTTP; defaults to `false`      |
 | `METADATA_RUN_ONCE`                     | No       | Drain one claim batch and exit; defaults to `false`           |
+| `HASURA_GRAPHQL_V3_DATABASE_URL`        | Hasura   | Least-privilege PostgreSQL URL for the generated `v3` source  |
+| `HASURA_GRAPHQL_UNAUTHORIZED_ROLE`      | Hasura   | Set to `public` for unauthenticated package reads             |
+| `HASURA_GRAPHQL_ENDPOINT`               | API ops  | Hasura origin used by metadata and schema commands            |
+| `HASURA_GRAPHQL_ADMIN_SECRET`           | API ops  | Operator secret used only to apply or inspect metadata        |
 
 URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
 ID, and configured contract bytecode are validated before a network program starts. A
@@ -293,6 +301,7 @@ journal still matches. Dynamic Pipes `__snapshots` tables are intentionally excl
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
 DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+DATABASE_API_LOGIN=lsp_v3_hasura \
   pnpm --filter @chillwhales/indexer-v3 db:migrate
 ```
 
@@ -328,6 +337,39 @@ recreates all 16 rollback artifacts from the new schema and ingestion replays fr
 the configured network start block. A fresh or reset schema with a later `INDEXER_FROM_BLOCK` is
 rejected. With an existing cursor, a custom start is accepted only when it does not leave a gap
 after the latest committed block. No other migration bypasses the snapshot guard.
+
+## Hasura API setup
+
+The generated Hasura metadata tracks all 15 `api` views. The public role can filter, order,
+paginate, aggregate, traverse chain-scoped relationships, and use live-query subscriptions. It
+cannot mutate rows, inspect metadata jobs, or access physical chain schemas. A query without a
+`chain_id` filter spans every network enabled by the migration.
+
+Provision the login named by `DATABASE_API_LOGIN` before running `db:migrate`, then configure
+Hasura's source with that login rather than the migration credential. Migration grants the reader
+membership with inheritance, disables role switching and membership administration, and pins its
+search path to `api,lsp_v3,public` for this database so shared enum filters resolve without physical
+chain access. Keep `DATABASE_API_LOGIN` set on every later migration; omitting it declares that the
+reader role must have no members and rejects stale access:
+
+```env
+HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_hasura:secret@localhost/lsp_indexer_v3
+HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+```
+
+```bash
+HASURA_GRAPHQL_ENDPOINT=http://localhost:8080 \
+HASURA_GRAPHQL_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 hasura:apply
+```
+
+`hasura:generate` refreshes the deterministic metadata snapshot. `hasura:schema:dump` introspects
+the public role and refreshes the GraphQL schema consumed by later package code generation.
+`hasura:check` and `hasura:schema:check` reject drift. Paginated queries must append
+`chain_id, id` to their order, except `indexed_head`, whose natural suffix is
+`chain_id, network`. See the complete [v3 GraphQL contract](../../.github/V3_API.md).
+Applying metadata preserves every unrelated Hasura source and feature, and uses the exported
+resource version so it cannot silently overwrite a concurrent metadata change.
 
 ## Commands
 
@@ -395,6 +437,10 @@ pnpm --filter @chillwhales/indexer-v3 typecheck
 pnpm --filter @chillwhales/indexer-v3 test:coverage
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
   pnpm --filter @chillwhales/indexer-v3 test:persistence
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
+TEST_HASURA_GRAPHQL_ENDPOINT=http://localhost:8080/v1/graphql \
+TEST_HASURA_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 test:hasura
 pnpm --filter @chillwhales/indexer-v3 build
 ```
 
@@ -408,6 +454,7 @@ and reorg acceptance suite.
 
 See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
 [database contract](../../.github/V3_SCHEMA.md),
+[GraphQL contract](../../.github/V3_API.md),
 [raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
 [projection disposition](../../.github/V3_PROJECTION_DISPOSITION.md),
 [roadmap](../../.github/V3_ROADMAP.md), and

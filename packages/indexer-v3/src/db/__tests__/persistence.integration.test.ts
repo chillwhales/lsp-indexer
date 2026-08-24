@@ -141,6 +141,7 @@ const runtimeLogins = {
   'ethereum-mainnet': `v3_test_eth_${suiteSuffix}`,
   'ethereum-sepolia': `v3_test_sepolia_${suiteSuffix}`,
 };
+const apiLogin = `v3_test_api_${suiteSuffix}`;
 
 const testAddress = addressFor(100);
 const firstOwner = addressFor(101);
@@ -197,6 +198,17 @@ let sepoliaPool: Pool;
 let sepoliaDb: NetworkDatabase;
 let luksoPool: Pool;
 let target: TestTarget;
+
+function createMigrationSubset(
+  connectionString: string,
+  networks: DatabaseMigrationConfig['networks'],
+): DatabaseMigrationConfig {
+  return {
+    connectionString,
+    networks,
+    ...(migrationConfig.apiLogin == null ? {} : { apiLogin: migrationConfig.apiLogin }),
+  };
+}
 
 function hashFor(value: number): Hex {
   return toHex(BigInt(value), { size: 32 });
@@ -501,10 +513,12 @@ beforeAll(async (): Promise<void> => {
   controlPool = new Pool({ connectionString: sourceDatabaseUrl, max: 1 });
   await controlPool.query(`CREATE DATABASE ${quotePostgresIdentifier(testDatabaseName)}`);
   for (const role of Object.values(runtimeLogins)) await createRuntimeLogin(controlPool, role);
+  await createRuntimeLogin(controlPool, apiLogin);
 
   const adminUrl = databaseUrl(sourceDatabaseUrl, testDatabaseName);
   migrationConfig = loadDatabaseMigrationConfig({
     DATABASE_ADMIN_URL: adminUrl,
+    DATABASE_API_LOGIN: apiLogin,
     DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET: runtimeLogins['lukso-mainnet'],
     DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: runtimeLogins['ethereum-mainnet'],
     DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA: runtimeLogins['ethereum-sepolia'],
@@ -537,6 +551,7 @@ afterAll(async (): Promise<void> => {
     for (const role of Object.values(runtimeLogins)) {
       await controlPool.query(`DROP ROLE IF EXISTS ${quotePostgresIdentifier(role)}`);
     }
+    await controlPool.query(`DROP ROLE IF EXISTS ${quotePostgresIdentifier(apiLogin)}`);
     await controlPool.end();
   }
 });
@@ -593,7 +608,7 @@ describe.sequential('PostgreSQL persistence', () => {
       ({ network: configuredNetwork }) => configuredNetwork.key === 'ethereum-mainnet',
     );
     if (network == null) throw new Error('Expected the Ethereum migration network');
-    const scratchConfig = { connectionString: scratchUrl, networks: [network] };
+    const scratchConfig = createMigrationSubset(scratchUrl, [network]);
     let scratchPool: Pool | undefined;
     let scratchRuntimePool: Pool | undefined;
 
@@ -942,12 +957,10 @@ describe.sequential('PostgreSQL persistence', () => {
   it('drops API views before migrating incompatible public-table columns', async () => {
     const scratchDatabaseName = `lsp_v3_view_${suiteSuffix}`;
     const scratchUrl = databaseUrl(sourceDatabaseUrl, scratchDatabaseName);
-    const scratchConfig = {
-      connectionString: scratchUrl,
-      networks: migrationConfig.networks.filter(
-        ({ network }) => network.key === 'ethereum-mainnet',
-      ),
-    };
+    const scratchConfig = createMigrationSubset(
+      scratchUrl,
+      migrationConfig.networks.filter(({ network }) => network.key === 'ethereum-mainnet'),
+    );
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
       `ALTER TABLE blocks ALTER COLUMN id TYPE varchar(128);
 --> statement-breakpoint
@@ -995,7 +1008,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       if (network == null) throw new Error(`Expected migration network ${networkKey}`);
       return network;
     });
-    const scratchConfig = { connectionString: scratchUrl, networks: selectedNetworks };
+    const scratchConfig = createMigrationSubset(scratchUrl, selectedNetworks);
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
       `COMMENT ON TABLE blocks IS 'pending cross-network migration';
 --> statement-breakpoint
@@ -1683,6 +1696,71 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       );
       await testAdminPool.query(
         `REVOKE USAGE ON SCHEMA ${quotePostgresIdentifier(schemaName)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+      );
+    }
+  });
+
+  it('rejects unsafe options on the API reader membership', async () => {
+    const quotedReader = quotePostgresIdentifier(API_READER_ROLE);
+    const quotedLogin = quotePostgresIdentifier(apiLogin);
+    const mutations = [
+      {
+        apply: `GRANT ${quotedReader} TO ${quotedLogin} WITH ADMIN OPTION`,
+        restore: `REVOKE ADMIN OPTION FOR ${quotedReader} FROM ${quotedLogin}`,
+        error: `Configured API login "${apiLogin}" must not hold ADMIN OPTION on "${API_READER_ROLE}"`,
+      },
+      {
+        apply: `GRANT ${quotedReader} TO ${quotedLogin} WITH SET TRUE`,
+        restore: `GRANT ${quotedReader} TO ${quotedLogin} WITH SET FALSE`,
+        error: `Configured API login "${apiLogin}" must not hold SET OPTION on "${API_READER_ROLE}"`,
+      },
+      {
+        apply: `GRANT ${quotedReader} TO ${quotedLogin} WITH INHERIT FALSE`,
+        restore: `GRANT ${quotedReader} TO ${quotedLogin} WITH INHERIT TRUE`,
+        error: `Configured API login "${apiLogin}" must hold INHERIT OPTION on "${API_READER_ROLE}"`,
+      },
+    ];
+
+    for (const mutation of mutations) {
+      await controlPool.query(mutation.apply);
+      try {
+        await expect(migrateDatabase(migrationConfig)).rejects.toThrow(mutation.error);
+      } finally {
+        await controlPool.query(mutation.restore);
+      }
+    }
+  });
+
+  it('rejects stale direct or transitive members of the API reader role', async () => {
+    const retiredLogin = `v3_test_retired_api_${suiteSuffix}`;
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(retiredLogin)} LOGIN`);
+    try {
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(API_READER_ROLE)} TO ${quotePostgresIdentifier(retiredLogin)}`,
+      );
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `API reader role "${API_READER_ROLE}" has unexpected direct or transitive members: ${retiredLogin}. Revoke their membership before retrying`,
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(API_READER_ROLE)} FROM ${quotePostgresIdentifier(retiredLogin)}`,
+      );
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(retiredLogin)}`);
+    }
+  });
+
+  it('rejects direct privileges held by the API login', async () => {
+    const qualifiedBlocks = `${quotePostgresIdentifier('chain_ethereum_mainnet')}.${quotePostgresIdentifier('blocks')}`;
+    await testAdminPool.query(
+      `GRANT SELECT ON ${qualifiedBlocks} TO ${quotePostgresIdentifier(apiLogin)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Configured API login "${apiLogin}" has direct privileges, ownership, or policy references outside its reader role`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE SELECT ON ${qualifiedBlocks} FROM ${quotePostgresIdentifier(apiLogin)}`,
       );
     }
   });
@@ -2383,6 +2461,66 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     ).rejects.toMatchObject({ code: '42501' });
   });
 
+  it('grants the API login only the unified read-only views', async () => {
+    const apiPool = new Pool({
+      connectionString: databaseUrl(sourceDatabaseUrl, testDatabaseName, apiLogin, runtimePassword),
+      max: 1,
+    });
+    try {
+      const membership = await testAdminPool.query<{
+        adminOption: boolean;
+        inheritOption: boolean;
+        setOption: boolean;
+      }>(
+        `SELECT membership.admin_option AS "adminOption",
+                membership.inherit_option AS "inheritOption",
+                membership.set_option AS "setOption"
+         FROM pg_auth_members membership
+         JOIN pg_roles member_role ON member_role.oid = membership.member
+         JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
+         WHERE member_role.rolname = $1 AND granted_role.rolname = $2`,
+        [apiLogin, API_READER_ROLE],
+      );
+      expect(membership.rows).toEqual([
+        { adminOption: false, inheritOption: true, setOption: false },
+      ]);
+      const searchPathDatabases = await testAdminPool.query<{ database: string | null }>(
+        `SELECT database.datname AS database
+         FROM pg_db_role_setting setting
+         JOIN pg_roles role ON role.oid = setting.setrole
+         LEFT JOIN pg_database database ON database.oid = setting.setdatabase
+         CROSS JOIN LATERAL unnest(setting.setconfig) configuration
+         WHERE role.rolname = $1 AND configuration LIKE 'search_path=%'
+         ORDER BY database.datname NULLS FIRST`,
+        [apiLogin],
+      );
+      expect(searchPathDatabases.rows).toEqual([{ database: testDatabaseName }]);
+
+      const result = await apiPool.query('SELECT * FROM api.universal_profiles LIMIT 1');
+      expect(Array.isArray(result.rows)).toBe(true);
+      const searchPath = await apiPool.query<{ searchPath: string }>(
+        'SELECT current_setting(\'search_path\') AS "searchPath"',
+      );
+      expect(searchPath.rows[0]?.searchPath).toBe('api, lsp_v3, public');
+      await expect(
+        apiPool.query(`SET ROLE ${quotePostgresIdentifier(API_READER_ROLE)}`),
+      ).rejects.toMatchObject({ code: '42501' });
+      await expect(
+        apiPool.query(
+          "SELECT * FROM api.universal_profiles WHERE verification = 'verified'::verification_status LIMIT 1",
+        ),
+      ).resolves.toBeDefined();
+      await expect(
+        apiPool.query('SELECT * FROM chain_ethereum_mainnet.universal_profiles LIMIT 1'),
+      ).rejects.toMatchObject({ code: '42501' });
+      await expect(
+        apiPool.query(`DELETE FROM api.universal_profiles WHERE address = '${collisionAddress}'`),
+      ).rejects.toBeDefined();
+    } finally {
+      await apiPool.end();
+    }
+  });
+
   it('keeps data, current state, jobs, indexed head, and cursor atomic', async () => {
     target = createTestTarget();
     await runBlocks(target, [block1, block2]);
@@ -2616,12 +2754,10 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
   it('refuses tracked schema evolution while rollback snapshots contain data', async () => {
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory();
     try {
-      const ethereumMigration = {
-        connectionString: migrationConfig.connectionString,
-        networks: migrationConfig.networks.filter(
-          ({ network }) => network.key === 'ethereum-mainnet',
-        ),
-      };
+      const ethereumMigration = createMigrationSubset(
+        migrationConfig.connectionString,
+        migrationConfig.networks.filter(({ network }) => network.key === 'ethereum-mainnet'),
+      );
       await expect(migrateDatabase(ethereumMigration, { migrationsDirectory })).rejects.toThrow(
         'rollback snapshot artifacts exist',
       );
@@ -2752,12 +2888,10 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
 
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory();
     try {
-      const ethereumMigration = {
-        connectionString: migrationConfig.connectionString,
-        networks: migrationConfig.networks.filter(
-          ({ network }) => network.key === 'ethereum-mainnet',
-        ),
-      };
+      const ethereumMigration = createMigrationSubset(
+        migrationConfig.connectionString,
+        migrationConfig.networks.filter(({ network }) => network.key === 'ethereum-mainnet'),
+      );
       await expect(migrateDatabase(ethereumMigration, { migrationsDirectory })).rejects.toThrow(
         'rollback snapshot artifacts exist',
       );

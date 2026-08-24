@@ -16,6 +16,11 @@
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts && tsx src/app/normalize-migrations.ts",
     "db:migrations:check": "tsx src/app/normalize-migrations.ts --check",
     "db:migrate": "tsx src/app/migrate-database.ts",
+    "hasura:apply": "tsx src/app/apply-hasura.ts",
+    "hasura:generate": "tsx src/app/generate-hasura.ts",
+    "hasura:check": "tsx src/app/generate-hasura.ts --check",
+    "hasura:schema:dump": "tsx src/app/dump-hasura-schema.ts",
+    "hasura:schema:check": "tsx src/app/dump-hasura-schema.ts --check",
     "index:events": "tsx src/app/index-events.ts",
     "index:events:built": "node lib/app/index-events.js",
     "metadata:worker": "tsx src/app/process-metadata.ts",
@@ -24,6 +29,7 @@
     "probe:network:built": "node lib/app/probe-network.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:hasura": "vitest run --config=vitest.hasura.config.ts",
     "test:persistence": "vitest run --config=vitest.integration.config.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -34,6 +40,7 @@
     "@chillwhales/lsp31": "0.1.2",
     "@subsquid/pipes": "1.0.0-beta.3",
     "drizzle-orm": "0.44.7",
+    "graphql": "16.12.0",
     "pg": "8.16.3",
     "viem": "2.47.0",
     "zod": "4.3.6"
