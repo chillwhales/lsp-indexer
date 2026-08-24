@@ -7,12 +7,18 @@ import { dataValues, metadataJobs, nfts } from '../../db/schema.js';
 import type { EventFactRecord } from '../../events/decode.js';
 import type { ProjectionMutations } from '../../projections/reducer.js';
 import { DATA_KEYS, ZERO_ADDRESS } from '../../projections/standards.js';
-import type { ProjectionState } from '../../projections/state.js';
+import type {
+  DigitalAssetRow,
+  ProjectionState,
+  UniversalProfileRow,
+} from '../../projections/state.js';
 import {
   createDataValueMetadataSource,
   createNftMetadataSource,
+  findMetadataVerificationTransitions,
   matchesMetadataJob,
   planMetadataSources,
+  snapshotMetadataVerification,
 } from '../source.js';
 
 type DataValueRow = typeof dataValues.$inferSelect;
@@ -238,6 +244,7 @@ describe('metadata source planning', () => {
     expect(createDataValueMetadataSource(runtime, encrypted)).toMatchObject({
       kind: 'lsp29_encrypted_asset',
       contentUri: 'ipfs://bafy-metadata',
+      contentUris: ['ipfs://bafy-metadata', 'https://arweave.net/arweave-metadata'],
     });
     expect(createNftMetadataSource(runtime, createNft())).toMatchObject({
       kind: 'lsp4_token',
@@ -315,6 +322,67 @@ describe('metadata source planning', () => {
     expect(
       planMetadataSources(runtime, state, createMutations({ dataValues: [row] }), []).sources,
     ).toEqual([]);
+  });
+
+  it('recovers stored sources when a later event makes their target verified', () => {
+    const state = createState();
+    const snapshot = snapshotMetadataVerification(state);
+    const verifiedProfile: UniversalProfileRow = {
+      id: 'profile-id',
+      network: runtime.network.key,
+      chainId: runtime.network.chainId,
+      address: profile,
+      ownerAddress: null,
+      verification: 'verified',
+      lastBlockNumber: 101,
+      lastBlockHash: toHex(101n, { size: 32 }),
+      lastTransactionHash: toHex(201n, { size: 32 }),
+      lastTransactionIndex: 1,
+      lastLogIndex: 0,
+    };
+    state.universalProfiles.set(profile, verifiedProfile);
+    const mutations = createMutations({ universalProfiles: [verifiedProfile] });
+    const transitions = findMetadataVerificationTransitions(snapshot, mutations);
+
+    expect(transitions).toEqual({
+      profileAddresses: [profile],
+      assetAddresses: [],
+      tokenCollectionAddresses: [],
+      nftTargets: [],
+    });
+    expect(
+      planMetadataSources(runtime, state, mutations, [], {
+        dataValues: [createDataValue({ lastBlockNumber: 99 })],
+        nfts: [],
+      }).sources,
+    ).toHaveLength(1);
+  });
+
+  it('detects LSP8 collection and NFT verification transitions', () => {
+    const state = createVerifiedLsp8State();
+    const currentAsset = state.digitalAssets.get(asset);
+    if (currentAsset == null) throw new Error('Expected asset state fixture');
+    const invalidAsset: DigitalAssetRow = { ...currentAsset, verification: 'invalid' };
+    const invalidNft: NftRow = createNft({ verification: 'invalid' });
+    state.digitalAssets.set(asset, invalidAsset);
+    state.nfts.set(`${asset}:${tokenId}`, invalidNft);
+    const snapshot = snapshotMetadataVerification(state);
+    const verifiedAsset: DigitalAssetRow = { ...invalidAsset, verification: 'verified' };
+    const verifiedNft: NftRow = { ...invalidNft, verification: 'verified' };
+    state.digitalAssets.set(asset, verifiedAsset);
+    state.nfts.set(`${asset}:${tokenId}`, verifiedNft);
+
+    expect(
+      findMetadataVerificationTransitions(
+        snapshot,
+        createMutations({ digitalAssets: [verifiedAsset], nfts: [verifiedNft] }),
+      ),
+    ).toEqual({
+      profileAddresses: [],
+      assetAddresses: [asset],
+      tokenCollectionAddresses: [asset],
+      nftTargets: [{ address: asset, tokenId }],
+    });
   });
 
   it('records invalid current sources so an older job can be cancelled', () => {

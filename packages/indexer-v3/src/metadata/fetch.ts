@@ -90,6 +90,7 @@ export type MetadataFetchResult =
   | {
       ok: true;
       content: Record<string, unknown>;
+      contentUri: string;
       contentHash: string;
       contentType: string | null;
       contentLength: number;
@@ -100,6 +101,11 @@ export type MetadataFetchResult =
 interface MetadataBody {
   body: Uint8Array;
   contentType: string | null;
+}
+
+interface MetadataRequestCandidate {
+  contentUri: string;
+  requestUrl: string;
 }
 
 class MetadataRequestError extends Error {
@@ -581,24 +587,37 @@ function normalizeRequestError(error: unknown, fallback: string, retryable: bool
   return new MetadataRequestError(typeof error === 'string' ? error : fallback, retryable);
 }
 
-function requestUrls(source: MetadataSource, config: MetadataFetchConfig): string[] {
-  if (!source.contentUri.toLowerCase().startsWith('ipfs://')) return [source.contentUri];
-  if (config.ipfsGateways.length === 0) {
-    throw new MetadataRequestError('At least one IPFS metadata gateway is required', false);
+function requestCandidates(
+  source: MetadataSource,
+  config: MetadataFetchConfig,
+): MetadataRequestCandidate[] {
+  const candidates: MetadataRequestCandidate[] = [];
+  for (const contentUri of source.contentUris) {
+    if (!contentUri.toLowerCase().startsWith('ipfs://')) {
+      candidates.push({ contentUri, requestUrl: contentUri });
+      continue;
+    }
+    if (config.ipfsGateways.length === 0) {
+      throw new MetadataRequestError('At least one IPFS metadata gateway is required', false);
+    }
+    for (const gateway of config.ipfsGateways) {
+      candidates.push({
+        contentUri,
+        requestUrl: resolveMetadataRequestUrl(contentUri, gateway, config.allowHttp),
+      });
+    }
   }
-  return config.ipfsGateways.map((gateway) =>
-    resolveMetadataRequestUrl(source.contentUri, gateway, config.allowHttp),
-  );
+  return candidates;
 }
 
 async function fetchAndValidateMetadata(
   source: MetadataSource,
   config: MetadataFetchConfig,
-  requestUrl: string,
+  candidate: MetadataRequestCandidate,
 ): Promise<Omit<Extract<MetadataFetchResult, { ok: true }>, 'durationMs'>> {
-  const fetched = source.contentUri.toLowerCase().startsWith('data:')
-    ? decodeDataUri(source.contentUri, config.maxResponseBytes)
-    : await fetchResponse(requestUrl, config);
+  const fetched = candidate.contentUri.toLowerCase().startsWith('data:')
+    ? decodeDataUri(candidate.contentUri, config.maxResponseBytes)
+    : await fetchResponse(candidate.requestUrl, config);
   if (fetched.contentType === 'text/html') {
     throw new MetadataRequestError('Metadata response returned HTML instead of JSON', false);
   }
@@ -630,6 +649,7 @@ async function fetchAndValidateMetadata(
   return {
     ok: true,
     content: parseMetadataContent(source, text),
+    contentUri: candidate.contentUri,
     contentHash,
     contentType: fetched.contentType,
     contentLength: fetched.body.byteLength,
@@ -644,17 +664,24 @@ export async function fetchMetadata(
   const startedAt = performance.now();
   try {
     let lastError: unknown;
-    for (const requestUrl of requestUrls(source, config)) {
+    let retryable = false;
+    for (const candidate of requestCandidates(source, config)) {
       try {
         return {
-          ...(await fetchAndValidateMetadata(source, config, requestUrl)),
+          ...(await fetchAndValidateMetadata(source, config, candidate)),
           durationMs: performance.now() - startedAt,
         };
       } catch (error) {
         lastError = error;
+        retryable ||= isRetryableFetchError(error);
       }
     }
-    throw normalizeRequestError(lastError, 'Metadata request had no source URL', false);
+    const normalized = normalizeRequestError(
+      lastError,
+      'Metadata request had no source URL',
+      retryable,
+    );
+    throw new MetadataRequestError(normalized.message, retryable);
   } catch (error) {
     return {
       ok: false,

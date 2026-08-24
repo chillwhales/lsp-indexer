@@ -21,6 +21,7 @@ import {
   createEventIngestionOutput,
   createEventPersistenceTarget,
   ERC725Y_EVENT_ABI,
+  LSP14_EVENT_ABI,
   LSP7_EVENT_ABI,
 } from '../../events/index.js';
 import {
@@ -39,6 +40,7 @@ import {
   collectProjectionCandidates,
   createProjectionPersistenceTarget,
   DATA_KEYS,
+  ZERO_ADDRESS,
   type ProjectionBatch,
   type ProjectionMutations,
   type ProjectionVerification,
@@ -3201,6 +3203,118 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     );
   });
 
+  it('queues stored metadata when a later unrelated event verifies its target', async () => {
+    const metadataAddress = addressFor(223);
+    const newOwner = addressFor(224);
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+
+    const metadataValue = encodeVerifiableUri(
+      { LSP3Profile: { name: 'Eventually verified profile' } },
+      'ipfs://eventually-verified-profile',
+    );
+    const metadataLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: metadataAddress,
+      args: { dataKey: DATA_KEYS.lsp3Profile, dataValue: metadataValue },
+    });
+    const verificationLog = encodeEvent({
+      abi: LSP14_EVENT_ABI,
+      eventName: 'OwnershipTransferred',
+      address: metadataAddress,
+      args: { previousOwner: ZERO_ADDRESS, newOwner },
+    });
+    const metadataBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_001_000,
+      hash: hashFor(1_201),
+      parentHash: previousBlock.hash,
+      transactions: [{ logs: [metadataLog] }],
+    });
+    const verificationBlock = mockBlock({
+      number: metadataBlock.header.number + 1,
+      timestamp: 1_700_001_001,
+      hash: hashFor(1_202),
+      parentHash: metadataBlock.header.hash,
+      transactions: [{ logs: [verificationLog] }],
+    });
+
+    async function persistVerificationFixture(
+      block: PortalBlock,
+      verified: boolean,
+    ): Promise<void> {
+      const runtime = loadRuntimeConfig({
+        INDEXER_NETWORK: 'ethereum-mainnet',
+        INDEXER_FROM_BLOCK: '0',
+        INDEXER_TO_BLOCK: String(block.header.number),
+      });
+      const target = createProjectionPersistenceTarget({
+        runtime,
+        databaseConfig: ethereumDatabaseConfig,
+        db: ethereumDb,
+      });
+      const portal = await mockEvmPortalStream({
+        blocks: [block],
+        finalized: { number: block.header.number, hash: block.header.hash },
+      });
+      try {
+        const outputs = createEventIngestionOutput(runtime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status:
+                  verified &&
+                  candidate.address === metadataAddress &&
+                  candidate.category === 'universalProfile'
+                    ? 'verified'
+                    : 'invalid',
+                standard: null,
+                decimals: null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: runtime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(runtime, data, ctx));
+        await stream.pipeTo(target);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await persistVerificationFixture(metadataBlock, false);
+    expect(
+      await ethereumDb.select().from(dataValues).where(eq(dataValues.address, metadataAddress)),
+    ).toHaveLength(1);
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.address, metadataAddress)),
+    ).toEqual([]);
+
+    await persistVerificationFixture(verificationBlock, true);
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.address, metadataAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'lsp3_profile',
+        status: 'pending',
+        contentUri: 'ipfs://eventually-verified-profile',
+        sourceBlockNumber: metadataBlock.header.number,
+      }),
+    ]);
+  });
+
   it('restores a superseded processing lease across rollback and safely republishes it', async () => {
     const [previousBlock] = await ethereumDb
       .select({ number: blocks.number, hash: blocks.hash })
@@ -3322,6 +3436,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, firstClaim, {
         content: firstContent,
+        contentUri: firstClaim.contentUri,
         contentHash: firstClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
@@ -3375,6 +3490,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, recoveredClaim, {
         content: firstContent,
+        contentUri: recoveredClaim.contentUri,
         contentHash: recoveredClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
@@ -3541,6 +3657,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, retryClaim, {
         content: firstContent,
+        contentUri: retryClaim.contentUri,
         contentHash: firstSource.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
@@ -3578,6 +3695,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, repeatedClaim, {
         content: { LSP3Profile: { name: 'Mutable endpoint response' } },
+        contentUri: repeatedClaim.contentUri,
         contentHash: repeatedClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
@@ -3646,6 +3764,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, secondClaim, {
         content: { LSP3Profile: { name: 'Stale second revision' } },
+        contentUri: secondClaim.contentUri,
         contentHash: secondSource.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
@@ -3743,6 +3862,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, revokedClaim, {
         content: { LSP3Profile: { name: 'Must not publish' } },
+        contentUri: revokedClaim.contentUri,
         contentHash: revokedClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
@@ -3826,6 +3946,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, tokenClaim, {
         content: { LSP4Metadata: { name: 'Must not publish' } },
+        contentUri: tokenClaim.contentUri,
         contentHash: tokenClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,

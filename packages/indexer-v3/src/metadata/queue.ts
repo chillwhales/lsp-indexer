@@ -4,6 +4,7 @@ import {
   count,
   eq,
   inArray,
+  isNotNull,
   isNull,
   lte,
   max,
@@ -30,9 +31,11 @@ import {
   createDataValueMetadataSource,
   createNftMetadataSource,
   matchesMetadataJob,
+  type MetadataRecoveryCandidates,
   type MetadataSource,
   type MetadataSourcePlan,
   type MetadataSourceScope,
+  type MetadataVerificationTransitions,
 } from './source.js';
 
 const ACTIVE_JOB_STATUSES = ['pending', 'retry'] as const;
@@ -50,6 +53,8 @@ const WRITE_CHUNK_SIZE = 500;
 type MetadataTransaction = Parameters<Parameters<NetworkDatabase['transaction']>[0]>[0];
 type MetadataQueryExecutor = NetworkDatabase | MetadataTransaction;
 type ProjectionTransaction = PersistenceHandlerContext['tx'];
+type DataValueRow = typeof dataValues.$inferSelect;
+type NftRow = typeof nfts.$inferSelect;
 export type MetadataJob = typeof metadataJobs.$inferSelect;
 export type MetadataJobStatus = MetadataJob['status'];
 
@@ -61,6 +66,7 @@ export interface ClaimMetadataJobsOptions {
 
 export interface CompletedMetadataContent {
   content: Record<string, unknown>;
+  contentUri: string;
   contentHash: string;
   contentType: string | null;
   contentLength: number;
@@ -99,6 +105,91 @@ function scopeCondition(scope: MetadataSourceScope): SQL {
   );
   if (condition == null) throw new Error('Metadata scope must not be empty');
   return condition;
+}
+
+/** Reload metadata rows only for targets whose verification became usable in this transaction. */
+export async function loadMetadataRecoveryCandidates(
+  tx: ProjectionTransaction,
+  runtime: RuntimeConfig,
+  transitions: MetadataVerificationTransitions,
+): Promise<MetadataRecoveryCandidates> {
+  const recoveredDataValues = new Map<string, DataValueRow>();
+  const recoveredNfts = new Map<string, NftRow>();
+  const contractAddresses = [
+    ...new Set([...transitions.profileAddresses, ...transitions.assetAddresses]),
+  ];
+
+  for (const addressChunk of chunks(contractAddresses)) {
+    const rows = await tx
+      .select()
+      .from(dataValues)
+      .where(
+        and(
+          eq(dataValues.chainId, runtime.network.chainId),
+          inArray(dataValues.address, addressChunk),
+          isNull(dataValues.tokenId),
+        ),
+      );
+    for (const row of rows) recoveredDataValues.set(row.id, row);
+  }
+
+  for (const addressChunk of chunks(transitions.tokenCollectionAddresses)) {
+    const [tokenRows, nftRows] = await Promise.all([
+      tx
+        .select()
+        .from(dataValues)
+        .where(
+          and(
+            eq(dataValues.chainId, runtime.network.chainId),
+            inArray(dataValues.address, addressChunk),
+            isNotNull(dataValues.tokenId),
+            eq(dataValues.dataKey, DATA_KEYS.lsp4Metadata),
+          ),
+        ),
+      tx
+        .select()
+        .from(nfts)
+        .where(and(eq(nfts.chainId, runtime.network.chainId), inArray(nfts.address, addressChunk))),
+    ]);
+    for (const row of tokenRows) recoveredDataValues.set(row.id, row);
+    for (const row of nftRows) recoveredNfts.set(row.id, row);
+  }
+
+  for (const targetChunk of chunks(transitions.nftTargets)) {
+    const dataValueScope = or(
+      ...targetChunk.map(({ address, tokenId }) =>
+        and(eq(dataValues.address, address), eq(dataValues.tokenId, tokenId)),
+      ),
+    );
+    const nftScope = or(
+      ...targetChunk.map(({ address, tokenId }) =>
+        and(eq(nfts.address, address), eq(nfts.tokenId, tokenId)),
+      ),
+    );
+    if (dataValueScope == null || nftScope == null) {
+      throw new Error('Metadata NFT recovery scope must not be empty');
+    }
+    const [tokenRows, nftRows] = await Promise.all([
+      tx
+        .select()
+        .from(dataValues)
+        .where(
+          and(
+            eq(dataValues.chainId, runtime.network.chainId),
+            eq(dataValues.dataKey, DATA_KEYS.lsp4Metadata),
+            dataValueScope,
+          ),
+        ),
+      tx
+        .select()
+        .from(nfts)
+        .where(and(eq(nfts.chainId, runtime.network.chainId), nftScope)),
+    ]);
+    for (const row of tokenRows) recoveredDataValues.set(row.id, row);
+    for (const row of nftRows) recoveredNfts.set(row.id, row);
+  }
+
+  return { dataValues: [...recoveredDataValues.values()], nfts: [...recoveredNfts.values()] };
 }
 
 /** Replace durable jobs for every metadata source changed by one Pipes transaction. */
@@ -404,7 +495,11 @@ export async function completeMetadataJob(
       const source = await loadCurrentSource(tx, runtime, job, true);
       const locked = await lockClaimedJob(tx, job);
       if (locked == null) return 'lost_claim';
-      if (!matchesMetadataJob(locked, source) || source == null) {
+      if (
+        source == null ||
+        !matchesMetadataJob(locked, source) ||
+        !source.contentUris.includes(result.contentUri)
+      ) {
         return cancelLockedJob(tx, locked, result.fetchedAt);
       }
 
@@ -419,7 +514,7 @@ export async function completeMetadataJob(
         tokenId: locked.tokenId,
         dataKey: locked.dataKey,
         sourceRevision: locked.sourceRevision,
-        contentUri: locked.contentUri,
+        contentUri: result.contentUri,
         contentHash: result.contentHash,
         content: result.content,
         contentType: result.contentType,

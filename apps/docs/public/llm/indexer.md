@@ -359,14 +359,21 @@ network queue. Shutdown signals wake idle workers immediately and close their me
 database pool after in-flight work settles. Each worker reloads the current source before the request and inside the publication
 transaction; a changed URI, hash, verification state, or source revision cancels the stale result.
 Token metadata additionally requires both the NFT and its LSP8 parent collection to remain verified.
+Raw metadata values remain stored when their target is not yet verified. When a later event changes
+the affected profile, asset, collection, or NFT to a verified state, the same projection transaction
+reloads only those target scopes and queues their current metadata sources.
 Published deterministic revisions are immutable, so a later fetch for the same chain source cannot
-replace their bytes or provenance.
+replace their bytes or provenance. A revision records the storage location that actually returned
+the validated content, while its durable job remains keyed by the primary chain source.
 
 Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker
 normalizes IP literals, rejects mixed or non-public DNS answers, and pins the socket to a validated
 address while retaining the original hostname for TLS. Requests also enforce deadlines, response
-and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. Metrics on
+and redirect limits, UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. LSP31 jobs try
+every supported storage entry in backend-preference order, and each IPFS entry tries every configured
+gateway. A retryable failure on any attempted location keeps the job retryable even when a later
+fallback ends with a terminal response. Metrics on
 `METADATA_METRICS_PORT` report throughput, outcomes, categorized failures, retries, backlog and its
 oldest age and maximum attempts, queue/request latency, and response bytes. The worker needs only
 the network database connection; it does not open Portal or RPC connections.

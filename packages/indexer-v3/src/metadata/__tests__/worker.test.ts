@@ -93,6 +93,7 @@ function createSource(job: MetadataJob): MetadataSource {
     dataKey: job.dataKey,
     sourceRevision: job.sourceRevision,
     contentUri: job.contentUri,
+    contentUris: [job.contentUri],
     contentHash: job.contentHash,
     verificationMethod: '0x8019f9b1',
     lastBlockNumber: job.sourceBlockNumber,
@@ -196,6 +197,7 @@ describe('metadata worker', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       content: { LSP3Profile: { name: 'Alice' } },
+      contentUri: 'https://fallback.example.test/profile.json',
       contentHash: job.contentHash,
       contentType: 'application/json',
       contentLength: 42,
@@ -218,7 +220,11 @@ describe('metadata worker', () => {
       expect.anything(),
       runtime,
       job,
-      expect.objectContaining({ fetchedAt: now, contentLength: 42 }),
+      expect.objectContaining({
+        fetchedAt: now,
+        contentLength: 42,
+        contentUri: 'https://fallback.example.test/profile.json',
+      }),
     );
     expect(calls.claimed).toHaveBeenCalledOnce();
     expect(calls.completed).toHaveBeenCalledWith(

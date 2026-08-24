@@ -30,6 +30,7 @@ export interface MetadataSource extends MetadataSourceScope {
   kind: MetadataJobKind;
   sourceRevision: string;
   contentUri: string;
+  contentUris: readonly string[];
   contentHash: string | null;
   verificationMethod: string | null;
   lastBlockNumber: number;
@@ -50,8 +51,29 @@ export interface MetadataSourcePlan {
   rejected: RejectedMetadataSource[];
 }
 
+/** Current metadata rows reloaded for targets that became eligible after verification. */
+export interface MetadataRecoveryCandidates {
+  dataValues: readonly DataValueRow[];
+  nfts: readonly NftRow[];
+}
+
+/** Verification fields captured before the projection reducer mutates its scoped state. */
+export interface MetadataVerificationSnapshot {
+  profiles: ReadonlyMap<string, string>;
+  assets: ReadonlyMap<string, { verification: string; standard: string }>;
+  nfts: ReadonlyMap<string, string>;
+}
+
+/** Chain targets whose final state newly permits one or more metadata source kinds. */
+export interface MetadataVerificationTransitions {
+  profileAddresses: readonly string[];
+  assetAddresses: readonly string[];
+  tokenCollectionAddresses: readonly string[];
+  nftTargets: readonly { address: string; tokenId: string }[];
+}
+
 interface ParsedContentReference {
-  contentUri: string;
+  contentUris: readonly string[];
   contentHash: string;
   verificationMethod: string;
 }
@@ -110,7 +132,7 @@ function assertVerificationMethod(value: Hex): string {
 function parseVerifiableReference(dataValue: Hex): ParsedContentReference {
   const parsed = parseVerifiableUri(dataValue);
   return {
-    contentUri: assertSupportedContentUri(parsed.url),
+    contentUris: [assertSupportedContentUri(parsed.url)],
     contentHash: parsed.verificationData.toLowerCase(),
     verificationMethod: assertVerificationMethod(parsed.verificationMethod),
   };
@@ -120,14 +142,14 @@ function parseEncryptedReference(dataValue: Hex): ParsedContentReference {
   if (!isLsp31Uri(dataValue)) return parseVerifiableReference(dataValue);
 
   const parsed = parseLsp31Uri(dataValue);
-  const supported = selectBackend(parsed.entries, ['ipfs', 's3', 'arweave']).find(
+  const supported = selectBackend(parsed.entries, ['ipfs', 's3', 'arweave']).filter(
     ({ backend }) => backend !== 'lumera',
   );
-  if (supported == null) {
+  if (supported.length === 0) {
     throw new Error('LSP31 source has no IPFS or HTTP-compatible backend');
   }
   return {
-    contentUri: assertSupportedContentUri(resolveUrl(supported)),
+    contentUris: supported.map((entry) => assertSupportedContentUri(resolveUrl(entry))),
     contentHash: parsed.verificationData.toLowerCase(),
     verificationMethod: assertVerificationMethod(parsed.verificationMethod),
   };
@@ -198,6 +220,8 @@ export function createDataValueMetadataSource(
     kind === 'lsp29_encrypted_asset'
       ? parseEncryptedReference(row.dataValue)
       : parseVerifiableReference(row.dataValue);
+  const contentUri = reference.contentUris[0];
+  if (contentUri == null) throw new Error('Metadata source has no supported location');
   const source = {
     network: runtime.network.key,
     chainId: runtime.network.chainId,
@@ -206,7 +230,8 @@ export function createDataValueMetadataSource(
     tokenId: row.tokenId,
     dataKey: row.dataKey,
     sourceRevision: keccak256(row.dataValue),
-    contentUri: reference.contentUri,
+    contentUri,
+    contentUris: reference.contentUris,
     contentHash: reference.contentHash,
     verificationMethod: reference.verificationMethod,
     lastBlockNumber: row.lastBlockNumber,
@@ -234,6 +259,7 @@ export function createNftMetadataSource(
     dataKey: DATA_KEYS.lsp8MetadataBaseUri,
     sourceRevision: keccak256(toHex(`lsp8-token-uri:${contentUri}`)),
     contentUri,
+    contentUris: [contentUri],
     contentHash: null,
     verificationMethod: null,
     lastBlockNumber: row.lastBlockNumber,
@@ -245,18 +271,81 @@ export function createNftMetadataSource(
   return { id: createSourceId(source), ...source };
 }
 
+/** Capture only target verification state before the reducer mutates its scoped state in place. */
+export function snapshotMetadataVerification(state: ProjectionState): MetadataVerificationSnapshot {
+  return {
+    profiles: new Map(
+      [...state.universalProfiles].map(([address, row]) => [address, row.verification]),
+    ),
+    assets: new Map(
+      [...state.digitalAssets].map(([address, row]) => [
+        address,
+        { verification: row.verification, standard: row.standard },
+      ]),
+    ),
+    nfts: new Map([...state.nfts].map(([key, row]) => [key, row.verification])),
+  };
+}
+
+/** Find bounded targets whose final state newly permits metadata processing. */
+export function findMetadataVerificationTransitions(
+  snapshot: MetadataVerificationSnapshot,
+  mutations: ProjectionMutations,
+): MetadataVerificationTransitions {
+  const profileAddresses = new Set<string>();
+  const assetAddresses = new Set<string>();
+  const tokenCollectionAddresses = new Set<string>();
+  const nftTargets = new Map<string, { address: string; tokenId: string }>();
+
+  for (const row of mutations.universalProfiles) {
+    if (row.verification === 'verified' && snapshot.profiles.get(row.address) !== 'verified') {
+      profileAddresses.add(row.address);
+    }
+  }
+  for (const row of mutations.digitalAssets) {
+    const previous = snapshot.assets.get(row.address);
+    if (row.verification === 'verified' && previous?.verification !== 'verified') {
+      assetAddresses.add(row.address);
+    }
+    if (
+      row.verification === 'verified' &&
+      row.standard === 'lsp8' &&
+      (previous?.verification !== 'verified' || previous.standard !== 'lsp8')
+    ) {
+      tokenCollectionAddresses.add(row.address);
+    }
+  }
+  for (const row of mutations.nfts) {
+    const key = tokenKey(row.address, row.tokenId);
+    if (row.verification === 'verified' && snapshot.nfts.get(key) !== 'verified') {
+      nftTargets.set(key, { address: row.address, tokenId: row.tokenId });
+    }
+  }
+
+  return {
+    profileAddresses: [...profileAddresses],
+    assetAddresses: [...assetAddresses],
+    tokenCollectionAddresses: [...tokenCollectionAddresses],
+    nftTargets: [...nftTargets.values()],
+  };
+}
+
 /** Plan durable queue replacements from the projection rows changed by one Pipes transaction. */
 export function planMetadataSources(
   runtime: RuntimeConfig,
   state: ProjectionState,
   mutations: ProjectionMutations,
   events: readonly EventFactRecord[],
+  recovery: MetadataRecoveryCandidates = { dataValues: [], nfts: [] },
 ): MetadataSourcePlan {
   const scopes = new Map<string, MetadataSourceScope>();
   const sources = new Map<string, MetadataSource>();
   const rejected: RejectedMetadataSource[] = [];
 
-  for (const row of mutations.dataValues) {
+  const candidateDataValues = new Map(
+    [...recovery.dataValues, ...mutations.dataValues].map((row) => [row.id, row]),
+  );
+  for (const row of candidateDataValues.values()) {
     const kind = metadataKind(row);
     if (kind == null) continue;
     const scope = {
@@ -297,8 +386,13 @@ export function planMetadataSources(
     }
   }
 
-  for (const row of mutations.nfts) {
+  const recoveredNftKeys = new Set(recovery.nfts.map((row) => tokenKey(row.address, row.tokenId)));
+  const candidateNfts = new Map(
+    [...recovery.nfts, ...mutations.nfts].map((row) => [tokenKey(row.address, row.tokenId), row]),
+  );
+  for (const row of candidateNfts.values()) {
     if (
+      !recoveredNftKeys.has(tokenKey(row.address, row.tokenId)) &&
       !derivedTokenKeys.has(tokenKey(row.address, row.tokenId)) &&
       !derivedCollections.has(row.address)
     ) {

@@ -14,6 +14,7 @@ const body = JSON.stringify(content);
 const bodyHash = keccak256(toHex(body));
 
 function createSource(overrides: Partial<MetadataSource> = {}): MetadataSource {
+  const contentUri = overrides.contentUri ?? 'https://metadata.example.test/profile.json';
   return {
     id: 'metadata-id',
     network: 'lukso-mainnet',
@@ -23,7 +24,8 @@ function createSource(overrides: Partial<MetadataSource> = {}): MetadataSource {
     tokenId: null,
     dataKey: toHex(1n, { size: 32 }),
     sourceRevision: toHex(2n, { size: 32 }),
-    contentUri: 'https://metadata.example.test/profile.json',
+    contentUri,
+    contentUris: overrides.contentUris ?? [contentUri],
     contentHash: bodyHash,
     verificationMethod: '0x8019f9b1',
     lastBlockNumber: 100,
@@ -137,6 +139,7 @@ describe('metadata transport', () => {
     expect(profileResult).toMatchObject({
       ok: true,
       content,
+      contentUri: 'ipfs://bafy/profile.json',
       contentHash: bodyHash,
       contentType: 'application/json',
       contentLength: body.length,
@@ -208,6 +211,27 @@ describe('metadata transport', () => {
     });
     expect(addressResult).toMatchObject({ ok: true, content });
     expect(addresses.addresses).toEqual(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']);
+  });
+
+  it('fails over across every LSP31 location and records the location that succeeds', async () => {
+    const fallback = mockFetch([new Response(null, { status: 503 }), new Response(body)]);
+    const result = await fetchMetadata(
+      createSource({
+        contentUri: 'ipfs://primary/profile',
+        contentUris: ['ipfs://primary/profile', 'https://arweave.net/fallback-profile'],
+      }),
+      createConfig(fallback.fetchImplementation),
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      content,
+      contentUri: 'https://arweave.net/fallback-profile',
+    });
+    expect(fallback.urls).toEqual([
+      'https://gateway.example.test/ipfs/primary/profile',
+      'https://arweave.net/fallback-profile',
+    ]);
   });
 
   it('validates LSP29 encrypted metadata with the package schema', async () => {
@@ -359,6 +383,22 @@ describe('metadata transport', () => {
     await expect(
       fetchMetadata(createSource(), createConfig(terminalError.fetchImplementation)),
     ).resolves.toMatchObject({ ok: false, retryable: false, error: 'unexpected failure' });
+
+    const mixedGateways = mockFetch([
+      new Response(null, { status: 503 }),
+      new Response(null, { status: 404 }),
+    ]);
+    await expectFetchFailure(
+      fetchMetadata(createSource({ contentUri: 'ipfs://bafy/profile' }), {
+        ...createConfig(mixedGateways.fetchImplementation),
+        ipfsGateways: [
+          'https://primary-gateway.example.test/ipfs',
+          'https://fallback-gateway.example.test/ipfs',
+        ],
+      }),
+      '404',
+      true,
+    );
 
     const plainHttp = mockFetch([new Response(body)]);
     await expectFetchFailure(

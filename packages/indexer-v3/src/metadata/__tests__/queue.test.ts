@@ -56,6 +56,7 @@ function createSource(index: number): MetadataSource {
     dataKey: toHex(1n, { size: 32 }),
     sourceRevision: toHex(BigInt(index + 1), { size: 32 }),
     contentUri: `ipfs://metadata-${index}`,
+    contentUris: [`ipfs://metadata-${index}`],
     contentHash: toHex(BigInt(index + 2), { size: 32 }),
     verificationMethod: '0x8019f9b1',
     lastBlockNumber: 100,
