@@ -4,6 +4,7 @@ import { createPersistenceBatch } from '../target.js';
 
 const blockHash = `0x${'12'.repeat(32)}`;
 const finalizedHash = `0x${'34'.repeat(32)}`;
+const blockTimestamp = 1_700_000_000_123;
 
 describe('persistence batch provenance', () => {
   it('attaches current and finalized Pipes cursors to a payload', () => {
@@ -13,7 +14,7 @@ describe('persistence batch provenance', () => {
       { facts: 2 },
       {
         stream: {
-          state: { current: { number: 10, hash: blockHash, timestamp: 1_700_000_000 } },
+          state: { current: { number: 10, hash: blockHash, timestamp: blockTimestamp } },
           head: { finalized: { number: 8, hash: finalizedHash } },
         },
       },
@@ -25,7 +26,7 @@ describe('persistence batch provenance', () => {
       chainId: 1,
       blockNumber: 10,
       blockHash,
-      blockTimestamp: new Date(1_700_000_000_000),
+      blockTimestamp: new Date(blockTimestamp),
       finalizedBlockNumber: 8,
       finalizedBlockHash: finalizedHash,
     });
@@ -47,7 +48,7 @@ describe('persistence batch provenance', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'ethereum-mainnet' });
     const batch = createPersistenceBatch(runtime, 'payload', {
       stream: {
-        state: { current: { number: 10, hash: blockHash, timestamp: 1_700_000_000 } },
+        state: { current: { number: 10, hash: blockHash, timestamp: blockTimestamp } },
         head: { finalized: { number: 20, hash: finalizedHash } },
       },
     });

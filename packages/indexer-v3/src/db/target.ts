@@ -111,7 +111,7 @@ export function createPersistenceBatch<T>(
     chainId: runtime.network.chainId,
     blockNumber: current.number,
     blockHash: current.hash,
-    blockTimestamp: new Date(current.timestamp * 1_000),
+    blockTimestamp: new Date(current.timestamp),
     ...(finalized?.hash == null
       ? {}
       : {

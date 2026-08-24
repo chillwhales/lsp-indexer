@@ -49,10 +49,11 @@ Raw events and indexed heads reference the exact `(chain_id, block_number, block
 identity. Before advancing the head, the target verifies every parent link after the previously
 indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected
 tip. Forward writes cannot lower the indexed head; Pipes snapshot restoration is the only backward
-path. Both current and finalized head identities reference exact canonical block rows. An advancing
-finalized pair must match its locally stored block, while a finalized height outside the stored range
-does not advance the watermark. The finalized number and hash must both be present or both be null.
-Lower or omitted finality retains the previous watermark.
+path. Pipes cursor timestamps are milliseconds and are converted directly to PostgreSQL timestamps
+without rescaling. Both current and finalized head identities reference exact canonical block rows.
+An advancing finalized pair must match its locally stored block, while a finalized height outside
+the stored range does not advance the watermark. The finalized number and hash must both be present
+or both be null. Lower or omitted finality retains the previous watermark.
 Source-wide finality ahead of a historical backfill is clamped to the processed cursor and its hash.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use

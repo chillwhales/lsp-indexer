@@ -71,10 +71,11 @@ events therefore cannot publish a new head hash while the old canonical block re
 height. Before advancing the head, the target also validates every parent link after the previously
 indexed height, so a conflicting intermediate block cannot be ignored while a disconnected new tip
 is committed. Forward writes reject a head below the stored height; only snapshot restoration may
-move it backwards. Both the current and finalized head triples have exact block-identity foreign
-keys, and the finalized number and hash must either both be null or both be present. Deleting a
-block cascades to its head row, while Pipes orders tracked rollback operations so parent blocks are
-restored before their dependent heads.
+move it backwards. Pipes block-cursor timestamps are milliseconds and are persisted without a unit
+conversion. Both the current and finalized head triples have exact block-identity foreign keys, and
+the finalized number and hash must either both be null or both be present. Deleting a block cascades
+to its head row, while Pipes orders tracked rollback operations so parent blocks are restored before
+their dependent heads.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in

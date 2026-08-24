@@ -104,37 +104,37 @@ const topic0 = hashFor(211);
 
 const block0 = mockBlock({
   number: 0,
-  timestamp: 1_700_000_000,
+  timestamp: 1_700_000_000_000,
   hash: hashFor(0),
   parentHash: hashFor(255),
 });
 const block1 = mockBlock({
   number: 1,
-  timestamp: 1_700_000_001,
+  timestamp: 1_700_000_001_000,
   hash: hashFor(1),
   parentHash: block0.header.hash,
 });
 const block2 = mockBlock({
   number: 2,
-  timestamp: 1_700_000_002,
+  timestamp: 1_700_000_002_000,
   hash: hashFor(2),
   parentHash: block1.header.hash,
 });
 const block3 = mockBlock({
   number: 3,
-  timestamp: 1_700_000_003,
+  timestamp: 1_700_000_003_000,
   hash: hashFor(3),
   parentHash: block2.header.hash,
 });
 const alternateBlock2 = mockBlock({
   number: 2,
-  timestamp: 1_700_000_002,
+  timestamp: 1_700_000_002_000,
   hash: hashFor(202),
   parentHash: block1.header.hash,
 });
 const alternateBlock3 = mockBlock({
   number: 3,
-  timestamp: 1_700_000_003,
+  timestamp: 1_700_000_003_000,
   hash: hashFor(204),
   parentHash: alternateBlock2.header.hash,
 });
@@ -224,7 +224,7 @@ function createTestTarget(failAtBlock?: number, includeEvents = true): TestTarge
             number,
             hash,
             parentHash,
-            timestamp: new Date(timestamp * 1_000),
+            timestamp: new Date(timestamp),
           })
           .onConflictDoNothing();
         if (includeEvents) {
@@ -237,7 +237,7 @@ function createTestTarget(failAtBlock?: number, includeEvents = true): TestTarge
               blockNumber: number,
               blockHash: hash,
               parentHash,
-              blockTimestamp: new Date(timestamp * 1_000),
+              blockTimestamp: new Date(timestamp),
               transactionHash: hashFor(number + 20),
               transactionIndex: 0,
               logIndex: 0,
@@ -486,7 +486,7 @@ describe.sequential('PostgreSQL persistence', () => {
           block0.header.number,
           block0.header.hash,
           block0.header.parentHash,
-          new Date(block0.header.timestamp * 1_000),
+          new Date(block0.header.timestamp),
         ],
       );
       await expect(
@@ -504,7 +504,7 @@ describe.sequential('PostgreSQL persistence', () => {
             ethereumRuntime.network.chainId,
             block0.header.number,
             block0.header.hash,
-            new Date(block0.header.timestamp * 1_000),
+            new Date(block0.header.timestamp),
           ],
         ),
       ).rejects.toMatchObject({ constraint: 'indexed_heads_finalized_pair_check' });
@@ -1596,7 +1596,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         blockNumber: block1.header.number,
         blockHash: block2.header.hash,
         parentHash: block0.header.hash,
-        blockTimestamp: new Date(block1.header.timestamp * 1_000),
+        blockTimestamp: new Date(block1.header.timestamp),
         transactionHash: hashFor(199),
         transactionIndex: 0,
         logIndex: 99,
@@ -1730,7 +1730,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         ethereumRuntime.streamId,
         block1.header.number,
         block1.header.hash,
-        new Date(block1.header.timestamp * 1_000),
+        new Date(block1.header.timestamp),
         JSON.stringify({ number: block1.header.number, hash: block1.header.hash }),
         JSON.stringify([
           {

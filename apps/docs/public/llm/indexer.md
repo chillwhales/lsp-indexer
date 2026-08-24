@@ -103,14 +103,15 @@ rejects concurrent migration commands. Raw event facts reference the exact canon
 and indexed heads reference that same exact block identity. Before advancing the head, the target
 validates every parent link after the previously indexed head, so a replay cannot retain a stale
 intermediate block and append a disconnected tip. Forward writes cannot move the indexed head
-backwards; only Pipes rollback restoration can do that. Both current and finalized head identities
-must reference exact canonical block rows. During forward processing, indexed heads retain a known
-finalized watermark when a later source batch omits finality or reports a lower height. An advancing
-finalized pair is accepted only when its local canonical block has the same hash; a finalized block
-outside the stored range does not advance the watermark, and the finalized number and hash must
-both be present or both be null. When a live source reports finality ahead of a historical backfill
-cursor, the target records the processed cursor and its hash as the highest finalized block
-available locally. The target consumes the loaded database configuration directly, so
+backwards; only Pipes rollback restoration can do that. Pipes cursor timestamps are milliseconds
+and are converted directly to PostgreSQL timestamps without rescaling. Both current and finalized
+head identities must reference exact canonical block rows. During forward processing, indexed heads
+retain a known finalized watermark when a later source batch omits finality or reports a lower
+height. An advancing finalized pair is accepted only when its local canonical block has the same
+hash; a finalized block outside the stored range does not advance the watermark, and the finalized
+number and hash must both be present or both be null. When a live source reports finality ahead of a
+historical backfill cursor, the target records the processed cursor and its hash as the highest
+finalized block available locally. The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
