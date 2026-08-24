@@ -35,6 +35,7 @@ import {
   failMetadataJob,
   loadClaimedMetadataSource,
   loadMetadataRecoveryCandidatePages,
+  settleUnavailableMetadataJob,
 } from '../../metadata/queue.js';
 import { createDataValueMetadataSource } from '../../metadata/source.js';
 import {
@@ -3780,15 +3781,17 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         await cancelClaimedMetadataJob(ethereumDb, unrelatedClaim, claimTime);
       }
     }
-    expect(
-      await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim),
-    ).not.toBeNull();
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim)).toEqual(
+      expect.objectContaining({ status: 'current' }),
+    );
 
     await persistLsp29Block(shrinkBlock, {
       number: initialBlock.header.number,
       hash: initialBlock.header.hash,
     });
-    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim)).toBeNull();
+    expect(
+      (await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim)).status,
+    ).not.toBe('current');
     expect(
       await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.id, encryptedClaim.id)),
     ).toEqual([
@@ -4184,9 +4187,10 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     });
     if (firstClaim == null) throw new Error('Expected finalized metadata claim');
     expect(firstClaim).toMatchObject({ status: 'processing', attempts: 1, claimedAt: createdAt });
-    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, firstClaim)).toEqual(
-      firstSource,
-    );
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, firstClaim)).toEqual({
+      status: 'current',
+      source: firstSource,
+    });
     expect(
       await claimMetadataJobs(ethereumDb, ethereumRuntime, {
         limit: 2,
@@ -4200,7 +4204,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       await failMetadataJob(ethereumDb, ethereumRuntime, firstClaim, {
         error: 'HTTP 503',
         retryable: true,
-        nextAttemptAt: retryAt,
+        retryDelayMs: retryAt.getTime() - createdAt.getTime(),
         now: createdAt,
         maxAttempts: 3,
       }),
@@ -4335,7 +4339,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentLength: 10,
         fetchedAt: new Date(secondClaimedAt.getTime() + 1),
       }),
-    ).toBe('cancelled');
+    ).toBe('deferred');
     expect(
       await ethereumDb
         .select()
@@ -4385,8 +4389,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       await failMetadataJob(ethereumDb, ethereumRuntime, recoveredClaim, {
         error: 'x'.repeat(3_000),
         retryable: false,
-        nextAttemptAt: new Date(thirdCreatedAt.getTime() + 3_000),
-        now: new Date(thirdCreatedAt.getTime() + 2_001),
+        retryDelayMs: 1_000,
         maxAttempts: 3,
       }),
     ).toBe('failed');
@@ -4419,19 +4422,76 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       now: revokedAt,
     });
     if (revokedClaim == null) throw new Error('Expected metadata claim before verification loss');
+    const unfinalizedInvalidationAt = new Date(revokedAt.getTime() + 1);
     await ethereumDb
       .update(universalProfiles)
-      .set({ verification: 'invalid' })
+      .set({
+        verification: 'invalid',
+        lastBlockNumber: 104,
+        lastBlockHash: hashFor(204),
+      })
       .where(eq(universalProfiles.address, metadataAddress));
-    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, revokedClaim)).toBeNull();
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, revokedClaim)).toEqual({
+      status: 'unfinalized',
+      source: null,
+    });
     expect(
-      await completeMetadataJob(ethereumDb, ethereumRuntime, revokedClaim, {
+      await settleUnavailableMetadataJob(
+        ethereumDb,
+        ethereumRuntime,
+        revokedClaim,
+        unfinalizedInvalidationAt,
+      ),
+    ).toBe('deferred');
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.id, revokedClaim.id)),
+    ).toEqual([
+      expect.objectContaining({
+        status: 'retry',
+        attempts: 0,
+        claimedAt: null,
+        nextAttemptAt: new Date(unfinalizedInvalidationAt.getTime() + 1_000),
+      }),
+    ]);
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'verified',
+        lastBlockNumber: 101,
+        lastBlockHash: hashFor(201),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    const restoredClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+      now: new Date(unfinalizedInvalidationAt.getTime() + 1_000),
+    });
+    const restoredClaim = restoredClaims.find(({ id }) => id === revokedClaim.id);
+    if (restoredClaim == null)
+      throw new Error('Expected the reorg-restored source to be claimable');
+    expect(restoredClaim.attempts).toBe(1);
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'invalid',
+        lastBlockNumber: 103,
+        lastBlockHash: hashFor(203),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, restoredClaim)).toEqual({
+      status: 'stale',
+      source: null,
+    });
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, restoredClaim, {
         content: { LSP3Profile: { name: 'Must not publish' } },
-        contentUri: revokedClaim.contentUri,
-        contentHash: revokedClaim.contentHash ?? hashFor(0),
+        contentUri: restoredClaim.contentUri,
+        contentHash: restoredClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(revokedAt.getTime() + 1),
+        fetchedAt: new Date(unfinalizedInvalidationAt.getTime() + 1_001),
       }),
     ).toBe('cancelled');
 
@@ -4507,7 +4567,10 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       .update(digitalAssets)
       .set({ verification: 'invalid' })
       .where(eq(digitalAssets.address, collectionAddress));
-    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, tokenClaim)).toBeNull();
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, tokenClaim)).toEqual({
+      status: 'stale',
+      source: null,
+    });
     expect(
       await completeMetadataJob(ethereumDb, ethereumRuntime, tokenClaim, {
         content: { LSP4Metadata: { name: 'Must not publish' } },

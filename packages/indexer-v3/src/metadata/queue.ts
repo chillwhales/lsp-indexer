@@ -54,6 +54,7 @@ const ALL_JOB_STATUSES = [
   'cancelled',
 ] as const;
 const LAST_ERROR_MAX_LENGTH = 2_000;
+const UNFINALIZED_SOURCE_RETRY_DELAY_MS = 1_000;
 const WRITE_CHUNK_SIZE = 500;
 
 type MetadataTransaction = Parameters<Parameters<NetworkDatabase['transaction']>[0]>[0];
@@ -66,6 +67,7 @@ export type MetadataJobStatus = MetadataJob['status'];
 export interface ClaimMetadataJobsOptions {
   limit: number;
   leaseTimeoutMs: number;
+  /** Deterministic test override; production claims use PostgreSQL transaction time. */
   now?: Date;
 }
 
@@ -85,7 +87,23 @@ export interface MetadataBacklogCount {
   maximumAttempts: number;
 }
 
-export type MetadataSettlement = 'succeeded' | 'retry' | 'failed' | 'cancelled' | 'lost_claim';
+export type ClaimedMetadataSource =
+  | { status: 'current'; source: MetadataSource }
+  | { status: 'unfinalized'; source: null }
+  | { status: 'stale'; source: null };
+
+export type MetadataSettlement =
+  | 'succeeded'
+  | 'retry'
+  | 'failed'
+  | 'cancelled'
+  | 'deferred'
+  | 'lost_claim';
+
+interface CurrentMetadataSource {
+  source: MetadataSource | null;
+  observedBlockNumber: number | null;
+}
 
 function truncateError(value: string): string {
   return value.length <= LAST_ERROR_MAX_LENGTH
@@ -112,7 +130,10 @@ function scopeCondition(scope: MetadataSourceScope): SQL {
   return condition;
 }
 
-function createMetadataJobRow(source: MetadataSource, now: Date): typeof metadataJobs.$inferInsert {
+function createMetadataJobRow(
+  source: MetadataSource,
+  now?: Date,
+): typeof metadataJobs.$inferInsert {
   return {
     id: source.id,
     network: source.network,
@@ -128,18 +149,16 @@ function createMetadataJobRow(source: MetadataSource, now: Date): typeof metadat
     sourceBlockNumber: source.eligibleBlockNumber,
     sourceBlockHash: source.eligibleBlockHash,
     attempts: 0,
-    nextAttemptAt: now,
     claimedAt: null,
     lastError: null,
-    createdAt: now,
-    updatedAt: now,
+    ...(now == null ? {} : { nextAttemptAt: now, createdAt: now, updatedAt: now }),
   };
 }
 
 async function upsertMetadataJobSources(
   tx: ProjectionTransaction,
   sources: readonly MetadataSource[],
-  now: Date,
+  now: Date | undefined,
   refreshEligibility: boolean,
 ): Promise<void> {
   for (const sourceChunk of chunks(
@@ -450,8 +469,9 @@ export async function* loadMetadataRecoveryCandidatePages(
 export async function applyMetadataSourcePlan(
   tx: ProjectionTransaction,
   plan: MetadataSourcePlan,
-  now = new Date(),
+  now?: Date,
 ): Promise<void> {
+  const appliedAt = databaseTimestamp(now);
   const sources = new Map(
     plan.sources.map((source) => [
       `${source.chainId}:${source.address}:${source.tokenId ?? 'contract'}:${source.dataKey}`,
@@ -476,7 +496,7 @@ export async function applyMetadataSourcePlan(
         status: 'cancelled',
         claimedAt: null,
         lastError: 'Superseded by a newer or invalid chain metadata source',
-        updatedAt: now,
+        updatedAt: appliedAt,
       })
       .where(or(...conditionChunk));
   }
@@ -491,9 +511,12 @@ export async function claimMetadataJobs(
   runtime: RuntimeConfig,
   options: ClaimMetadataJobsOptions,
 ): Promise<MetadataJob[]> {
-  const now = options.now ?? new Date();
-  const staleBefore = new Date(now.getTime() - options.leaseTimeoutMs);
   return db.transaction(async (tx): Promise<MetadataJob[]> => {
+    const claimedAt = options.now ?? sql<Date>`transaction_timestamp()`;
+    const staleBefore =
+      options.now == null
+        ? sql<Date>`transaction_timestamp() - (${options.leaseTimeoutMs} * interval '1 millisecond')`
+        : new Date(options.now.getTime() - options.leaseTimeoutMs);
     const [head] = await tx
       .select({ finalizedBlockNumber: indexedHeads.finalizedBlockNumber })
       .from(indexedHeads)
@@ -517,7 +540,7 @@ export async function claimMetadataJobs(
           or(
             and(
               inArray(metadataJobs.status, ACTIVE_JOB_STATUSES),
-              lte(metadataJobs.nextAttemptAt, now),
+              lte(metadataJobs.nextAttemptAt, claimedAt),
             ),
             and(
               eq(metadataJobs.status, 'processing'),
@@ -536,8 +559,8 @@ export async function claimMetadataJobs(
       .set({
         status: 'processing',
         attempts: sql`${metadataJobs.attempts} + 1`,
-        claimedAt: now,
-        updatedAt: now,
+        claimedAt,
+        updatedAt: claimedAt,
       })
       .where(
         inArray(
@@ -556,10 +579,19 @@ async function loadCurrentSource(
   runtime: RuntimeConfig,
   job: MetadataJob,
   forUpdate: boolean,
-): Promise<MetadataSource | null> {
+): Promise<CurrentMetadataSource> {
+  let observedBlockNumber: number | null = null;
+  function observe(blockNumber: number | null | undefined): void {
+    if (blockNumber == null) return;
+    observedBlockNumber = Math.max(observedBlockNumber ?? blockNumber, blockNumber);
+  }
+
   if (job.kind === 'lsp3_profile' || job.kind === 'lsp29_encrypted_asset') {
     const profileQuery = db
-      .select({ verification: universalProfiles.verification })
+      .select({
+        verification: universalProfiles.verification,
+        lastBlockNumber: universalProfiles.lastBlockNumber,
+      })
       .from(universalProfiles)
       .where(
         and(
@@ -569,12 +601,14 @@ async function loadCurrentSource(
       )
       .limit(1);
     const profiles = forUpdate ? await profileQuery.for('update') : await profileQuery;
-    if (profiles[0]?.verification !== 'verified') return null;
+    observe(profiles[0]?.lastBlockNumber);
+    if (profiles[0]?.verification !== 'verified') return { source: null, observedBlockNumber };
   } else if (job.kind === 'lsp4_asset' || job.kind === 'lsp4_token') {
     const assetQuery = db
       .select({
         verification: digitalAssets.verification,
         standard: digitalAssets.standard,
+        lastBlockNumber: digitalAssets.lastBlockNumber,
       })
       .from(digitalAssets)
       .where(
@@ -585,10 +619,13 @@ async function loadCurrentSource(
       )
       .limit(1);
     const assets = forUpdate ? await assetQuery.for('update') : await assetQuery;
-    if (assets[0]?.verification !== 'verified') return null;
-    if (job.kind === 'lsp4_token' && assets[0].standard !== 'lsp8') return null;
+    observe(assets[0]?.lastBlockNumber);
+    if (assets[0]?.verification !== 'verified') return { source: null, observedBlockNumber };
+    if (job.kind === 'lsp4_token' && assets[0].standard !== 'lsp8') {
+      return { source: null, observedBlockNumber };
+    }
   } else {
-    return null;
+    return { source: null, observedBlockNumber };
   }
 
   if (job.kind === 'lsp4_token') {
@@ -605,12 +642,13 @@ async function loadCurrentSource(
       .limit(1);
     const rows = forUpdate ? await nftQuery.for('update') : await nftQuery;
     const nft = rows[0];
-    if (nft?.verification !== 'verified') return null;
+    observe(nft?.lastBlockNumber);
+    if (nft?.verification !== 'verified') return { source: null, observedBlockNumber };
     if (job.dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
       try {
-        return createNftMetadataSource(runtime, nft);
+        return { source: createNftMetadataSource(runtime, nft), observedBlockNumber };
       } catch {
-        return null;
+        return { source: null, observedBlockNumber };
       }
     }
   }
@@ -618,7 +656,10 @@ async function loadCurrentSource(
   let lsp29Length: bigint | null | undefined;
   if (job.kind === 'lsp29_encrypted_asset') {
     const lengthQuery = db
-      .select({ dataValue: dataValues.dataValue })
+      .select({
+        dataValue: dataValues.dataValue,
+        lastBlockNumber: dataValues.lastBlockNumber,
+      })
       .from(dataValues)
       .where(
         and(
@@ -630,6 +671,7 @@ async function loadCurrentSource(
       )
       .limit(1);
     const lengths = forUpdate ? await lengthQuery.for('update') : await lengthQuery;
+    observe(lengths[0]?.lastBlockNumber);
     lsp29Length = lengths[0] == null ? null : decodeArrayLength(lengths[0].dataValue);
   }
 
@@ -647,25 +689,55 @@ async function loadCurrentSource(
     .limit(1);
   const rows = forUpdate ? await query.for('update') : await query;
   const row = rows[0];
-  if (row == null) return null;
+  observe(row?.lastBlockNumber);
+  if (row == null) return { source: null, observedBlockNumber };
   if (job.kind === 'lsp29_encrypted_asset' && !isCurrentLsp29MetadataRow(row, lsp29Length)) {
-    return null;
+    return { source: null, observedBlockNumber };
   }
   try {
-    return createDataValueMetadataSource(runtime, row);
+    return { source: createDataValueMetadataSource(runtime, row), observedBlockNumber };
   } catch {
-    return null;
+    return { source: null, observedBlockNumber };
   }
 }
 
-/** Reload a claimed job's exact source before performing an external request. */
+async function inspectClaimedMetadataSource(
+  db: MetadataQueryExecutor,
+  runtime: RuntimeConfig,
+  job: MetadataJob,
+  forUpdate: boolean,
+): Promise<ClaimedMetadataSource> {
+  const current = await loadCurrentSource(db, runtime, job, forUpdate);
+  if (current.source != null && matchesMetadataJob(job, current.source)) {
+    return { status: 'current', source: current.source };
+  }
+
+  const [head] = await db
+    .select({ finalizedBlockNumber: indexedHeads.finalizedBlockNumber })
+    .from(indexedHeads)
+    .where(
+      and(
+        eq(indexedHeads.network, runtime.network.key),
+        eq(indexedHeads.chainId, runtime.network.chainId),
+      ),
+    )
+    .limit(1);
+  if (
+    head?.finalizedBlockNumber == null ||
+    (current.observedBlockNumber != null && current.observedBlockNumber > head.finalizedBlockNumber)
+  ) {
+    return { status: 'unfinalized', source: null };
+  }
+  return { status: 'stale', source: null };
+}
+
+/** Classify a claimed job against its exact source and the committed finalized watermark. */
 export async function loadClaimedMetadataSource(
   db: NetworkDatabase,
   runtime: RuntimeConfig,
   job: MetadataJob,
-): Promise<MetadataSource | null> {
-  const source = await loadCurrentSource(db, runtime, job, false);
-  return matchesMetadataJob(job, source) ? source : null;
+): Promise<ClaimedMetadataSource> {
+  return inspectClaimedMetadataSource(db, runtime, job, false);
 }
 
 async function lockClaimedJob(
@@ -691,7 +763,7 @@ async function lockClaimedJob(
 async function cancelLockedJob(
   tx: MetadataTransaction,
   job: MetadataJob,
-  now: Date,
+  now: Date | SQL,
 ): Promise<'cancelled'> {
   await tx
     .update(metadataJobs)
@@ -705,16 +777,71 @@ async function cancelLockedJob(
   return 'cancelled';
 }
 
+async function deferLockedJob(
+  tx: MetadataTransaction,
+  job: MetadataJob,
+  now: Date | SQL,
+  nextAttemptAt: Date | SQL,
+): Promise<'deferred'> {
+  await tx
+    .update(metadataJobs)
+    .set({
+      status: 'retry',
+      attempts: sql`greatest(${metadataJobs.attempts} - 1, 0)`,
+      nextAttemptAt,
+      claimedAt: null,
+      lastError: 'Metadata source changed above the finalized head; claim deferred',
+      updatedAt: now,
+    })
+    .where(eq(metadataJobs.id, job.id));
+  return 'deferred';
+}
+
+function databaseTimestamp(now?: Date): Date | SQL {
+  return now ?? sql<Date>`transaction_timestamp()`;
+}
+
+function delayedDatabaseTimestamp(delayMs: number, now?: Date): Date | SQL {
+  return now == null
+    ? sql<Date>`transaction_timestamp() + (${delayMs} * interval '1 millisecond')`
+    : new Date(now.getTime() + delayMs);
+}
+
 /** Cancel a claim whose source changed before its request began. */
 export async function cancelClaimedMetadataJob(
   db: NetworkDatabase,
   job: MetadataJob,
-  now = new Date(),
+  now?: Date,
 ): Promise<MetadataSettlement> {
   return db.transaction(async (tx): Promise<MetadataSettlement> => {
     const locked = await lockClaimedJob(tx, job);
-    return locked == null ? 'lost_claim' : cancelLockedJob(tx, locked, now);
+    return locked == null ? 'lost_claim' : cancelLockedJob(tx, locked, databaseTimestamp(now));
   });
+}
+
+/** Recheck an unavailable source and cancel only after its invalidation is finalized. */
+export async function settleUnavailableMetadataJob(
+  db: NetworkDatabase,
+  runtime: RuntimeConfig,
+  job: MetadataJob,
+  now?: Date,
+): Promise<MetadataSettlement> {
+  return db.transaction(
+    async (tx): Promise<MetadataSettlement> => {
+      const source = await inspectClaimedMetadataSource(tx, runtime, job, true);
+      const locked = await lockClaimedJob(tx, job);
+      if (locked == null) return 'lost_claim';
+      const settledAt = databaseTimestamp(now);
+      if (source.status === 'stale') return cancelLockedJob(tx, locked, settledAt);
+      return deferLockedJob(
+        tx,
+        locked,
+        settledAt,
+        delayedDatabaseTimestamp(UNFINALIZED_SOURCE_RETRY_DELAY_MS, now),
+      );
+    },
+    { isolationLevel: 'serializable' },
+  );
 }
 
 /** Publish validated content only while both the claim and exact chain source remain current. */
@@ -726,15 +853,22 @@ export async function completeMetadataJob(
 ): Promise<MetadataSettlement> {
   return db.transaction(
     async (tx): Promise<MetadataSettlement> => {
-      const source = await loadCurrentSource(tx, runtime, job, true);
+      const current = await inspectClaimedMetadataSource(tx, runtime, job, true);
       const locked = await lockClaimedJob(tx, job);
       if (locked == null) return 'lost_claim';
-      if (
-        source == null ||
-        !matchesMetadataJob(locked, source) ||
-        !source.contentUris.includes(result.contentUri)
-      ) {
-        return cancelLockedJob(tx, locked, result.fetchedAt);
+      const settledAt = databaseTimestamp();
+      if (current.status === 'stale') return cancelLockedJob(tx, locked, settledAt);
+      if (current.status === 'unfinalized') {
+        return deferLockedJob(
+          tx,
+          locked,
+          settledAt,
+          delayedDatabaseTimestamp(UNFINALIZED_SOURCE_RETRY_DELAY_MS),
+        );
+      }
+      const source = current.source;
+      if (!source.contentUris.includes(result.contentUri)) {
+        return cancelLockedJob(tx, locked, settledAt);
       }
 
       const derivedSource =
@@ -766,7 +900,7 @@ export async function completeMetadataJob(
         .onConflictDoNothing({ target: metadataRevisions.id });
       await tx
         .update(metadataJobs)
-        .set({ status: 'succeeded', claimedAt: null, lastError: null, updatedAt: result.fetchedAt })
+        .set({ status: 'succeeded', claimedAt: null, lastError: null, updatedAt: settledAt })
         .where(eq(metadataJobs.id, locked.id));
       return 'succeeded';
     },
@@ -774,7 +908,7 @@ export async function completeMetadataJob(
   );
 }
 
-/** Record a bounded retry or terminal failure while preserving claim ownership. */
+/** Record a database-clock retry or terminal failure while preserving claim ownership. */
 export async function failMetadataJob(
   db: NetworkDatabase,
   runtime: RuntimeConfig,
@@ -782,17 +916,27 @@ export async function failMetadataJob(
   failure: {
     error: string;
     retryable: boolean;
-    nextAttemptAt: Date;
-    now: Date;
+    retryDelayMs: number;
+    /** Deterministic test override; production retries use PostgreSQL transaction time. */
+    now?: Date;
     maxAttempts: number;
   },
 ): Promise<MetadataSettlement> {
   return db.transaction(
     async (tx): Promise<MetadataSettlement> => {
-      const source = await loadCurrentSource(tx, runtime, job, true);
+      const current = await inspectClaimedMetadataSource(tx, runtime, job, true);
       const locked = await lockClaimedJob(tx, job);
       if (locked == null) return 'lost_claim';
-      if (!matchesMetadataJob(locked, source)) return cancelLockedJob(tx, locked, failure.now);
+      const settledAt = databaseTimestamp(failure.now);
+      if (current.status === 'stale') return cancelLockedJob(tx, locked, settledAt);
+      if (current.status === 'unfinalized') {
+        return deferLockedJob(
+          tx,
+          locked,
+          settledAt,
+          delayedDatabaseTimestamp(UNFINALIZED_SOURCE_RETRY_DELAY_MS, failure.now),
+        );
+      }
 
       const retry = failure.retryable && locked.attempts < failure.maxAttempts;
       await tx
@@ -800,9 +944,11 @@ export async function failMetadataJob(
         .set({
           status: retry ? 'retry' : 'failed',
           claimedAt: null,
-          nextAttemptAt: retry ? failure.nextAttemptAt : failure.now,
+          nextAttemptAt: retry
+            ? delayedDatabaseTimestamp(failure.retryDelayMs, failure.now)
+            : settledAt,
           lastError: truncateError(failure.error),
-          updatedAt: failure.now,
+          updatedAt: settledAt,
         })
         .where(eq(metadataJobs.id, locked.id));
       return retry ? 'retry' : 'failed';

@@ -155,8 +155,10 @@ Metadata fetching is a separate process for each selected network. It never perf
 work inside the Pipes transaction. A worker claims only jobs at or below the committed finalized
 watermark, uses bounded concurrency and `FOR UPDATE SKIP LOCKED`, and recovers an expired
 `processing` lease after a crash or restart. Multiple replicas for the same network can therefore
-drain one queue safely. `SIGINT` and `SIGTERM` wake an idle poll immediately and close the metrics
-server and database pool after in-flight work settles.
+drain one queue safely. Claims, lease expiry, and durable retry timestamps use the PostgreSQL
+transaction clock, so worker-host clock skew cannot steal or strand leases. `SIGINT` and `SIGTERM`
+wake an idle poll immediately and close the metrics server and database pool after in-flight work
+settles.
 
 Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
 public HTTP(S) target validation. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29
@@ -166,20 +168,23 @@ entry. Retryable transport and HTTP failures use durable, jittered exponential b
 content and exhausted attempts become terminal failures.
 
 The worker reloads the exact current chain source before fetching and again in the serializable
-publication transaction. A changed URI, hash, token location, or source revision cancels the old
-job, and token publication requires both the NFT and its LSP8 parent collection to remain verified,
-so a slow response cannot overwrite newer canonical state. Successful content is stored as a
-deterministic `metadata_revisions` row with its source provenance. Job state remains internal and
-is exposed through metrics rather than the public API views. An existing deterministic revision is
-immutable; a later fetch for the same chain source cannot replace its published bytes or provenance.
-Repeated identical metadata and LSP8 location controls retain their first source provenance without
-rewriting NFTs or resetting jobs. Metadata recovered after a verification transition waits for that transition to finalize, and collection
-recovery is page-bounded. When an LSP8 collection becomes verified, its stored base URI and token-ID
-format are reapplied before existing NFTs are paged, so both derived token locations and direct token
-metadata are recovered without loading the full collection into memory. Direct token recovery reads
-the NFT's durable verification state instead of relying on the current event scope. LSP29 jobs also
-require their index to remain below the authoritative current array length; a length shrink cancels
-stale slots and the worker rechecks the length before fetching or publishing.
+publication transaction. A finalized URI, hash, token location, verification, or source-revision
+change cancels the old job. A mismatch whose projection provenance is still above the finalized
+watermark instead returns the claim to retry without consuming an attempt; a reorg that restores the
+verified target therefore leaves the original finalized job claimable. Token publication requires
+both the NFT and its LSP8 parent collection to remain verified, so a slow response cannot overwrite
+newer canonical state. Successful content is stored as a deterministic `metadata_revisions` row with
+its source provenance. Job state remains internal and is exposed through metrics rather than the
+public API views. An existing deterministic revision is immutable; a later fetch for the same chain
+source cannot replace its published bytes or provenance. Repeated identical metadata and LSP8
+location controls retain their first source provenance without rewriting NFTs or resetting jobs.
+Metadata recovered after a verification transition waits for that transition to finalize, and
+collection recovery is page-bounded. When an LSP8 collection becomes verified, its stored base URI
+and token-ID format are reapplied before existing NFTs are paged, so both derived token locations and
+direct token metadata are recovered without loading the full collection into memory. Direct token
+recovery reads the NFT's durable verification state instead of relying on the current event scope.
+LSP29 jobs also require their index to remain below the authoritative current array length; a length
+shrink cancels stale slots and the worker rechecks the length before fetching or publishing.
 
 ## Configuration
 
@@ -379,6 +384,8 @@ the hostname for TLS, closing the DNS-rebinding gap. Every pinned lookup honors 
 all-address callback shapes, and a retryable failure advances to the next validated DNS address
 within the request's overall deadline. Requests negotiate identity encoding so response bounds,
 content hashes, UTF-8 validation, and JSON parsing all operate on the original metadata bytes.
+Full-history backlog, oldest-age, and maximum-attempt gauges refresh every 30 seconds rather than
+after every claim batch; per-job counters and latency histograms remain immediate.
 
 Run local validation:
 

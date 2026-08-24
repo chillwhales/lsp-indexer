@@ -9,22 +9,22 @@ import type { MetadataJob } from '../queue.js';
 import type { MetadataSource } from '../source.js';
 
 const queueMocks = vi.hoisted(() => ({
-  cancel: vi.fn(),
   claim: vi.fn(),
   complete: vi.fn(),
   count: vi.fn(),
   fail: vi.fn(),
   load: vi.fn(),
+  settleUnavailable: vi.fn(),
 }));
 const fetchMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../queue.js', () => ({
-  cancelClaimedMetadataJob: queueMocks.cancel,
   claimMetadataJobs: queueMocks.claim,
   completeMetadataJob: queueMocks.complete,
   countMetadataJobs: queueMocks.count,
   failMetadataJob: queueMocks.fail,
   loadClaimedMetadataSource: queueMocks.load,
+  settleUnavailableMetadataJob: queueMocks.settleUnavailable,
 }));
 vi.mock('../fetch.js', () => ({ fetchMetadata: fetchMock }));
 
@@ -186,7 +186,7 @@ describe('metadata worker', () => {
     const source = createSource(job);
     const { metrics, calls } = createMetrics();
     queueMocks.claim.mockResolvedValue([job]);
-    queueMocks.load.mockResolvedValue(source);
+    queueMocks.load.mockResolvedValue({ status: 'current', source });
     queueMocks.complete.mockResolvedValue('succeeded');
     queueMocks.count.mockResolvedValue([
       {
@@ -217,7 +217,18 @@ describe('metadata worker', () => {
 
     expect(result).toEqual({
       claimed: 1,
-      settlements: { succeeded: 1, retry: 0, failed: 0, cancelled: 0, lost_claim: 0 },
+      settlements: {
+        succeeded: 1,
+        retry: 0,
+        failed: 0,
+        cancelled: 0,
+        deferred: 0,
+        lost_claim: 0,
+      },
+    });
+    expect(queueMocks.claim).toHaveBeenCalledWith(expect.anything(), runtime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
     });
     expect(queueMocks.complete).toHaveBeenCalledWith(
       expect.anything(),
@@ -246,15 +257,8 @@ describe('metadata worker', () => {
       { network: 'ethereum-mainnet', kind: 'lsp3_profile' },
       42,
     );
-    expect(calls.backlog).toHaveBeenCalledTimes(2);
-    expect(calls.oldestAge).toHaveBeenCalledWith(
-      { network: 'ethereum-mainnet', status: 'pending' },
-      20,
-    );
-    expect(calls.maximumAttempts).toHaveBeenCalledWith(
-      { network: 'ethereum-mainnet', status: 'pending' },
-      2,
-    );
+    expect(queueMocks.count).not.toHaveBeenCalled();
+    expect(calls.backlog).not.toHaveBeenCalled();
     expect(calls.attempts).toHaveBeenCalledWith(
       { network: 'ethereum-mainnet', kind: 'lsp3_profile' },
       1,
@@ -264,8 +268,8 @@ describe('metadata worker', () => {
   it('cancels a stale source before fetching it', async () => {
     const job = createJob();
     queueMocks.claim.mockResolvedValue([job]);
-    queueMocks.load.mockResolvedValue(null);
-    queueMocks.cancel.mockResolvedValue('cancelled');
+    queueMocks.load.mockResolvedValue({ status: 'stale', source: null });
+    queueMocks.settleUnavailable.mockResolvedValue('cancelled');
 
     await expect(
       processMetadataBatch({
@@ -276,7 +280,41 @@ describe('metadata worker', () => {
       }),
     ).resolves.toEqual({
       claimed: 1,
-      settlements: { succeeded: 0, retry: 0, failed: 0, cancelled: 1, lost_claim: 0 },
+      settlements: {
+        succeeded: 0,
+        retry: 0,
+        failed: 0,
+        cancelled: 1,
+        deferred: 0,
+        lost_claim: 0,
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(queueMocks.settleUnavailable).toHaveBeenCalledWith(expect.anything(), runtime, job);
+  });
+
+  it('defers an unfinalized source change without fetching it', async () => {
+    const job = createJob();
+    queueMocks.claim.mockResolvedValue([job]);
+    queueMocks.load.mockResolvedValue({ status: 'unfinalized', source: null });
+    queueMocks.settleUnavailable.mockResolvedValue('deferred');
+
+    await expect(
+      processMetadataBatch({
+        db: createDatabase(),
+        runtime,
+        config: createConfig(),
+      }),
+    ).resolves.toEqual({
+      claimed: 1,
+      settlements: {
+        succeeded: 0,
+        retry: 0,
+        failed: 0,
+        cancelled: 0,
+        deferred: 1,
+        lost_claim: 0,
+      },
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -285,7 +323,7 @@ describe('metadata worker', () => {
     const job = createJob({ attempts: 2 });
     const { metrics, calls } = createMetrics();
     queueMocks.claim.mockResolvedValue([job]);
-    queueMocks.load.mockResolvedValue(createSource(job));
+    queueMocks.load.mockResolvedValue({ status: 'current', source: createSource(job) });
     queueMocks.fail.mockResolvedValue('retry');
     fetchMock.mockResolvedValue({
       ok: false,
@@ -303,17 +341,12 @@ describe('metadata worker', () => {
     });
 
     expect(result.settlements.retry).toBe(1);
-    expect(queueMocks.fail).toHaveBeenCalledWith(
-      expect.anything(),
-      runtime,
-      job,
-      expect.objectContaining({
-        error: 'HTTP 503',
-        retryable: true,
-        now,
-        maxAttempts: 3,
-      }),
-    );
+    expect(queueMocks.fail).toHaveBeenCalledWith(expect.anything(), runtime, job, {
+      error: 'HTTP 503',
+      retryable: true,
+      retryDelayMs: metadataRetryDelayMs(job.id, job.attempts, createConfig()),
+      maxAttempts: 3,
+    });
     expect(calls.retries).toHaveBeenCalledOnce();
     expect(calls.failures).toHaveBeenCalledWith(
       { network: 'ethereum-mainnet', kind: 'lsp3_profile', reason: 'http_server' },
@@ -329,9 +362,9 @@ describe('metadata worker', () => {
     queueMocks.claim.mockResolvedValue([first, second]);
     queueMocks.load.mockImplementation((_, __, job: MetadataJob) => {
       if (job.id === first.id) throw new Error('database disconnected');
-      return Promise.resolve(null);
+      return Promise.resolve({ status: 'stale', source: null });
     });
-    queueMocks.cancel.mockResolvedValue('cancelled');
+    queueMocks.settleUnavailable.mockResolvedValue('cancelled');
 
     const result = await processMetadataBatch({
       db: createDatabase(),
@@ -367,6 +400,61 @@ describe('metadata worker', () => {
       signal: controller.signal,
     });
     expect(queueMocks.claim).not.toHaveBeenCalled();
+  });
+
+  it('refreshes full-history backlog gauges from the worker loop, not each batch', async () => {
+    const { metrics, calls } = createMetrics();
+    queueMocks.count.mockResolvedValue([
+      {
+        status: 'pending',
+        count: 2,
+        oldestCreatedAt: new Date('2025-12-31T23:59:40Z'),
+        maximumAttempts: 2,
+      },
+      { status: 'succeeded', count: 1, oldestCreatedAt: now, maximumAttempts: 1 },
+    ]);
+
+    await runMetadataWorker({
+      db: createDatabase(),
+      runtime,
+      config: createConfig({ runOnce: true }),
+      metrics,
+      now: () => now,
+    });
+
+    expect(queueMocks.count).toHaveBeenCalledOnce();
+    expect(calls.backlog).toHaveBeenCalledTimes(2);
+    expect(calls.oldestAge).toHaveBeenCalledWith(
+      { network: 'ethereum-mainnet', status: 'pending' },
+      20,
+    );
+    expect(calls.maximumAttempts).toHaveBeenCalledWith(
+      { network: 'ethereum-mainnet', status: 'pending' },
+      2,
+    );
+  });
+
+  it('does not repeat the full-history backlog query inside its refresh interval', async () => {
+    const controller = new AbortController();
+    const { metrics } = createMetrics();
+    let batches = 0;
+    queueMocks.claim.mockImplementation(() => {
+      batches += 1;
+      if (batches === 2) controller.abort();
+      return Promise.resolve([]);
+    });
+
+    await runMetadataWorker({
+      db: createDatabase(),
+      runtime,
+      config: createConfig({ runOnce: false, pollIntervalMs: 1 }),
+      metrics,
+      signal: controller.signal,
+      now: () => now,
+    });
+
+    expect(queueMocks.claim).toHaveBeenCalledTimes(2);
+    expect(queueMocks.count).toHaveBeenCalledOnce();
   });
 
   it('wakes an idle poll immediately when aborted', async () => {

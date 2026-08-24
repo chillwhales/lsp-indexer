@@ -6,15 +6,17 @@ import type { MetadataWorkerConfig } from './config.js';
 import { fetchMetadata, type MetadataRequestImplementation } from './fetch.js';
 import type { MetadataMetrics } from './metrics.js';
 import {
-  cancelClaimedMetadataJob,
   claimMetadataJobs,
   completeMetadataJob,
   countMetadataJobs,
   failMetadataJob,
   loadClaimedMetadataSource,
+  settleUnavailableMetadataJob,
   type MetadataJob,
   type MetadataSettlement,
 } from './queue.js';
+
+const BACKLOG_METRICS_REFRESH_MS = 30_000;
 
 export interface RunMetadataWorkerOptions {
   db: NetworkDatabase;
@@ -46,7 +48,7 @@ export type MetadataFailureReason =
   | 'unknown';
 
 function emptySettlements(): Record<MetadataSettlement, number> {
-  return { succeeded: 0, retry: 0, failed: 0, cancelled: 0, lost_claim: 0 };
+  return { succeeded: 0, retry: 0, failed: 0, cancelled: 0, deferred: 0, lost_claim: 0 };
 }
 
 /** Convert unbounded transport/parser messages into a stable, low-cardinality metric label. */
@@ -136,18 +138,14 @@ async function processClaimedJob(
   options: RunMetadataWorkerOptions,
   job: MetadataJob,
 ): Promise<MetadataSettlement> {
-  const source = await loadClaimedMetadataSource(options.db, options.runtime, job);
-  if (source == null) {
-    const settlement = await cancelClaimedMetadataJob(
-      options.db,
-      job,
-      options.now?.() ?? new Date(),
-    );
+  const current = await loadClaimedMetadataSource(options.db, options.runtime, job);
+  if (current.status !== 'current') {
+    const settlement = await settleUnavailableMetadataJob(options.db, options.runtime, job);
     recordSettlement(options, job, settlement);
     return settlement;
   }
 
-  const result = await fetchMetadata(source, {
+  const result = await fetchMetadata(current.source, {
     ipfsGateways: options.config.ipfsGateways,
     allowHttp: options.config.allowHttp,
     requestTimeoutMs: options.config.requestTimeoutMs,
@@ -180,13 +178,11 @@ async function processClaimedJob(
       );
     }
   } else {
-    const now = options.now?.() ?? new Date();
     const delay = metadataRetryDelayMs(job.id, job.attempts, options.config);
     settlement = await failMetadataJob(options.db, options.runtime, job, {
       error: result.error,
       retryable: result.retryable,
-      nextAttemptAt: new Date(now.getTime() + delay),
-      now,
+      retryDelayMs: delay,
       maxAttempts: options.config.maxAttempts,
     });
     options.metrics?.failures.inc(
@@ -202,9 +198,11 @@ async function processClaimedJob(
   return settlement;
 }
 
-async function updateBacklogMetrics(options: RunMetadataWorkerOptions): Promise<void> {
+async function updateBacklogMetrics(
+  options: RunMetadataWorkerOptions,
+  observedAt: Date,
+): Promise<void> {
   if (options.metrics == null) return;
-  const observedAt = options.now?.() ?? new Date();
   for (const row of await countMetadataJobs(options.db, options.runtime)) {
     options.metrics.backlog.set(
       { network: options.runtime.network.key, status: row.status },
@@ -227,18 +225,18 @@ async function updateBacklogMetrics(options: RunMetadataWorkerOptions): Promise<
 export async function processMetadataBatch(
   options: RunMetadataWorkerOptions,
 ): Promise<MetadataBatchResult> {
-  const claimedAt = options.now?.() ?? new Date();
   const jobs = await claimMetadataJobs(options.db, options.runtime, {
     limit: options.config.concurrency,
     leaseTimeoutMs: options.config.leaseTimeoutMs,
-    now: claimedAt,
   });
   for (const job of jobs) {
     options.metrics?.claimed.inc({ network: options.runtime.network.key, kind: job.kind }, 1);
-    options.metrics?.queueLatency.observe(
-      { network: options.runtime.network.key, kind: job.kind },
-      Math.max(0, claimedAt.getTime() - job.createdAt.getTime()) / 1_000,
-    );
+    if (job.claimedAt != null) {
+      options.metrics?.queueLatency.observe(
+        { network: options.runtime.network.key, kind: job.kind },
+        Math.max(0, job.claimedAt.getTime() - job.createdAt.getTime()) / 1_000,
+      );
+    }
   }
 
   const settlements = emptySettlements();
@@ -260,7 +258,6 @@ export async function processMetadataBatch(
       );
     }
   }
-  await updateBacklogMetrics(options);
   return { claimed: jobs.length, settlements };
 }
 
@@ -284,6 +281,7 @@ function isAborted(signal?: AbortSignal): boolean {
 
 /** Drain one network independently until aborted, sleeping only when no finalized job is ready. */
 export async function runMetadataWorker(options: RunMetadataWorkerOptions): Promise<void> {
+  let nextBacklogMetricsRefreshAt = Number.NEGATIVE_INFINITY;
   while (true) {
     if (isAborted(options.signal)) return;
     let result: MetadataBatchResult;
@@ -300,6 +298,21 @@ export async function runMetadataWorker(options: RunMetadataWorkerOptions): Prom
       if (options.config.runOnce) throw error;
       await waitForNextPoll(options.config.pollIntervalMs, options.signal);
       continue;
+    }
+    const observedAt = options.now?.() ?? new Date();
+    if (options.metrics != null && observedAt.getTime() >= nextBacklogMetricsRefreshAt) {
+      nextBacklogMetricsRefreshAt = observedAt.getTime() + BACKLOG_METRICS_REFRESH_MS;
+      try {
+        await updateBacklogMetrics(options, observedAt);
+      } catch (error) {
+        options.logger?.error(
+          {
+            network: options.runtime.network.key,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Metadata backlog metrics refresh failed; job processing will continue',
+        );
+      }
     }
     if (options.config.runOnce || isAborted(options.signal)) return;
     if (result.claimed === 0) {
