@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { getNetworkKeys, type RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
 import { DATABASE_SCHEMA_VERSION, SHARED_SCHEMA, createNetworkDatabaseRole } from './names.js';
+import { createWriterRoleBoundaryQuery } from './roleBoundary.js';
 
 interface DatabaseIdentityRow extends Record<string, unknown> {
   currentRole: string;
@@ -183,6 +184,14 @@ export async function verifyDatabaseReadiness(
   if (directPrivilegeResult.rows.length > 0) {
     throw new Error(
       `Database session user "${row.sessionUser}" has direct privileges, ownership, or policy references outside its writer role: ${directPrivilegeResult.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
+    );
+  }
+  const writerPrivilegeResult = await db.execute<RoleDependencyRow>(
+    createWriterRoleBoundaryQuery(expectedRole, runtime.databaseSchema),
+  );
+  if (writerPrivilegeResult.rows.length > 0) {
+    throw new Error(
+      `Database writer role "${expectedRole}" has privileges, ownership, default privileges, or policy references outside assigned schema "${runtime.databaseSchema}": ${writerPrivilegeResult.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`

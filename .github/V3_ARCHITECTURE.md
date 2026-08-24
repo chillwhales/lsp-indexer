@@ -191,7 +191,8 @@ V3 prevents that class of corruption structurally:
   with no direct or transitive memberships in other roles.
 - The migrator inventories the reverse membership graph for every writer role. Only the migration
   admin and configured runtime login may reach it; credential rotation requires revoking the old
-  login's membership before rerunning migrations. Runtime membership cannot carry `ADMIN OPTION`.
+  login's membership before rerunning migrations. Runtime membership must carry `SET OPTION` and
+  cannot carry `ADMIN OPTION`.
 - Only the current migration admin may reach the API owner role. Rotating the admin credential
   requires revoking the retired login before rerunning migrations.
 - Every runtime login is unique to one network. Migration and startup check the underlying
@@ -199,6 +200,10 @@ V3 prevents that class of corruption structurally:
   ACLs, ownership, default ACLs or policy references beyond non-grantable database connection
   access, and direct or inherited foreign write access. The assumed role is not treated as a sandbox
   because a session can execute `RESET ROLE`.
+- Migration and startup inventory the assumed writer role too. Ownership, ACLs, default privileges,
+  and policy references are confined to its assigned chain schema; only non-grantable `USAGE` on
+  `lsp_v3` and its four canonical enums is allowed outside it. Read-only cross-chain grants,
+  shared-schema `CREATE`, and grant options fail the boundary check.
 - No indexer credential receives write access to another network schema.
 - The migration test must prove the target's unqualified trigger SQL stays inside the configured
   connection `search_path`; otherwise #382 must select separate databases instead.

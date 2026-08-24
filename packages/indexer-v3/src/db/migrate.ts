@@ -16,6 +16,7 @@ import {
   createNetworkDatabaseRole,
   quotePostgresIdentifier,
 } from './names.js';
+import { createWriterRoleBoundaryQuery } from './roleBoundary.js';
 import * as schema from './schema.js';
 import { networkConfig, publicTables } from './schema.js';
 
@@ -57,6 +58,7 @@ interface RoleNameRow {
 
 interface RoleMembershipOptionsRow {
   adminOption: boolean;
+  setOption: boolean;
 }
 
 interface SharedEnumDefinitionRow {
@@ -86,7 +88,7 @@ interface ReaderPrivilegeRow {
   privilege: string;
 }
 
-interface RoleDependencyRow {
+interface RoleDependencyRow extends Record<string, unknown> {
   kind: string;
   object: string;
 }
@@ -214,7 +216,8 @@ async function ensureNonDelegableMembership(
   grantedRole: string,
 ): Promise<void> {
   const result = await client.query<RoleMembershipOptionsRow>(
-    `SELECT membership.admin_option AS "adminOption"
+    `SELECT membership.admin_option AS "adminOption",
+            membership.set_option AS "setOption"
      FROM pg_auth_members membership
      JOIN pg_roles member_role ON member_role.oid = membership.member
      JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
@@ -224,6 +227,26 @@ async function ensureNonDelegableMembership(
   if (result.rows[0]?.adminOption === true) {
     throw new Error(
       `Configured runtime login "${memberRole}" must not hold ADMIN OPTION on "${grantedRole}"`,
+    );
+  }
+  if (result.rows[0]?.setOption === false) {
+    throw new Error(
+      `Configured runtime login "${memberRole}" must hold SET OPTION on "${grantedRole}"`,
+    );
+  }
+}
+
+async function ensureWriterRolePrivilegeBoundary(
+  client: PoolClient,
+  role: string,
+  networkSchema: string,
+): Promise<void> {
+  const result = await drizzle(client).execute<RoleDependencyRow>(
+    createWriterRoleBoundaryQuery(role, networkSchema),
+  );
+  if (result.rows.length > 0) {
+    throw new Error(
+      `Database writer role "${role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${networkSchema}": ${result.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
 }
@@ -840,6 +863,7 @@ async function prepareRolesAndSchemas(
       await client.query(
         `GRANT USAGE ON TYPE ${sharedTypes} TO ${quotePostgresIdentifier(network.role)}, ${quotePostgresIdentifier(API_READER_ROLE)}`,
       );
+      await ensureWriterRolePrivilegeBoundary(client, network.role, network.schema);
       if (network.runtimeLogin != null) {
         await ensureExistingLoginRole(client, network.runtimeLogin, network.role);
       }

@@ -76,6 +76,17 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
   pnpm --filter @chillwhales/indexer-v3 db:check
 ```
 
+The v3 pool accepts these optional timeout settings in milliseconds; the values shown are the
+defaults:
+
+```env
+DATABASE_CONNECTION_TIMEOUT_MS=10000
+DATABASE_IDLE_TIMEOUT_MS=30000
+DATABASE_STATEMENT_TIMEOUT_MS=60000
+DATABASE_LOCK_TIMEOUT_MS=10000
+DATABASE_IDLE_TRANSACTION_TIMEOUT_MS=60000
+```
+
 This creates isolated chain schemas and unified read-only API views, but complete LSP domain
 decoding and the public v3 packages are still under development. See
 [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety

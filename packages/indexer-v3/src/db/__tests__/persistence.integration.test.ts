@@ -828,6 +828,167 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects a runtime writer membership without SET OPTION', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    const ethereumRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    )?.role;
+    if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
+
+    await controlPool.query(
+      `GRANT ${quotePostgresIdentifier(ethereumRole)} TO ${quotePostgresIdentifier(runtimeLogin)} WITH SET FALSE`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Configured runtime login "${runtimeLogin}" must hold SET OPTION on "${ethereumRole}"`,
+      );
+    } finally {
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(ethereumRole)} TO ${quotePostgresIdentifier(runtimeLogin)} WITH SET TRUE`,
+      );
+    }
+  });
+
+  it('rejects read privileges held by a writer in another network schema', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const foreignTable = `${quotePostgresIdentifier('chain_lukso_mainnet')}.${quotePostgresIdentifier('metadata_jobs')}`;
+
+    await testAdminPool.query(
+      `GRANT SELECT ON ${foreignTable} TO ${quotePostgresIdentifier(ethereumNetwork.role)}`,
+    );
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${ethereumNetwork.schema}": table chain_lukso_mainnet.metadata_jobs (ACL)`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE SELECT ON ${foreignTable} FROM ${quotePostgresIdentifier(ethereumNetwork.role)}`,
+      );
+    }
+  });
+
+  it('rejects CREATE on the shared schema and grantable shared-enum usage', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const quotedWriter = quotePostgresIdentifier(ethereumNetwork.role);
+    const qualifiedType = `${quotePostgresIdentifier(SHARED_SCHEMA)}.${quotePostgresIdentifier('verification_status')}`;
+
+    await testAdminPool.query(
+      `GRANT CREATE ON SCHEMA ${quotePostgresIdentifier(SHARED_SCHEMA)} TO ${quotedWriter}`,
+    );
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${ethereumNetwork.schema}": schema ${SHARED_SCHEMA} (ACL)`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE CREATE ON SCHEMA ${quotePostgresIdentifier(SHARED_SCHEMA)} FROM ${quotedWriter}`,
+      );
+    }
+
+    await testAdminPool.query(
+      `GRANT USAGE ON TYPE ${qualifiedType} TO ${quotedWriter} WITH GRANT OPTION`,
+    );
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${ethereumNetwork.schema}"`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE GRANT OPTION FOR USAGE ON TYPE ${qualifiedType} FROM ${quotedWriter}`,
+      );
+    }
+  });
+
+  it('rejects schemas and objects owned by a writer outside its network schema', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const schemaName = `v3_test_writer_owned_${suiteSuffix}`;
+    const quotedSchema = quotePostgresIdentifier(schemaName);
+    const quotedWriter = quotePostgresIdentifier(ethereumNetwork.role);
+
+    await testAdminPool.query(`CREATE SCHEMA ${quotedSchema} AUTHORIZATION ${quotedWriter}`);
+    await executeAsRole(
+      testAdminPool,
+      ethereumNetwork.role,
+      `CREATE TABLE ${quotedSchema}.items (id integer)`,
+    );
+    try {
+      const expectedError = `Database writer role "${ethereumNetwork.role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${ethereumNetwork.schema}"`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(`DROP SCHEMA ${quotedSchema} CASCADE`);
+    }
+  });
+
+  it('rejects foreign default privileges and policy references held by a writer', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    const luksoNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'lukso-mainnet',
+    );
+    if (ethereumNetwork == null || luksoNetwork == null) {
+      throw new Error('Expected the Ethereum and LUKSO migration networks');
+    }
+    const quotedWriter = quotePostgresIdentifier(ethereumNetwork.role);
+    const expectedError = `Database writer role "${ethereumNetwork.role}" has privileges, ownership, default privileges, or policy references outside assigned schema "${ethereumNetwork.schema}"`;
+
+    await executeAsRole(
+      testAdminPool,
+      luksoNetwork.role,
+      `ALTER DEFAULT PRIVILEGES IN SCHEMA ${quotePostgresIdentifier(luksoNetwork.schema)} GRANT SELECT ON TABLES TO ${quotedWriter}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await executeAsRole(
+        testAdminPool,
+        luksoNetwork.role,
+        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${quotePostgresIdentifier(luksoNetwork.schema)} REVOKE SELECT ON TABLES FROM ${quotedWriter}`,
+      );
+    }
+
+    const policyName = `v3_test_writer_policy_${suiteSuffix}`;
+    const qualifiedJobs = `${quotePostgresIdentifier(luksoNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
+    await executeAsRole(
+      testAdminPool,
+      luksoNetwork.role,
+      `CREATE POLICY ${quotePostgresIdentifier(policyName)} ON ${qualifiedJobs} TO ${quotedWriter} USING (true)`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await executeAsRole(
+        testAdminPool,
+        luksoNetwork.role,
+        `DROP POLICY ${quotePostgresIdentifier(policyName)} ON ${qualifiedJobs}`,
+      );
+    }
+  });
+
   it('rejects direct and transitive runtime memberships outside the assigned writer role', async () => {
     const runtimeLogin = runtimeLogins['ethereum-mainnet'];
     const bridgeRole = `v3_test_runtime_bridge_${suiteSuffix}`;

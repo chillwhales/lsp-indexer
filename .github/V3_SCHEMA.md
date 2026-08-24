@@ -24,7 +24,9 @@ tracker emits unqualified DDL and rollback SQL, so pinning that search path is a
 requirement rather than a convenience. Startup readiness rejects the wrong current role or schema
 and checks the underlying session login as well: it cannot be a superuser, reach an unexpected role,
 hold direct ACLs or database-object ownership beyond non-grantable connection access, or have direct
-or inherited write privileges on another configured chain schema.
+or inherited write privileges on another configured chain schema. Readiness also inventories the
+assumed writer: it may own or receive privileges only inside its chain schema, plus non-grantable
+`USAGE` on `lsp_v3` and the four canonical enums.
 
 ## Table inventory
 
@@ -104,14 +106,17 @@ default `public` qualifiers and enum creation; the migration owner creates share
 owner and writer roles must be capability-limited non-login roles without direct or transitive role
 memberships. The migrator traverses the reverse membership graph for each writer and fails if any
 role other than the migration admin or configured runtime login can reach it; an old login must be
-revoked before credential rotation, and the runtime membership cannot carry `ADMIN OPTION`. Only the
-current migration admin may reach the API owner role. Each chain has an independent migration
-history whose normalized hashes are verified on every run. Exported entry points reject duplicate
-network keys, chain IDs, schemas, writer roles, and runtime logins before connecting. They also
-require the deterministic schema and writer-role mapping for every network and reject reserved
-collisions. Existing chain schemas must have an empty identity table or exactly the configured
-singleton before it is seeded. A cluster-wide advisory lock rejects concurrent migration commands,
-and reapplying the same plan is idempotent.
+revoked before credential rotation. The runtime membership cannot carry `ADMIN OPTION` and must
+carry `SET OPTION`. Migration and startup inventory every writer ACL, ownership dependency, default
+ACL, and policy reference. Anything outside the assigned chain schema is rejected except exact,
+non-grantable `USAGE` on the shared schema and canonical enum types. This includes read-only foreign
+grants, shared-schema `CREATE`, and grant options. Only the current migration admin may reach the API
+owner role. Each chain has an independent migration history whose normalized hashes are verified on
+every run. Exported entry points reject duplicate network keys, chain IDs, schemas, writer roles,
+and runtime logins before connecting. They also require the deterministic schema and writer-role
+mapping for every network and reject reserved collisions. Existing chain schemas must have an empty
+identity table or exactly the configured singleton before it is seeded. A cluster-wide advisory
+lock rejects concurrent migration commands, and reapplying the same plan is idempotent.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
