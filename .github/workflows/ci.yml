@@ -23,7 +23,7 @@ jobs:
       node-version: 22
       build-command: pnpm build
       lint-command: pnpm lint
-      format-command: pnpm format:check && pnpm --filter docs generate:check && pnpm --filter @chillwhales/indexer-v3 db:migrations:check
+      format-command: pnpm format:check && pnpm --filter docs generate:check && pnpm --filter @chillwhales/indexer-v3 db:migrations:check && pnpm --filter @chillwhales/indexer-v3 hasura:check
       typecheck-command: pnpm typecheck
       test-command: |
         if [ "$(node -p "process.versions.node.split('.')[0]")" -lt 22 ]; then
@@ -41,6 +41,7 @@ jobs:
         packages/indexer/lib
         packages/indexer-v3/lib
         packages/indexer-v3/drizzle
+        packages/indexer-v3/hasura
 
   # ---------------------------------------------------------------------------
   # V3 PostgreSQL migrations, isolation, atomicity, and rollback integration
@@ -77,10 +78,95 @@ jobs:
           TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
 
   # ---------------------------------------------------------------------------
+  # V3 Hasura metadata, public schema, multi-chain reads, and live subscriptions
+  # ---------------------------------------------------------------------------
+  api-contract:
+    runs-on: ubuntu-latest
+    env:
+      HASURA_GRAPHQL_ENDPOINT: http://127.0.0.1:8080
+      HASURA_GRAPHQL_ADMIN_SECRET: v3-api-admin-test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      TEST_HASURA_GRAPHQL_ENDPOINT: http://127.0.0.1:8080/v1/graphql
+      TEST_HASURA_ADMIN_SECRET: v3-api-admin-test
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the least-privilege Hasura login
+        run: >-
+          docker run --rm --network host
+          -e PGPASSWORD=postgres postgres:17
+          psql -h 127.0.0.1 -U postgres -d postgres
+          -v ON_ERROR_STOP=1
+          -c "CREATE ROLE lsp_v3_api_test LOGIN PASSWORD 'v3-api-test-password'"
+      - name: Migrate the v3 multi-chain schemas
+        run: pnpm --filter @chillwhales/indexer-v3 db:migrate
+        env:
+          DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+          DATABASE_API_LOGIN: lsp_v3_api_test
+      - name: Start Hasura v2.46
+        run: >-
+          docker run --detach --name lsp-v3-hasura --network host
+          -e HASURA_GRAPHQL_METADATA_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
+          -e HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_api_test:v3-api-test-password@127.0.0.1:5432/postgres
+          -e HASURA_GRAPHQL_ADMIN_SECRET=v3-api-admin-test
+          -e HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+          -e HASURA_GRAPHQL_ENABLE_CONSOLE=false
+          -e HASURA_GRAPHQL_ENABLE_TELEMETRY=false
+          -e HASURA_GRAPHQL_SERVER_PORT=8080
+          hasura/graphql-engine:v2.46.0
+      - name: Wait for Hasura
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/healthz; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs lsp-v3-hasura
+          exit 1
+      - name: Apply the v3 source metadata
+        run: pnpm --filter @chillwhales/indexer-v3 hasura:apply
+      - name: Generate the live public schema
+        run: pnpm --filter @chillwhales/indexer-v3 hasura:schema:dump
+      - name: Upload the generated public schema
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-public-hasura-schema
+          path: packages/indexer-v3/hasura/schema.graphql
+      - name: Reject public-schema drift
+        run: git diff --exit-code -- packages/indexer-v3/hasura/schema.graphql
+      - name: Exercise the public v3 API contract
+        run: pnpm --filter @chillwhales/indexer-v3 test:hasura
+      - name: Show Hasura logs on failure
+        if: failure()
+        run: docker logs lsp-v3-hasura
+
+  # ---------------------------------------------------------------------------
   # Quality checks (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   quality:
-    needs: [build-test, persistence]
+    needs: [build-test, persistence, api-contract]
     uses: kethalia/workflows/.github/workflows/ci-quality.yml@v4
     with:
       verify-command: pnpm validate:publish

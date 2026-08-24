@@ -6,6 +6,7 @@ import {
   type RuntimeConfig,
 } from '../config/index.js';
 import {
+  API_LOGIN_VARIABLE,
   assertPostgresIdentifier,
   createNetworkDatabaseRole,
   createNetworkDatabaseVariable,
@@ -36,6 +37,7 @@ export interface DatabaseMigrationNetwork {
 export interface DatabaseMigrationConfig {
   connectionString: string;
   networks: DatabaseMigrationNetwork[];
+  apiLogin?: string;
 }
 
 function readPostgresUrl(value: string | undefined, name: string): string {
@@ -174,5 +176,12 @@ export function loadDatabaseMigrationConfig(
     throw new Error('Each DATABASE_RUNTIME_LOGIN_<NETWORK> must identify a distinct login role');
   }
 
-  return { connectionString, networks };
+  const apiLoginValue = env[API_LOGIN_VARIABLE]?.trim();
+  const apiLogin = apiLoginValue
+    ? assertPostgresIdentifier(apiLoginValue, API_LOGIN_VARIABLE)
+    : undefined;
+  if (apiLogin != null && runtimeLogins.includes(apiLogin)) {
+    throw new Error(`${API_LOGIN_VARIABLE} must differ from every runtime login`);
+  }
+  return { connectionString, networks, ...(apiLogin ? { apiLogin } : {}) };
 }

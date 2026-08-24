@@ -66,6 +66,7 @@ migration credential:
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
 DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+DATABASE_API_LOGIN=lsp_v3_hasura \
   pnpm --filter @chillwhales/indexer-v3 db:migrate
 
 INDEXER_NETWORK=ethereum-mainnet \
@@ -81,6 +82,14 @@ INDEXER_NETWORK=ethereum-mainnet \
 DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
 METADATA_METRICS_PORT=9091 \
   pnpm --filter @chillwhales/indexer-v3 metadata:worker
+
+# Configure the Hasura server itself with the read-only source URL and:
+# HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_hasura:secret@localhost/lsp_indexer_v3
+# HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+# Then apply the generated source after all chain schemas are current.
+HASURA_GRAPHQL_ENDPOINT=http://localhost:8080 \
+HASURA_GRAPHQL_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 hasura:apply
 ```
 
 The v3 database variables are:
@@ -119,8 +128,9 @@ Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscor
 This creates isolated chain schemas and unified read-only API views. Metadata jobs are committed
 with their chain projections and drained only after finality, with durable retries and stale-result
 protection. The v3 alpha also persists the LUKSO Mainnet-only `chillwhales_nfts` domain for
-CHILL/ORBS claims and Orb state. Applied Hasura metadata and the Node, React, and Next.js v3
-consumer APIs are still under development. See
+CHILL/ORBS claims and Orb state. The v3 Hasura API exposes multi-chain queries, aggregates,
+relationships, and live subscriptions without mutations. A query without `chain_id` spans all
+enabled networks; the Node, React, and Next.js v3 consumer APIs are still under development. See
 [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
 checks, and environment variables.
 

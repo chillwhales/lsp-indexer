@@ -24,9 +24,10 @@ production validation are complete. The current alpha foundation includes:
 - Official Pipes PostgreSQL target wiring with atomic data, indexed-head, snapshot, and cursor writes
 - Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
 - Finalized durable metadata jobs and independently scalable LSP3/LSP4/LSP8/LSP29 workers
+- Generated Hasura metadata, public schema snapshot, chain-scoped relationships, and live queries
 - A local-only multi-network runner for source development
 
-It does **not** yet include applied Hasura metadata or the v3 consumer package contracts. Those land
+It does **not** yet include the v3 consumer package contracts or production acceptance. Those land
 in subsequent v3 goals and the v2 implementation remains the production path meanwhile.
 
 The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 alpha projection. It
@@ -49,6 +50,7 @@ flowchart LR
   WorkerB --> Content
   SchemaA --> API[(read-only api views)]
   SchemaB --> API
+  API --> Hasura[Hasura v3 source]
 ```
 
 Production uses one process or container per network. The SDK's multi-pipe development runner is
@@ -87,6 +89,7 @@ through event modules.
 | `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL for the one-shot migration command                |
 | `DATABASE_MIGRATION_NETWORKS`           | No       | Enabled comma-separated set; defaults to all networks       |
 | `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login granted only its network writer role         |
+| `DATABASE_API_LOGIN`                    | No       | Existing login granted the read-only Hasura role            |
 | `DATABASE_POOL_MAX`                     | No       | `10`                                                        |
 | `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | `10000`                                                     |
 | `DATABASE_IDLE_TIMEOUT_MS`              | No       | `30000`                                                     |
@@ -107,6 +110,10 @@ through event modules.
 | `METADATA_IPFS_GATEWAYS`                | No       | Ordered list; defaults to the network's configured gateway  |
 | `METADATA_ALLOW_HTTP`                   | No       | `false`; explicitly permit public plain-HTTP sources        |
 | `METADATA_RUN_ONCE`                     | No       | `false`; process one bounded claim batch and exit           |
+| `HASURA_GRAPHQL_V3_DATABASE_URL`        | Hasura   | Read-only PostgreSQL URL for the generated `v3` source      |
+| `HASURA_GRAPHQL_UNAUTHORIZED_ROLE`      | Hasura   | Set to `public` for unauthenticated reads                   |
+| `HASURA_GRAPHQL_ENDPOINT`               | API ops  | Hasura origin for metadata and public-schema commands       |
+| `HASURA_GRAPHQL_ADMIN_SECRET`           | API ops  | Operator-only secret for those commands                     |
 
 Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
 chain ID, configured contract deployment, database role, database schema, and stored chain identity
@@ -206,6 +213,7 @@ duplicate identities, and require an existing chain schema to contain only its e
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
 DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+DATABASE_API_LOGIN=lsp_v3_hasura \
   pnpm --filter @chillwhales/indexer-v3 db:migrate
 ```
 
@@ -244,6 +252,46 @@ restart, and ingestion replays from the configured network start block. A fresh 
 with a later `INDEXER_FROM_BLOCK` is rejected. With an existing cursor, a custom start is accepted
 only when it does not leave a gap after the latest committed block. Other migrations cannot bypass
 the snapshot guard.
+
+### V3 Hasura query and subscription API
+
+Hasura tracks only the 15 cross-network views in `api`. Its generated `v3` source connects through
+the login named by `DATABASE_API_LOGIN`, which receives select access through a non-login reader
+role. Migration enables inheritance but disables role switching and membership administration, then
+pins that login's search path to `api,lsp_v3,public` for this database. Shared enum filters therefore
+resolve without exposing a physical chain schema or changing the login's behavior in other
+databases. Never use `DATABASE_ADMIN_URL` or a network writer URL for the Hasura source.
+Keep `DATABASE_API_LOGIN` set on every later migration. Omitting it declares that the reader role
+must have no members, so a retired Hasura login cannot retain stale access silently.
+
+```env
+HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_hasura:secret@localhost/lsp_indexer_v3
+HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+```
+
+```bash
+HASURA_GRAPHQL_ENDPOINT=http://localhost:8080 \
+HASURA_GRAPHQL_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 hasura:apply
+```
+
+The public role can use list queries, filters, aggregates, relationship traversal, pagination, and
+WebSocket live-query subscriptions. It has no mutations. Internal metadata jobs, Pipes cursor and
+rollback objects, and physical chain schemas are absent from the public schema.
+
+Every row exposes `network` and `chain_id`. Without a chain filter, a list query spans all enabled
+networks. Manual relationships map `chain_id`, preventing the same address or token ID on two
+chains from joining. Paginated queries append `chain_id, id` to their order; `indexed_head` uses
+`chain_id, network` because its natural key has no synthetic ID.
+
+The metadata snapshot is generated by `hasura:generate`, and the public GraphQL schema snapshot by
+`hasura:schema:dump`. CI runs drift checks and a real Hasura/PostgreSQL suite covering all 15 roots,
+aggregates, nested cross-chain isolation, mutation denial, and a public WebSocket subscription.
+Applying metadata replaces only the `v3` source, preserves unrelated Hasura metadata, and uses
+resource-version concurrency protection. A concurrent metadata update therefore fails instead of
+being overwritten.
+The raw schema is the input to the upcoming v3 package code generation; the public v2 packages do
+not consume it yet.
 
 ### V3 raw event ingestion
 

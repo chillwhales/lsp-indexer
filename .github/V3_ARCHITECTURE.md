@@ -213,7 +213,8 @@ V3 prevents that class of corruption structurally:
   connection `search_path`; otherwise #382 must select separate databases instead.
 
 The shared `api` schema contains read-only `UNION ALL` views over enabled network schemas. Each view
-includes `network` and `chain_id`, and relationships include network identity in their join. Hasura
+includes `network` and `chain_id`, and every relationship maps `chain_id` as its stable EIP-155
+identity. Hasura
 supports exposing PostgreSQL views to both queries and subscriptions:
 [Hasura view documentation](https://github.com/hasura/graphql-engine/blob/master/docs/docs/schema/postgres/views.mdx).
 The migrator rejects unexpected tables, views, functions, or procedures in this schema and grants
@@ -431,6 +432,12 @@ rollback → A recovery sequence.
 Hasura tracks the `api` views, their manually configured relationships, permissions, and live-query
 subscriptions. Internal chain schemas, snapshot tables, cursor tables, and metadata job tables are
 not part of the public GraphQL schema.
+
+The generated metadata grants the `public` role only select, aggregate, and live-query subscription
+access. List queries that omit a chain filter span every enabled network. Pagination appends
+`chain_id` plus the view's deterministic identity, and public mutations are absent. The exact roots,
+relationships, operator credentials, and subscription semantics are defined in
+[V3_API.md](./V3_API.md).
 
 `@lsp-indexer/types` defines the public contract first. `@lsp-indexer/node` owns transport,
 documents, parsing, query keys, and subscriptions. React and Next remain thin integrations over the

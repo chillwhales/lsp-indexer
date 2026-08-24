@@ -2,20 +2,20 @@ import { getTableName, sql } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { fileURLToPath } from 'node:url';
-import { Pool, type PoolClient } from 'pg';
+import { escapeIdentifier, Pool, type PoolClient } from 'pg';
 import { createNetworkSchema, getNetworkConfig } from '../config/index.js';
 import type { DatabaseMigrationConfig, DatabaseMigrationNetwork } from './config.js';
 import {
   API_OWNER_ROLE,
   API_READER_ROLE,
   API_SCHEMA,
-  DATABASE_SCHEMA_VERSION,
-  MIGRATIONS_TABLE,
-  SHARED_ENUMS,
-  SHARED_SCHEMA,
   assertPostgresIdentifier,
   createNetworkDatabaseRole,
+  DATABASE_SCHEMA_VERSION,
+  MIGRATIONS_TABLE,
   quotePostgresIdentifier,
+  SHARED_ENUMS,
+  SHARED_SCHEMA,
 } from './names.js';
 import {
   createChainAclBoundaryQuery,
@@ -71,8 +71,29 @@ interface RoleNameRow {
 
 interface RoleMembershipOptionsRow {
   adminOption: boolean;
+  inheritOption: boolean;
   setOption: boolean;
 }
+
+interface LoginRoleRequirements {
+  loginDescription: 'API login' | 'runtime login';
+  assignedRoleDescription: 'reader role' | 'writer role';
+  inheritOption?: boolean;
+  setOption: boolean;
+}
+
+const API_LOGIN_REQUIREMENTS: LoginRoleRequirements = {
+  loginDescription: 'API login',
+  assignedRoleDescription: 'reader role',
+  inheritOption: true,
+  setOption: false,
+};
+
+const RUNTIME_LOGIN_REQUIREMENTS: LoginRoleRequirements = {
+  loginDescription: 'runtime login',
+  assignedRoleDescription: 'writer role',
+  setOption: true,
+};
 
 interface SharedEnumDefinitionRow {
   kind: string;
@@ -110,7 +131,8 @@ interface SchemaOwnerRow {
   owner: string;
 }
 
-interface CurrentUserRow {
+interface CurrentConnectionRow {
+  currentDatabase: string;
   currentUser: string;
 }
 
@@ -177,7 +199,7 @@ async function readReachableRoles(client: PoolClient, memberRole: string): Promi
        FROM pg_auth_members membership
        JOIN memberships inherited ON inherited.role_id = membership.member
      )
-     SELECT role.rolname AS role
+     SELECT DISTINCT role.rolname AS role
      FROM memberships
      JOIN pg_roles role ON role.oid = memberships.role_id
      ORDER BY role.rolname`,
@@ -198,7 +220,7 @@ async function readRolesReachingRole(client: PoolClient, grantedRole: string): P
        FROM pg_auth_members membership
        JOIN memberships inherited ON inherited.member_id = membership.roleid
      )
-     SELECT role.rolname AS role
+     SELECT DISTINCT role.rolname AS role
      FROM memberships
      JOIN pg_roles role ON role.oid = memberships.member_id
      ORDER BY role.rolname`,
@@ -227,13 +249,15 @@ async function ensureExclusiveRoleMembers(
   }
 }
 
-async function ensureNonDelegableMembership(
+async function ensureMembershipOptions(
   client: PoolClient,
   memberRole: string,
   grantedRole: string,
+  requirements: LoginRoleRequirements,
 ): Promise<void> {
   const result = await client.query<RoleMembershipOptionsRow>(
     `SELECT membership.admin_option AS "adminOption",
+            membership.inherit_option AS "inheritOption",
             membership.set_option AS "setOption"
      FROM pg_auth_members membership
      JOIN pg_roles member_role ON member_role.oid = membership.member
@@ -243,12 +267,24 @@ async function ensureNonDelegableMembership(
   );
   if (result.rows.some(({ adminOption }) => adminOption)) {
     throw new Error(
-      `Configured runtime login "${memberRole}" must not hold ADMIN OPTION on "${grantedRole}"`,
+      `Configured ${requirements.loginDescription} "${memberRole}" must not hold ADMIN OPTION on "${grantedRole}"`,
     );
   }
-  if (result.rows.length > 0 && !result.rows.some(({ setOption }) => setOption)) {
+  if (
+    result.rows.length > 0 &&
+    result.rows.some(({ setOption }) => setOption !== requirements.setOption)
+  ) {
     throw new Error(
-      `Configured runtime login "${memberRole}" must hold SET OPTION on "${grantedRole}"`,
+      `Configured ${requirements.loginDescription} "${memberRole}" must ${requirements.setOption ? 'hold' : 'not hold'} SET OPTION on "${grantedRole}"`,
+    );
+  }
+  if (
+    requirements.inheritOption != null &&
+    result.rows.length > 0 &&
+    result.rows.some(({ inheritOption }) => inheritOption !== requirements.inheritOption)
+  ) {
+    throw new Error(
+      `Configured ${requirements.loginDescription} "${memberRole}" must ${requirements.inheritOption ? 'hold' : 'not hold'} INHERIT OPTION on "${grantedRole}"`,
     );
   }
 }
@@ -410,14 +446,15 @@ async function findUnexpectedRoleDependencies(
   return result.rows;
 }
 
-async function ensureRuntimeLoginPrivilegeBoundary(
+async function ensureLoginPrivilegeBoundary(
   client: PoolClient,
-  runtimeLogin: string,
+  login: string,
+  requirements: LoginRoleRequirements,
 ): Promise<void> {
-  const unexpectedDependencies = await findUnexpectedRoleDependencies(client, runtimeLogin);
+  const unexpectedDependencies = await findUnexpectedRoleDependencies(client, login);
   if (unexpectedDependencies.length > 0) {
     throw new Error(
-      `Configured runtime login "${runtimeLogin}" has direct privileges, ownership, or policy references outside its writer role: ${unexpectedDependencies.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
+      `Configured ${requirements.loginDescription} "${login}" has direct privileges, ownership, or policy references outside its ${requirements.assignedRoleDescription}: ${unexpectedDependencies.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
 }
@@ -447,29 +484,30 @@ async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void
 async function ensureExistingLoginRole(
   client: PoolClient,
   role: string,
-  assignedWriterRole: string,
+  assignedRole: string,
+  requirements: LoginRoleRequirements = RUNTIME_LOGIN_REQUIREMENTS,
 ): Promise<void> {
-  const validated = assertPostgresIdentifier(role, 'runtime login');
-  const validatedWriterRole = assertPostgresIdentifier(assignedWriterRole, 'database role');
+  const validated = assertPostgresIdentifier(role, requirements.loginDescription);
+  const validatedAssignedRole = assertPostgresIdentifier(assignedRole, 'database role');
   const existing = await readRoleAttributes(client, validated);
   if (existing == null) {
-    throw new Error(`Configured runtime login "${validated}" does not exist`);
+    throw new Error(`Configured ${requirements.loginDescription} "${validated}" does not exist`);
   }
   if (!existing.canLogin || hasElevatedCapabilities(existing)) {
     throw new Error(
-      `Configured runtime login "${validated}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+      `Configured ${requirements.loginDescription} "${validated}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
     );
   }
   const unexpectedRoles = (await readReachableRoles(client, validated)).filter(
-    (reachableRole) => reachableRole !== validatedWriterRole,
+    (reachableRole) => reachableRole !== validatedAssignedRole,
   );
   if (unexpectedRoles.length > 0) {
     throw new Error(
-      `Configured runtime login "${validated}" must not be a member of roles other than "${validatedWriterRole}": ${unexpectedRoles.join(', ')}`,
+      `Configured ${requirements.loginDescription} "${validated}" must not be a member of roles other than "${validatedAssignedRole}": ${unexpectedRoles.join(', ')}`,
     );
   }
-  await ensureNonDelegableMembership(client, validated, validatedWriterRole);
-  await ensureRuntimeLoginPrivilegeBoundary(client, validated);
+  await ensureMembershipOptions(client, validated, validatedAssignedRole, requirements);
+  await ensureLoginPrivilegeBoundary(client, validated, requirements);
 }
 
 async function ensureOwnedSchema(client: PoolClient, name: string, owner: string): Promise<void> {
@@ -923,14 +961,18 @@ async function ensureReaderPrivilegeBoundary(client: PoolClient): Promise<void> 
 async function prepareRolesAndSchemas(
   client: PoolClient,
   networks: readonly DatabaseMigrationNetwork[],
+  apiLogin?: string,
 ): Promise<void> {
   await client.query('BEGIN');
   try {
-    const currentUserResult = await client.query<CurrentUserRow>(
-      'SELECT current_user AS "currentUser"',
+    const currentConnectionResult = await client.query<CurrentConnectionRow>(
+      'SELECT current_database() AS "currentDatabase", current_user AS "currentUser"',
     );
-    const currentUser = currentUserResult.rows[0]?.currentUser;
-    if (currentUser == null) throw new Error('PostgreSQL did not return current_user');
+    const currentConnection = currentConnectionResult.rows[0];
+    if (currentConnection == null) {
+      throw new Error('PostgreSQL did not return the current database and user');
+    }
+    const { currentDatabase, currentUser } = currentConnection;
     assertPostgresIdentifier(currentUser, 'migration admin role');
 
     await ensureNoLoginRole(client, API_OWNER_ROLE);
@@ -949,6 +991,24 @@ async function prepareRolesAndSchemas(
     await client.query(
       `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(SHARED_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
+    if (apiLogin != null) {
+      await ensureExistingLoginRole(client, apiLogin, API_READER_ROLE, API_LOGIN_REQUIREMENTS);
+    }
+    await ensureExclusiveRoleMembers(
+      client,
+      API_READER_ROLE,
+      apiLogin == null ? [] : [apiLogin],
+      'API reader role',
+    );
+    if (apiLogin != null) {
+      await client.query(
+        `GRANT ${quotePostgresIdentifier(API_READER_ROLE)} TO ${quotePostgresIdentifier(apiLogin)} WITH ADMIN FALSE, INHERIT TRUE, SET FALSE`,
+      );
+      await ensureMembershipOptions(client, apiLogin, API_READER_ROLE, API_LOGIN_REQUIREMENTS);
+      await client.query(
+        `ALTER ROLE ${quotePostgresIdentifier(apiLogin)} IN DATABASE ${escapeIdentifier(currentDatabase)} SET search_path TO ${quotePostgresIdentifier(API_SCHEMA)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
+      );
+    }
 
     for (const network of networks) {
       await ensureNoLoginRole(client, network.role);
@@ -1322,7 +1382,7 @@ export async function migrateDatabaseWithPool(
       throw new Error('Another v3 database migration is already running');
     }
 
-    await prepareRolesAndSchemas(client, config.networks);
+    await prepareRolesAndSchemas(client, config.networks, config.apiLogin);
     for (const network of config.networks) {
       await ensureCurrentChainTableOwnership(client, network, migrationsDirectory);
     }

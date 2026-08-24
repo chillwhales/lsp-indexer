@@ -7,17 +7,17 @@ and package roles, not accidental coupling to the v2 TypeORM schema.
 
 ## Compatibility levels
 
-| Level                                                 | V3 policy                                                                  |
-| ----------------------------------------------------- | -------------------------------------------------------------------------- |
-| Package names and entry points                        | Preserve unless a documented v3 replacement is necessary.                  |
-| High-level fetch functions, hooks, and server actions | Preserve names and intent for every supported v2 domain.                   |
-| Result fields                                         | Preserve meaningful v2 fields; add mandatory network and chain provenance. |
-| Filters, includes, sorting, and pagination            | Preserve supported behavior and add network-aware semantics.               |
-| Subscription lifecycle                                | Preserve connection, retry, reconnect, and cache invalidation behavior.    |
-| GraphQL schema and generated types                    | Regenerate for v3; exact v2 Hasura names are not guaranteed.               |
-| Internal parser and query-builder signatures          | May change; document any public removals in the migration guide.           |
-| Database tables, IDs, and foreign keys                | Replaced by the v3 model; no compatibility promise.                        |
-| Environment variables                                 | Replaced by validated v3 configuration with a migration table.             |
+| Level                                                 | V3 policy                                                                   |
+| ----------------------------------------------------- | --------------------------------------------------------------------------- |
+| Package names and entry points                        | Preserve unless a documented v3 replacement is necessary.                   |
+| High-level fetch functions, hooks, and server actions | Preserve names and intent for every supported v2 domain.                    |
+| Result fields                                         | Preserve meaningful v2 fields; add mandatory network and chain provenance.  |
+| Filters, includes, sorting, and pagination            | Preserve supported behavior and add network-aware semantics.                |
+| Subscription lifecycle                                | Preserve connection, retry, reconnect, and cache invalidation behavior.     |
+| GraphQL schema and generated types                    | Regenerate from the frozen v3 Hasura contract; v2 names are not guaranteed. |
+| Internal parser and query-builder signatures          | May change; document any public removals in the migration guide.            |
+| Database tables, IDs, and foreign keys                | Replaced by the v3 model; no compatibility promise.                         |
+| Environment variables                                 | Replaced by validated v3 configuration with a migration table.              |
 
 ## Cross-cutting v3 types
 
@@ -47,6 +47,8 @@ interface EventRef extends BlockRef {
 The implementation may use branded types without assertions at call sites, but JSON remains plain
 strings and safe integers. Every detail lookup has one exact network. List APIs use one exact network
 in v3.0; cross-network aggregation can be added later without weakening cache or identity rules.
+The lower-level GraphQL roots can span all enabled chains when `chain_id` is omitted, as documented
+in [`V3_API.md`](./V3_API.md); package services supply the required v3.0 network scope.
 
 Standalone functions make network explicit:
 
@@ -99,7 +101,8 @@ through their own issues and documentation rather than silently appearing during
 
 The ingestion-level field and behavior mapping for all 11 legacy event plugins is recorded in
 [`V3_EVENT_DISPOSITION.md`](./V3_EVENT_DISPOSITION.md). Public package exposure remains governed by
-the domain matrix and the #386–#388 API tasks.
+the domain matrix and the #386–#388 API tasks. The implemented GraphQL roots, relationships,
+pagination suffixes, and subscription semantics are recorded in [`V3_API.md`](./V3_API.md).
 
 ## Result-shape rules
 
