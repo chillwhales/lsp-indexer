@@ -112,7 +112,8 @@ finalized block available locally. The target consumes the loaded database confi
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
-truncate or abort a batch.
+truncate or abort a batch. Every raw event topic array must be one-dimensional, nonempty, null-free,
+contain only canonical lowercase bytes32 values, and start with the separately indexed `topic0`.
 
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
@@ -164,11 +165,12 @@ NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS` roles without dir
 memberships in other roles. Migration also inventories every role that can reach a writer role and
 allows only the migration admin and that network's configured runtime login. Runtime membership may
 not carry `ADMIN OPTION` and must carry `SET OPTION` so the runtime pool can assume the writer role.
-Only the current migration admin may reach the API owner role. Revoke the previous membership before
-rotating either credential. Because a PostgreSQL session can `RESET ROLE`, migration and startup
-also reject direct ACLs, object ownership, default ACLs, and policy references held by the underlying
-runtime login; the only permitted direct database ACL is non-grantable `CONNECT` on the current
-database. The writer itself may own or receive privileges only inside its assigned chain schema.
+Migration and startup revalidate both membership options. Only the current migration admin may
+reach the API owner role. Revoke the previous membership before rotating either credential.
+Because a PostgreSQL session can `RESET ROLE`, migration and startup also reject direct ACLs,
+object ownership, default ACLs, and policy references held by the underlying runtime login; the only
+permitted direct database ACL is non-grantable `CONNECT` on the current database. The writer itself
+may own or receive privileges only inside its assigned chain schema.
 Its privileges outside that schema are non-grantable `USAGE` on `lsp_v3` and the four canonical
 shared enums, plus a global function default ACL containing only the writer's own `EXECUTE`; that
 default exists solely to remove implicit `PUBLIC EXECUTE`. Read-only grants on another chain,

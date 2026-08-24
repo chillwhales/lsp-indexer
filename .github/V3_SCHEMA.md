@@ -75,7 +75,8 @@ block/transaction/log provenance. Interface verification never determines whethe
 fact survives. Its `(chain_id, block_number, block_hash)` foreign key must match the exact canonical
 `blocks` row, so a cursor reset cannot attach new-fork facts to a stale block height. Event-specific
 decoding added in #383 may populate `event_name`, `event_domain`, and `decoded` without weakening
-the raw identity.
+the raw identity. The raw topic array must be one-dimensional, nonempty, null-free, and contain only
+canonical lowercase bytes32 values; its first element must equal the separately indexed `topic0`.
 
 `indexed_heads` uses the same exact block-identity foreign key. A replay range with no matching
 events therefore cannot publish a new head hash while the old canonical block remains at that
@@ -131,21 +132,22 @@ create databases or roles, replicate, or bypass row-level security. Both migrati
 revalidate every one of these attributes. The migrator traverses the reverse membership graph for
 each writer and fails if any role other than the migration admin or configured runtime login can
 reach it; an old login must be revoked before credential rotation. The runtime membership cannot
-carry `ADMIN OPTION` and must carry `SET OPTION`. Migration and startup inventory every writer ACL,
-ownership dependency, default ACL, and policy reference. Anything outside the assigned chain schema
-is rejected except exact, non-grantable `USAGE` on the shared schema and canonical enum types, plus
-the writer's global function default ACL containing only its own `EXECUTE`. That restrictive
-default ACL removes PostgreSQL's built-in `PUBLIC EXECUTE` from future Pipes rollback functions;
-the migrator also revokes it from existing functions. This includes rejection of read-only foreign
-grants, shared-schema `CREATE`, and grant options. A separate complete chain-schema ACL inventory
-allows only the writer, the API owner's exact read grants, and PostgreSQL's inert row-type default
-described above. Only the current migration admin may reach the API owner role. Each chain has an
-independent migration history whose normalized hashes are verified on every run. Exported entry
-points reject duplicate network keys, chain IDs, schemas, writer roles, and runtime logins before
-connecting. They also require the deterministic schema and writer-role mapping for every network
-and reject reserved collisions. Existing chain schemas must have an empty identity table or exactly
-the configured singleton before it is seeded. A cluster-wide advisory lock rejects concurrent
-migration commands, and reapplying the same plan is idempotent.
+carry `ADMIN OPTION` and must carry `SET OPTION`; migration and startup revalidate both options.
+They also inventory every writer ACL, ownership dependency, default ACL, and policy reference.
+Anything outside the assigned chain schema is rejected except exact, non-grantable `USAGE` on the
+shared schema and canonical enum types, plus the writer's global function default ACL containing
+only its own `EXECUTE`. That restrictive default ACL removes PostgreSQL's built-in `PUBLIC EXECUTE`
+from future Pipes rollback functions; the migrator also revokes it from existing functions. This
+includes rejection of read-only foreign grants, shared-schema `CREATE`, and grant options. A
+separate complete chain-schema ACL inventory allows only the writer, the API owner's exact read
+grants, and PostgreSQL's inert row-type default described above. Only the current migration admin
+may reach the API owner role. Each chain has an independent migration history whose normalized
+hashes are verified on every run. Exported entry points reject duplicate network keys, chain IDs,
+schemas, writer roles, and runtime logins before connecting. They also require the deterministic
+schema and writer-role mapping for every network and reject reserved collisions. Existing chain
+schemas must have an empty identity table or exactly the configured singleton before it is seeded.
+A cluster-wide advisory lock rejects concurrent migration commands, and reapplying the same plan is
+idempotent.
 
 The migrator drops all enumerated API views before applying source-table changes and rebuilds them
 after all enabled schemas are current. View removal, every enabled network migration, and view

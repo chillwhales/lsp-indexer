@@ -3,6 +3,7 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 import { SHARED_ENUMS } from '../names.js';
 import {
+  eventFacts,
   indexedHeads,
   metadataJobs,
   networkConfig,
@@ -50,5 +51,10 @@ describe('v3 database schema inventory', () => {
     expect(foreignKeys).toContain('indexed_heads_block_fk');
     expect(foreignKeys).toContain('indexed_heads_finalized_block_fk');
     expect(config.checks.map(({ name }) => name)).toContain('indexed_heads_finalized_pair_check');
+  });
+
+  it('keeps raw event topics canonical and aligned with topic0', () => {
+    const config = getTableConfig(eventFacts);
+    expect(config.checks.map(({ name }) => name)).toContain('event_facts_topics_check');
   });
 });

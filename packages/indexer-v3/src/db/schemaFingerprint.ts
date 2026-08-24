@@ -2,7 +2,7 @@ import { getTableName, sql, type SQL } from 'drizzle-orm';
 import { SHARED_SCHEMA, assertPostgresIdentifier } from './names.js';
 import { rollbackTables } from './schema.js';
 
-export const EXPECTED_CHAIN_SCHEMA_FINGERPRINT = 'aedd3b956c130432450024c60c26f29b';
+export const EXPECTED_CHAIN_SCHEMA_FINGERPRINT = 'c2f27fe0d58d52851a432841b9f57637';
 
 /** Deterministic live-catalog fingerprint returned for one chain schema. */
 export interface ChainSchemaFingerprintRow extends Record<string, unknown> {

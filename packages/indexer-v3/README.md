@@ -55,6 +55,8 @@ An advancing finalized pair must match its locally stored block, while a finaliz
 the stored range does not advance the watermark. The finalized number and hash must both be present
 or both be null. Lower or omitted finality retains the previous watermark.
 Source-wide finality ahead of a historical backfill is clamped to the processed cursor and its hash.
+Every raw event topic array must be one-dimensional, nonempty, null-free, contain only canonical
+lowercase bytes32 values, and start with the separately indexed `topic0`.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
@@ -105,11 +107,11 @@ login roles must already exist; provide their names to grant each login only its
 role. Every login must be unique to one network, remain `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
 NOREPLICATION NOBYPASSRLS`, and may reach no role other than its assigned writer. Its writer
 membership must carry `SET OPTION` so the pool can assume the role, and must not carry `ADMIN
-OPTION`. Migration and startup revalidate every capability and reject direct or transitive
-memberships in any other role. Because a session can `RESET ROLE`, they also reject direct ACLs,
-object ownership, default ACLs, and policy references held by the runtime login, except for
-non-grantable `CONNECT` on the current database. Existing deterministic owner and writer roles are
-accepted only when they remain `NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE
+OPTION`. Migration and startup revalidate both membership options and every capability, then reject
+direct or transitive memberships in any other role. Because a session can `RESET ROLE`, they also
+reject direct ACLs, object ownership, default ACLs, and policy references held by the runtime login,
+except for non-grantable `CONNECT` on the current database. Existing deterministic owner and writer
+roles are accepted only when they remain `NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE
 NOREPLICATION NOBYPASSRLS` and have no direct or transitive role memberships. A writer may own or
 receive privileges only inside its assigned chain schema; outside it, the exceptions are
 non-grantable `USAGE` on `lsp_v3` and its four canonical enum types plus a global function default

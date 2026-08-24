@@ -51,6 +51,11 @@ interface ReachableRoleRow extends Record<string, unknown> {
   role: string;
 }
 
+interface RuntimeWriterMembershipRow extends Record<string, unknown> {
+  adminOption: boolean;
+  setOption: boolean;
+}
+
 interface RoleDependencyRow extends Record<string, unknown> {
   kind: string;
   object: string;
@@ -188,6 +193,30 @@ export async function verifyDatabaseReadiness(
   if (membershipResult.rows.length > 0) {
     throw new Error(
       `Database session user can assume roles outside "${expectedRole}": ${membershipResult.rows.map(({ role }) => role).join(', ')}`,
+    );
+  }
+  const expectedMembershipResult = await db.execute<RuntimeWriterMembershipRow>(sql`
+    SELECT membership.admin_option AS "adminOption",
+           membership.set_option AS "setOption"
+    FROM pg_auth_members membership
+    JOIN pg_roles member_role ON member_role.oid = membership.member
+    JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
+    WHERE member_role.rolname = session_user
+      AND granted_role.rolname = ${expectedRole}
+  `);
+  if (expectedMembershipResult.rows.length === 0) {
+    throw new Error(
+      `Database session user "${row.sessionUser}" must be a direct member of "${expectedRole}"`,
+    );
+  }
+  if (expectedMembershipResult.rows.some(({ adminOption }) => adminOption)) {
+    throw new Error(
+      `Database session user "${row.sessionUser}" must not hold ADMIN OPTION on "${expectedRole}"`,
+    );
+  }
+  if (!expectedMembershipResult.rows.some(({ setOption }) => setOption)) {
+    throw new Error(
+      `Database session user "${row.sessionUser}" must hold SET OPTION on "${expectedRole}"`,
     );
   }
   const directPrivilegeResult = await db.execute<RoleDependencyRow>(sql`

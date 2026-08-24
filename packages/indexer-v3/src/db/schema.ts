@@ -142,6 +142,15 @@ export const eventFacts = pgTable(
     check('event_facts_transaction_hash_check', sql`${table.transactionHash} ~ '^0x[0-9a-f]{64}$'`),
     check('event_facts_address_check', sql`${table.address} ~ '^0x[0-9a-f]{40}$'`),
     check('event_facts_topic0_check', sql`${table.topic0} ~ '^0x[0-9a-f]{64}$'`),
+    check(
+      'event_facts_topics_check',
+      sql`array_ndims(${table.topics}) = 1
+        AND array_lower(${table.topics}, 1) = 1
+        AND cardinality(${table.topics}) > 0
+        AND ${table.topics}[1] = ${table.topic0}
+        AND array_position(${table.topics}, NULL) IS NULL
+        AND array_to_string(${table.topics}, ',') ~ '^0x[0-9a-f]{64}(,0x[0-9a-f]{64})*$'`,
+    ),
     check('event_facts_data_check', sql`${table.data} ~ '^0x([0-9a-f]{2})*$'`),
   ],
 );

@@ -525,6 +525,80 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('requires raw topics to be canonical and consistent with topic0', async () => {
+    const client = await ethereumPool.connect();
+    const insertEvent = `INSERT INTO event_facts (
+      id,
+      network,
+      chain_id,
+      block_number,
+      block_hash,
+      parent_hash,
+      block_timestamp,
+      transaction_hash,
+      transaction_index,
+      log_index,
+      address,
+      topic0,
+      topics,
+      data
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`;
+    const eventValues = [
+      createEventId(ethereumRuntime.network.chainId, block0.header.number, 0, 0),
+      ethereumRuntime.network.key,
+      ethereumRuntime.network.chainId,
+      block0.header.number,
+      block0.header.hash,
+      block0.header.parentHash,
+      new Date(block0.header.timestamp),
+      hashFor(220),
+      0,
+      0,
+      testAddress,
+      topic0,
+    ];
+    const malformedTopics: (string | null)[][] = [
+      [],
+      [hashFor(212)],
+      [topic0, '0x01'],
+      [topic0, hashFor(213).toUpperCase()],
+      [topic0, null],
+    ];
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `INSERT INTO blocks (id, network, chain_id, number, hash, parent_hash, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          createBlockId(ethereumRuntime.network.chainId, block0.header.number),
+          ethereumRuntime.network.key,
+          ethereumRuntime.network.chainId,
+          block0.header.number,
+          block0.header.hash,
+          block0.header.parentHash,
+          new Date(block0.header.timestamp),
+        ],
+      );
+      for (const topics of malformedTopics) {
+        await client.query('SAVEPOINT invalid_event_topics');
+        try {
+          await expect(
+            client.query(insertEvent, [...eventValues, topics, '0x']),
+          ).rejects.toMatchObject({ constraint: 'event_facts_topics_check' });
+        } finally {
+          await client.query('ROLLBACK TO SAVEPOINT invalid_event_topics');
+          await client.query('RELEASE SAVEPOINT invalid_event_topics');
+        }
+      }
+      await expect(
+        client.query(insertEvent, [...eventValues, [topic0, hashFor(214)], '0x']),
+      ).resolves.toBeDefined();
+    } finally {
+      await client.query('ROLLBACK');
+      client.release();
+    }
+  });
+
   it('recreates API views when their public columns are incompatible', async () => {
     const qualifiedView = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier('creators')}`;
     await executeAsRole(testAdminPool, API_OWNER_ROLE, `DROP VIEW ${qualifiedView}`);
@@ -1182,6 +1256,9 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     try {
       await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
         `Configured runtime login "${runtimeLogin}" must not hold ADMIN OPTION on "${ethereumRole}"`,
+      );
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        `Database session user "${runtimeLogin}" must not hold ADMIN OPTION on "${ethereumRole}"`,
       );
     } finally {
       await controlPool.query(

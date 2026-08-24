@@ -240,12 +240,12 @@ async function ensureNonDelegableMembership(
      WHERE member_role.rolname = $1 AND granted_role.rolname = $2`,
     [memberRole, grantedRole],
   );
-  if (result.rows[0]?.adminOption === true) {
+  if (result.rows.some(({ adminOption }) => adminOption)) {
     throw new Error(
       `Configured runtime login "${memberRole}" must not hold ADMIN OPTION on "${grantedRole}"`,
     );
   }
-  if (result.rows[0]?.setOption === false) {
+  if (result.rows.length > 0 && !result.rows.some(({ setOption }) => setOption)) {
     throw new Error(
       `Configured runtime login "${memberRole}" must hold SET OPTION on "${grantedRole}"`,
     );
