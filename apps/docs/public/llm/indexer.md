@@ -382,8 +382,9 @@ normalizes IP literals, rejects mixed or non-public DNS answers, and pins the so
 address while retaining the original hostname for TLS. Pinned lookups support Node's single- and
 all-address callback modes, and retryable connection failures advance through the remaining public
 addresses within one overall request deadline. Requests also enforce response and redirect limits,
-UTF-8/JSON and LSP schemas, and LSP2/LSP31 keccak verification. IPFS schemes are
-case-insensitive and normalized before use. LSP31 jobs accept at most five supported storage entries,
+negotiate identity encoding, validate UTF-8/JSON and LSP schemas, and verify LSP2/LSP31 keccak hashes
+against the original metadata bytes. IPFS schemes are case-insensitive and normalized before use.
+LSP31 jobs accept at most five supported storage entries,
 try them in backend-preference order, and try every configured gateway for each IPFS entry. A
 retryable failure on any attempted location keeps the job retryable even when a later fallback ends
 with a terminal response. Metrics on

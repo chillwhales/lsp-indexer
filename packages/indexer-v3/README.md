@@ -377,7 +377,8 @@ network default, and public plain HTTP requires `METADATA_ALLOW_HTTP=true`. Ever
 rejects mixed or non-public DNS answers and connects through a validated address while preserving
 the hostname for TLS, closing the DNS-rebinding gap. Every pinned lookup honors Node's single- and
 all-address callback shapes, and a retryable failure advances to the next validated DNS address
-within the request's overall deadline.
+within the request's overall deadline. Requests negotiate identity encoding so response bounds,
+content hashes, UTF-8 validation, and JSON parsing all operate on the original metadata bytes.
 
 Run local validation:
 

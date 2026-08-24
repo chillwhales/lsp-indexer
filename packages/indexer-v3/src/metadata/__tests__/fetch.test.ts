@@ -1,7 +1,9 @@
+import { createServer } from 'node:http';
 import { keccak256, toHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import {
   fetchMetadata,
+  requestPinnedAddress,
   resolveMetadataRequestUrl,
   type MetadataFetchConfig,
   type MetadataFetchResult,
@@ -84,6 +86,41 @@ async function expectFetchFailure(
 }
 
 describe('metadata transport', () => {
+  it('requests identity encoding through the production pinned transport', async () => {
+    let acceptedEncoding: string | undefined;
+    const server = createServer((request, response): void => {
+      acceptedEncoding = request.headers['accept-encoding'];
+      response.setHeader('content-type', 'application/json');
+      response.end(body);
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', resolve);
+    });
+
+    try {
+      const serverAddress = server.address();
+      if (serverAddress == null || typeof serverAddress === 'string') {
+        throw new Error('Expected a local TCP server address');
+      }
+      const response = await requestPinnedAddress(
+        new URL(`http://metadata.example.test:${serverAddress.port}/profile.json`),
+        { address: '127.0.0.1', family: 4 },
+        { deadline: performance.now() + 1_000, maxResponseBytes: 1_024 },
+      );
+
+      expect(await response.text()).toBe(body);
+      expect(acceptedEncoding).toBe('identity');
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error): void => {
+          if (error == null) resolve();
+          else reject(error);
+        });
+      });
+    }
+  });
+
   it('resolves public HTTP and IPFS sources while rejecting local targets', () => {
     expect(
       resolveMetadataRequestUrl('https://example.com/metadata', 'https://gateway.test/ipfs'),

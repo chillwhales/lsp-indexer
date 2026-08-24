@@ -370,7 +370,7 @@ async function discardResponseBody(response: Response): Promise<void> {
  * Open one socket through a prevalidated address while retaining the original hostname for Host,
  * SNI, and certificate validation. Disabling pooling prevents later reuse across DNS decisions.
  */
-async function requestPinnedAddress(
+export async function requestPinnedAddress(
   url: URL,
   address: MetadataDnsAddress,
   options: MetadataRequestOptions,
@@ -388,6 +388,7 @@ async function requestPinnedAddress(
     method: 'GET',
     headers: {
       accept: 'application/json, application/*+json;q=0.9, text/plain;q=0.5',
+      'accept-encoding': 'identity',
       'user-agent': 'lsp-indexer-v3-metadata/3',
     },
     lookup: createPinnedLookup(address),
