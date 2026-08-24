@@ -191,7 +191,9 @@ V3 prevents that class of corruption structurally:
   with no direct or transitive memberships in other roles.
 - The migrator inventories the reverse membership graph for every writer role. Only the migration
   admin and configured runtime login may reach it; credential rotation requires revoking the old
-  login's membership before rerunning migrations.
+  login's membership before rerunning migrations. Runtime membership cannot carry `ADMIN OPTION`.
+- Only the current migration admin may reach the API owner role. Rotating the admin credential
+  requires revoking the retired login before rerunning migrations.
 - Every runtime login is unique to one network. Migration and startup check the underlying
   `session_user` for superuser status, any reachable role other than its assigned writer, and direct
   or inherited foreign write access.
@@ -205,12 +207,15 @@ supports exposing PostgreSQL views to both queries and subscriptions:
 [Hasura view documentation](https://github.com/hasura/graphql-engine/blob/master/docs/docs/schema/postgres/views.mdx).
 The migrator rejects unexpected tables, views, functions, or procedures in this schema and grants
 the API reader schema access and `SELECT` only after that inventory check, limited to the enumerated
-public views. Existing shared enums must match the canonical labels and ordering exactly before any
-chain migration proceeds.
+public views. It also rejects reader ownership or ACLs outside that exact boundary. Existing shared
+enums must match the canonical labels and ordering exactly, and the `lsp_v3` namespace may contain
+only those enums and their generated array types before any chain migration proceeds.
 
 Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
 constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not
-a runtime `CREATE TABLE` side effect.
+a runtime `CREATE TABLE` side effect. Exported migration entry points reject duplicate keys, chain
+IDs, schemas, roles, and runtime logins before connecting. Existing schemas are rejected before
+seeding unless `network_config` is empty or contains exactly the configured singleton identity.
 
 Drizzle Kit emits `public` qualifiers for unqualified schemas. The checked-in migration generation
 step removes enum DDL (the immutable catalog is bootstrapped once in `lsp_v3`) and normalizes other
@@ -266,7 +271,8 @@ For each batch:
 5. Raw facts are inserted idempotently.
 6. Current-state projections are reduced in canonical block, transaction, and log order.
 7. Metadata jobs and indexed-head visibility are updated. The head must reference the exact stored
-   block identity, and its finalized watermark can only advance during forward processing.
+   block identity, and its finalized watermark can only advance during forward processing. A
+   conflicting hash at an unchanged finalized height aborts the batch.
 8. Pipes commits data, rollback snapshots, finalized watermark, and cursor atomically.
 
 Domain logic may read existing state inside step 6. It must not keep an unversioned in-memory mirror.

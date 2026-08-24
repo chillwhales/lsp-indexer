@@ -46,7 +46,8 @@ functions, triggers, and cursors are created and used only inside that chain sch
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
 identity. During forward processing, indexed heads retain the last known finalized watermark when a
 later source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is
-the only path that moves the watermark backwards during a fork.
+the only path that moves the watermark backwards during a fork. A provider that reports a different
+hash at the already-stored finalized height aborts the batch.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
@@ -87,16 +88,20 @@ The persistence target consumes this loaded database configuration directly, inc
 The migration command is separate from every indexer process. It creates the immutable `lsp_v3`
 type schema, one physical schema and non-login writer role per enabled network, Drizzle migration
 history and cursor tables, and the read-only `api` views. A cluster-wide advisory lock rejects
-concurrent migration commands. Runtime login roles must already exist; provide their names to grant
-each login only its matching writer role. Every login must be unique to one network, must not have
-elevated PostgreSQL capabilities, and may reach no role other than its assigned writer. Migration and
-startup reject direct or transitive memberships in any other role. Existing deterministic owner and
-writer roles are accepted only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no
-direct or transitive role memberships. The migrator also inventories every role that can reach each
-writer role and permits only the migration admin and the currently configured runtime login. Revoke
-an old login's writer membership before rotating its replacement. Pre-existing shared enums must
-match the canonical labels and ordering. The API reader receives schema access and `SELECT` only
-after unexpected API relations and routines are rejected, limited to the enumerated public views.
+concurrent migration commands. Exported migration entry points reject duplicate network keys, chain
+IDs, schemas, writer roles, and runtime logins before connecting. Runtime login roles must already
+exist; provide their names to grant each login only its matching writer role. Every login must be
+unique to one network, must not have elevated PostgreSQL capabilities or delegation rights, and may
+reach no role other than its assigned writer. Migration and startup reject direct or transitive
+memberships in any other role. Existing deterministic owner and writer roles are accepted only when
+they remain `NOLOGIN NOINHERIT`, capability-limited, and have no direct or transitive role
+memberships. The migrator inventories every role that can reach each writer role and permits only
+the migration admin and currently configured runtime login; only the current migration admin may
+reach the API owner role. Revoke old memberships before rotating either credential. Each existing
+chain schema must have no identity or exactly its configured singleton identity. The shared schema
+is rejected unless it contains only the four canonical enums and their PostgreSQL-generated array
+types. The API reader is rejected if it owns a schema, relation, routine, type, or database, or has
+grants outside shared-enum usage, API schema usage, and `SELECT` on the enumerated public views.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

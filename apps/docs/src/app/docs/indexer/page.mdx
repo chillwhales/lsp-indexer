@@ -99,17 +99,19 @@ keys and are registered with the official Pipes rollback target. A cluster-wide 
 rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
 and indexed heads reference that same exact block identity. During forward processing, indexed heads
 retain a known finalized watermark when a later source batch omits finality or reports a lower
-height; only Pipes rollback restoration moves it backwards. The target consumes the loaded database
-configuration directly, so `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without
-a second fallback.
+height; only Pipes rollback restoration moves it backwards. A different hash at the stored finalized
+height aborts the batch. The target consumes the loaded database configuration directly, so
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
 `lsp_v3` schema contains only four immutable enum types so `api` views can `UNION ALL` identical
-columns across chains; existing definitions must match their canonical labels and ordering. The
-`api` schema excludes migration history, cursors, metadata jobs, snapshots, functions, and triggers.
-Unexpected API relations or routines abort migration, and the API reader receives schema access and
-`SELECT` only after that inventory check, limited to the enumerated public views.
+columns across chains; existing definitions must match their canonical labels and ordering, and any
+other shared-schema object aborts migration. The `api` schema excludes migration history, cursors,
+metadata jobs, snapshots, functions, and triggers. Unexpected API relations or routines abort
+migration. The API reader may not own a schema, relation, routine, type, or database and may hold only
+shared-enum usage, API schema usage, and `SELECT` on the enumerated public views; any inventoried
+stale privilege aborts migration.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
@@ -117,8 +119,11 @@ capabilities, and may reach only its assigned network writer role. Migration and
 direct or transitive memberships in any other role. Deterministic schema owner and writer roles
 remain capability-limited `NOLOGIN NOINHERIT` roles without direct or transitive memberships in
 other roles. Migration also inventories every role that can reach a writer role and allows only the
-migration admin and that network's configured runtime login. Revoke the previous login's writer
-membership before rotating credentials:
+migration admin and that network's configured runtime login. Runtime membership may not carry
+`ADMIN OPTION`, and only the current migration admin may reach the API owner role. Revoke the
+previous membership before rotating either credential. Programmatic migration calls also reject
+duplicate network identities or schemas, and an existing chain schema must contain only its expected
+singleton `network_config` identity:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

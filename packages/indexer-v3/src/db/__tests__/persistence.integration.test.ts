@@ -462,6 +462,26 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects duplicate network keys and schemas at the migration API boundary', async () => {
+    const ethereum = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    const sepolia = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-sepolia',
+    );
+    if (ethereum == null || sepolia == null) throw new Error('Expected Ethereum test networks');
+
+    await expect(
+      migrateDatabase({ ...migrationConfig, networks: [ethereum, ethereum] }),
+    ).rejects.toThrow('Migration networks contain duplicate network keys: ethereum-mainnet');
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: [ethereum, { ...sepolia, schema: ethereum.schema }],
+      }),
+    ).rejects.toThrow(`Migration networks contain duplicate schemas: ${ethereum.schema}`);
+  });
+
   it('rejects unsafe attributes on pre-existing deterministic roles', async () => {
     const ethereumRole = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
@@ -484,26 +504,47 @@ describe.sequential('PostgreSQL persistence', () => {
     )?.role;
     if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
     const bridgeRole = `v3_test_bridge_${suiteSuffix}`;
+    const parentRole = `v3_test_parent_${suiteSuffix}`;
 
     await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(bridgeRole)} NOLOGIN NOINHERIT`);
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(parentRole)} NOLOGIN NOINHERIT`);
     try {
       await controlPool.query(
-        `GRANT ${quotePostgresIdentifier(API_OWNER_ROLE)} TO ${quotePostgresIdentifier(bridgeRole)}`,
+        `GRANT ${quotePostgresIdentifier(parentRole)} TO ${quotePostgresIdentifier(bridgeRole)}`,
       );
       await controlPool.query(
         `GRANT ${quotePostgresIdentifier(bridgeRole)} TO ${quotePostgresIdentifier(ethereumRole)}`,
       );
       await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
-        `Existing database role "${ethereumRole}" must not be a member of other roles: ${API_OWNER_ROLE}, ${bridgeRole}`,
+        `Existing database role "${ethereumRole}" must not be a member of other roles: ${bridgeRole}, ${parentRole}`,
       );
     } finally {
       await controlPool.query(
         `REVOKE ${quotePostgresIdentifier(bridgeRole)} FROM ${quotePostgresIdentifier(ethereumRole)}`,
       );
       await controlPool.query(
-        `REVOKE ${quotePostgresIdentifier(API_OWNER_ROLE)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
+        `REVOKE ${quotePostgresIdentifier(parentRole)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
       );
       await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(bridgeRole)}`);
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(parentRole)}`);
+    }
+  });
+
+  it('rejects stale direct members of the API owner role', async () => {
+    const retiredAdmin = `v3_test_retired_admin_${suiteSuffix}`;
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(retiredAdmin)} LOGIN`);
+    try {
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(API_OWNER_ROLE)} TO ${quotePostgresIdentifier(retiredAdmin)}`,
+      );
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `API owner role "${API_OWNER_ROLE}" has unexpected direct or transitive members: ${retiredAdmin}. Revoke their membership before retrying`,
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(API_OWNER_ROLE)} FROM ${quotePostgresIdentifier(retiredAdmin)}`,
+      );
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(retiredAdmin)}`);
     }
   });
 
@@ -527,6 +568,23 @@ describe.sequential('PostgreSQL persistence', () => {
         API_OWNER_ROLE,
         `ALTER TYPE ${qualifiedEnum} RENAME VALUE '${unexpectedLabel}' TO '${expectedLabel}'`,
       );
+    }
+  });
+
+  it('rejects unexpected objects in the shared enum schema', async () => {
+    const routineName = 'unexpected_shared_data';
+    const qualifiedRoutine = `${quotePostgresIdentifier(SHARED_SCHEMA)}.${quotePostgresIdentifier(routineName)}`;
+    await executeAsRole(
+      testAdminPool,
+      API_OWNER_ROLE,
+      `CREATE FUNCTION ${qualifiedRoutine}() RETURNS text LANGUAGE sql SECURITY DEFINER AS $$ SELECT 'secret'::text $$`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Shared schema "${SHARED_SCHEMA}" contains unexpected objects: ${routineName}() (function)`,
+      );
+    } finally {
+      await executeAsRole(testAdminPool, API_OWNER_ROLE, `DROP FUNCTION ${qualifiedRoutine}()`);
     }
   });
 
@@ -569,6 +627,29 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects API reader privileges outside the approved views', async () => {
+    const schemaName = 'chain_ethereum_mainnet';
+    const qualifiedJobs = `${quotePostgresIdentifier(schemaName)}.${quotePostgresIdentifier('metadata_jobs')}`;
+    await testAdminPool.query(
+      `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(schemaName)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+    );
+    await testAdminPool.query(
+      `GRANT SELECT ON ${qualifiedJobs} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `API reader role "${API_READER_ROLE}" has privileges outside the approved API boundary: ${schemaName}.metadata_jobs (relation SELECT), ${schemaName} (schema USAGE)`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE SELECT ON ${qualifiedJobs} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+      );
+      await testAdminPool.query(
+        `REVOKE USAGE ON SCHEMA ${quotePostgresIdentifier(schemaName)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+      );
+    }
+  });
+
   it('rejects elevated runtime login capabilities', async () => {
     const runtimeLogin = runtimeLogins['ethereum-mainnet'];
     await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} SUPERUSER`);
@@ -579,23 +660,46 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects ADMIN OPTION on a runtime writer membership', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    const ethereumRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    )?.role;
+    if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
+
+    await controlPool.query(
+      `GRANT ${quotePostgresIdentifier(ethereumRole)} TO ${quotePostgresIdentifier(runtimeLogin)} WITH ADMIN OPTION`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Configured runtime login "${runtimeLogin}" must not hold ADMIN OPTION on "${ethereumRole}"`,
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ADMIN OPTION FOR ${quotePostgresIdentifier(ethereumRole)} FROM ${quotePostgresIdentifier(runtimeLogin)}`,
+      );
+    }
+  });
+
   it('rejects direct and transitive runtime memberships outside the assigned writer role', async () => {
     const runtimeLogin = runtimeLogins['ethereum-mainnet'];
     const bridgeRole = `v3_test_runtime_bridge_${suiteSuffix}`;
+    const parentRole = `v3_test_runtime_parent_${suiteSuffix}`;
     const ethereumRole = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
     )?.role;
     if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
 
     await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(bridgeRole)} NOLOGIN NOINHERIT`);
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(parentRole)} NOLOGIN NOINHERIT`);
     try {
       await controlPool.query(
-        `GRANT ${quotePostgresIdentifier(API_OWNER_ROLE)} TO ${quotePostgresIdentifier(bridgeRole)}`,
+        `GRANT ${quotePostgresIdentifier(parentRole)} TO ${quotePostgresIdentifier(bridgeRole)}`,
       );
       await controlPool.query(
         `GRANT ${quotePostgresIdentifier(bridgeRole)} TO ${quotePostgresIdentifier(runtimeLogin)}`,
       );
-      const unexpectedRoles = `${API_OWNER_ROLE}, ${bridgeRole}`;
+      const unexpectedRoles = `${bridgeRole}, ${parentRole}`;
       await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
         `Configured runtime login "${runtimeLogin}" must not be a member of roles other than "${ethereumRole}": ${unexpectedRoles}`,
       );
@@ -607,9 +711,10 @@ describe.sequential('PostgreSQL persistence', () => {
         `REVOKE ${quotePostgresIdentifier(bridgeRole)} FROM ${quotePostgresIdentifier(runtimeLogin)}`,
       );
       await controlPool.query(
-        `REVOKE ${quotePostgresIdentifier(API_OWNER_ROLE)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
+        `REVOKE ${quotePostgresIdentifier(parentRole)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
       );
       await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(bridgeRole)}`);
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(parentRole)}`);
     }
   });
 
@@ -659,6 +764,24 @@ describe.sequential('PostgreSQL persistence', () => {
         "SELECT pg_advisory_unlock(hashtext('lsp-indexer-v3:database-migration')::bigint)",
       );
       lockClient.release();
+    }
+  });
+
+  it('rejects a second identity in an existing network schema', async () => {
+    const schemaName = 'chain_ethereum_mainnet';
+    await testAdminPool.query(
+      `INSERT INTO ${quotePostgresIdentifier(schemaName)}.network_config (network, chain_id, schema_version)
+       VALUES ('unexpected-network', 999, $1)`,
+      [DATABASE_SCHEMA_VERSION],
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Network schema "${schemaName}" contains unexpected identities: ethereum-mainnet:1, unexpected-network:999; expected only ethereum-mainnet:1`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `DELETE FROM ${quotePostgresIdentifier(schemaName)}.network_config WHERE network = 'unexpected-network' AND chain_id = 999`,
+      );
     }
   });
 
@@ -807,6 +930,24 @@ describe.sequential('PostgreSQL persistence', () => {
       number: block0.header.number,
       hash: block0.header.hash,
     });
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
+    });
+  });
+
+  it('rejects a conflicting hash at the stored finalized height', async () => {
+    const conflictingHash = hashFor(203);
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await expect(
+      runBlocks(target, [block1, block2], {
+        number: block1.header.number,
+        hash: conflictingHash,
+      }),
+    ).rejects.toThrow(
+      `Finalized block ${block1.header.number} conflicts with stored hash ${block1.header.hash}`,
+    );
+
     expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
       finalizedBlockNumber: block1.header.number,
       finalizedBlockHash: block1.header.hash,

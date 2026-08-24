@@ -45,19 +45,34 @@ interface RoleNameRow {
   role: string;
 }
 
+interface RoleMembershipOptionsRow {
+  adminOption: boolean;
+}
+
 interface SharedEnumDefinitionRow {
   kind: string;
   labels: string[];
 }
 
-interface ApiRelationRow {
+interface RelationInventoryRow {
   kind: string;
   name: string;
 }
 
-interface ApiRoutineRow {
+interface RoutineInventoryRow {
   kind: string;
   signature: string;
+}
+
+interface SharedObjectRow {
+  kind: string;
+  name: string;
+}
+
+interface ReaderPrivilegeRow {
+  kind: string;
+  object: string;
+  privilege: string;
 }
 
 interface SchemaOwnerRow {
@@ -79,6 +94,15 @@ interface TableNameRow {
 
 interface LockRow {
   acquired: boolean;
+}
+
+interface TableExistsRow {
+  exists: boolean;
+}
+
+interface NetworkIdentityRow {
+  network: string;
+  chainId: string;
 }
 
 async function readRoleAttributes(
@@ -152,6 +176,7 @@ async function ensureExclusiveRoleMembers(
   client: PoolClient,
   role: string,
   allowedMembers: readonly string[],
+  roleDescription: string,
 ): Promise<void> {
   const validatedRole = assertPostgresIdentifier(role, 'database role');
   const allowed = new Set(
@@ -162,7 +187,27 @@ async function ensureExclusiveRoleMembers(
   );
   if (unexpectedMembers.length > 0) {
     throw new Error(
-      `Database writer role "${validatedRole}" has unexpected direct or transitive members: ${unexpectedMembers.join(', ')}. Revoke their membership before retrying`,
+      `${roleDescription} "${validatedRole}" has unexpected direct or transitive members: ${unexpectedMembers.join(', ')}. Revoke their membership before retrying`,
+    );
+  }
+}
+
+async function ensureNonDelegableMembership(
+  client: PoolClient,
+  memberRole: string,
+  grantedRole: string,
+): Promise<void> {
+  const result = await client.query<RoleMembershipOptionsRow>(
+    `SELECT membership.admin_option AS "adminOption"
+     FROM pg_auth_members membership
+     JOIN pg_roles member_role ON member_role.oid = membership.member
+     JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
+     WHERE member_role.rolname = $1 AND granted_role.rolname = $2`,
+    [memberRole, grantedRole],
+  );
+  if (result.rows[0]?.adminOption === true) {
+    throw new Error(
+      `Configured runtime login "${memberRole}" must not hold ADMIN OPTION on "${grantedRole}"`,
     );
   }
 }
@@ -213,6 +258,7 @@ async function ensureExistingLoginRole(
       `Configured runtime login "${validated}" must not be a member of roles other than "${validatedWriterRole}": ${unexpectedRoles.join(', ')}`,
     );
   }
+  await ensureNonDelegableMembership(client, validated, validatedWriterRole);
 }
 
 async function ensureOwnedSchema(client: PoolClient, name: string, owner: string): Promise<void> {
@@ -282,8 +328,8 @@ async function ensureSharedEnums(client: PoolClient): Promise<void> {
 async function findUnexpectedApiRelations(
   client: PoolClient,
   viewNames: readonly string[],
-): Promise<ApiRelationRow[]> {
-  const result = await client.query<ApiRelationRow>(
+): Promise<RelationInventoryRow[]> {
+  const result = await client.query<RelationInventoryRow>(
     `SELECT relation.relkind AS kind, relation.relname AS name
      FROM pg_class relation
      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
@@ -296,8 +342,8 @@ async function findUnexpectedApiRelations(
   return result.rows;
 }
 
-async function findUnexpectedApiRoutines(client: PoolClient): Promise<ApiRoutineRow[]> {
-  const result = await client.query<ApiRoutineRow>(
+async function findUnexpectedApiRoutines(client: PoolClient): Promise<RoutineInventoryRow[]> {
+  const result = await client.query<RoutineInventoryRow>(
     `SELECT CASE routine.prokind
               WHEN 'a' THEN 'aggregate'
               WHEN 'f' THEN 'function'
@@ -312,6 +358,223 @@ async function findUnexpectedApiRoutines(client: PoolClient): Promise<ApiRoutine
     [API_SCHEMA],
   );
   return result.rows;
+}
+
+async function findUnexpectedSharedObjects(client: PoolClient): Promise<SharedObjectRow[]> {
+  const result = await client.query<SharedObjectRow>(
+    `WITH shared_namespace AS (
+       SELECT oid FROM pg_namespace WHERE nspname = $1
+     ), expected_enums AS (
+       SELECT shared_type.oid
+       FROM pg_type shared_type
+       WHERE shared_type.typnamespace = (SELECT oid FROM shared_namespace)
+         AND shared_type.typtype = 'e'
+         AND shared_type.typname = ANY($2::text[])
+     )
+     SELECT 'relation ' || shared_relation.relkind::text AS kind, shared_relation.relname AS name
+     FROM pg_class shared_relation
+     WHERE shared_relation.relnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT CASE shared_routine.prokind
+              WHEN 'a' THEN 'aggregate'
+              WHEN 'f' THEN 'function'
+              WHEN 'p' THEN 'procedure'
+              WHEN 'w' THEN 'window function'
+            END AS kind,
+            shared_routine.proname || '(' || pg_get_function_identity_arguments(shared_routine.oid) || ')' AS name
+     FROM pg_proc shared_routine
+     WHERE shared_routine.pronamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'type ' || shared_type.typtype::text AS kind, shared_type.typname AS name
+     FROM pg_type shared_type
+     WHERE shared_type.typnamespace = (SELECT oid FROM shared_namespace)
+       AND shared_type.oid NOT IN (SELECT oid FROM expected_enums)
+       AND shared_type.typelem NOT IN (SELECT oid FROM expected_enums)
+     UNION ALL
+     SELECT 'operator' AS kind, custom_operator.oprname AS name
+     FROM pg_operator custom_operator
+     WHERE custom_operator.oprnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'operator class' AS kind, shared_operator_class.opcname AS name
+     FROM pg_opclass shared_operator_class
+     WHERE shared_operator_class.opcnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'operator family' AS kind, shared_operator_family.opfname AS name
+     FROM pg_opfamily shared_operator_family
+     WHERE shared_operator_family.opfnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'collation' AS kind, shared_collation.collname AS name
+     FROM pg_collation shared_collation
+     WHERE shared_collation.collnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'conversion' AS kind, shared_conversion.conname AS name
+     FROM pg_conversion shared_conversion
+     WHERE shared_conversion.connamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'text search configuration' AS kind, shared_configuration.cfgname AS name
+     FROM pg_ts_config shared_configuration
+     WHERE shared_configuration.cfgnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'text search dictionary' AS kind, shared_dictionary.dictname AS name
+     FROM pg_ts_dict shared_dictionary
+     WHERE shared_dictionary.dictnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'text search parser' AS kind, shared_parser.prsname AS name
+     FROM pg_ts_parser shared_parser
+     WHERE shared_parser.prsnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'text search template' AS kind, shared_template.tmplname AS name
+     FROM pg_ts_template shared_template
+     WHERE shared_template.tmplnamespace = (SELECT oid FROM shared_namespace)
+     UNION ALL
+     SELECT 'extended statistic' AS kind, shared_statistic.stxname AS name
+     FROM pg_statistic_ext shared_statistic
+     WHERE shared_statistic.stxnamespace = (SELECT oid FROM shared_namespace)
+     ORDER BY kind, name`,
+    [SHARED_SCHEMA, Object.keys(SHARED_ENUMS)],
+  );
+  return result.rows;
+}
+
+async function ensureSharedSchemaInventory(client: PoolClient): Promise<void> {
+  const unexpectedObjects = await findUnexpectedSharedObjects(client);
+  if (unexpectedObjects.length > 0) {
+    throw new Error(
+      `Shared schema "${SHARED_SCHEMA}" contains unexpected objects: ${unexpectedObjects.map(({ kind, name }) => `${name} (${kind})`).join(', ')}`,
+    );
+  }
+}
+
+async function findUnexpectedReaderPrivileges(
+  client: PoolClient,
+  viewNames: readonly string[],
+): Promise<ReaderPrivilegeRow[]> {
+  const result = await client.query<ReaderPrivilegeRow>(
+    `WITH reader AS (
+       SELECT oid FROM pg_roles WHERE rolname = $1
+     ), privileges AS (
+       SELECT 'schema' AS kind,
+              format('%I', namespace.nspname) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_namespace namespace
+       CROSS JOIN LATERAL aclexplode(namespace.nspacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       WHERE NOT (
+         namespace.nspname IN ($2, $3)
+         AND acl.privilege_type = 'USAGE'
+         AND NOT acl.is_grantable
+       )
+       UNION ALL
+       SELECT 'relation' AS kind,
+              format('%I.%I', namespace.nspname, relation.relname) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_class relation
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       CROSS JOIN LATERAL aclexplode(relation.relacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       WHERE NOT (
+         namespace.nspname = $2
+         AND relation.relkind = 'v'
+         AND relation.relname = ANY($4::text[])
+         AND acl.privilege_type = 'SELECT'
+         AND NOT acl.is_grantable
+       )
+       UNION ALL
+       SELECT 'column' AS kind,
+              format('%I.%I.%I', namespace.nspname, relation.relname, attribute.attname) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_attribute attribute
+       JOIN pg_class relation ON relation.oid = attribute.attrelid
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       CROSS JOIN LATERAL aclexplode(attribute.attacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       UNION ALL
+       SELECT 'routine' AS kind,
+              format('%I.%I(%s)', namespace.nspname, routine.proname, pg_get_function_identity_arguments(routine.oid)) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_proc routine
+       JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+       CROSS JOIN LATERAL aclexplode(routine.proacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       UNION ALL
+       SELECT 'type' AS kind,
+              format('%I.%I', namespace.nspname, granted_type.typname) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_type granted_type
+       JOIN pg_namespace namespace ON namespace.oid = granted_type.typnamespace
+       CROSS JOIN LATERAL aclexplode(granted_type.typacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       WHERE NOT (
+         namespace.nspname = $3
+         AND granted_type.typtype = 'e'
+         AND granted_type.typname = ANY($5::text[])
+         AND acl.privilege_type = 'USAGE'
+         AND NOT acl.is_grantable
+       )
+       UNION ALL
+       SELECT 'database' AS kind,
+              format('%I', database.datname) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_database database
+       CROSS JOIN LATERAL aclexplode(database.datacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       UNION ALL
+       SELECT 'default privilege' AS kind,
+              format('%s:%s:%s', owner.rolname, COALESCE(namespace.nspname, '<global>'), default_acl.defaclobjtype) AS object,
+              acl.privilege_type AS privilege
+       FROM pg_default_acl default_acl
+       JOIN pg_roles owner ON owner.oid = default_acl.defaclrole
+       LEFT JOIN pg_namespace namespace ON namespace.oid = default_acl.defaclnamespace
+       CROSS JOIN LATERAL aclexplode(default_acl.defaclacl) acl
+       JOIN reader ON reader.oid = acl.grantee
+       UNION ALL
+       SELECT 'schema' AS kind, format('%I', namespace.nspname) AS object, 'OWNER' AS privilege
+       FROM pg_namespace namespace
+       JOIN reader ON reader.oid = namespace.nspowner
+       UNION ALL
+       SELECT 'relation' AS kind,
+              format('%I.%I', namespace.nspname, relation.relname) AS object,
+              'OWNER' AS privilege
+       FROM pg_class relation
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       JOIN reader ON reader.oid = relation.relowner
+       UNION ALL
+       SELECT 'routine' AS kind,
+              format('%I.%I(%s)', namespace.nspname, routine.proname, pg_get_function_identity_arguments(routine.oid)) AS object,
+              'OWNER' AS privilege
+       FROM pg_proc routine
+       JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+       JOIN reader ON reader.oid = routine.proowner
+       UNION ALL
+       SELECT 'type' AS kind,
+              format('%I.%I', namespace.nspname, owned_type.typname) AS object,
+              'OWNER' AS privilege
+       FROM pg_type owned_type
+       JOIN pg_namespace namespace ON namespace.oid = owned_type.typnamespace
+       JOIN reader ON reader.oid = owned_type.typowner
+       UNION ALL
+       SELECT 'database' AS kind, format('%I', database.datname) AS object, 'OWNER' AS privilege
+       FROM pg_database database
+       JOIN reader ON reader.oid = database.datdba
+     )
+     SELECT kind, object, privilege
+     FROM privileges
+     ORDER BY kind, object, privilege`,
+    [API_READER_ROLE, API_SCHEMA, SHARED_SCHEMA, viewNames, Object.keys(SHARED_ENUMS)],
+  );
+  return result.rows;
+}
+
+async function ensureReaderPrivilegeBoundary(client: PoolClient): Promise<void> {
+  const unexpectedPrivileges = await findUnexpectedReaderPrivileges(
+    client,
+    publicTables.map(getTableName),
+  );
+  if (unexpectedPrivileges.length > 0) {
+    throw new Error(
+      `API reader role "${API_READER_ROLE}" has privileges outside the approved API boundary: ${unexpectedPrivileges.map(({ kind, object, privilege }) => `${object} (${kind} ${privilege})`).join(', ')}`,
+    );
+  }
 }
 
 async function prepareRolesAndSchemas(
@@ -332,9 +595,12 @@ async function prepareRolesAndSchemas(
     await client.query(
       `GRANT ${quotePostgresIdentifier(API_OWNER_ROLE)} TO ${quotePostgresIdentifier(currentUser)}`,
     );
+    await ensureExclusiveRoleMembers(client, API_OWNER_ROLE, [currentUser], 'API owner role');
     await ensureOwnedSchema(client, API_SCHEMA, API_OWNER_ROLE);
     await ensureOwnedSchema(client, SHARED_SCHEMA, API_OWNER_ROLE);
     await ensureSharedEnums(client);
+    await ensureSharedSchemaInventory(client);
+    await ensureReaderPrivilegeBoundary(client);
     await client.query(
       `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(SHARED_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
@@ -357,10 +623,12 @@ async function prepareRolesAndSchemas(
       if (network.runtimeLogin != null) {
         await ensureExistingLoginRole(client, network.runtimeLogin, network.role);
       }
-      await ensureExclusiveRoleMembers(client, network.role, [
-        currentUser,
-        ...(network.runtimeLogin == null ? [] : [network.runtimeLogin]),
-      ]);
+      await ensureExclusiveRoleMembers(
+        client,
+        network.role,
+        [currentUser, ...(network.runtimeLogin == null ? [] : [network.runtimeLogin])],
+        'Database writer role',
+      );
       if (network.runtimeLogin != null) {
         await client.query(
           `GRANT ${quotePostgresIdentifier(network.role)} TO ${quotePostgresIdentifier(network.runtimeLogin)}`,
@@ -423,6 +691,73 @@ async function assertSnapshotEvolutionSafe(
   }
 }
 
+function findDuplicates(values: readonly (number | string)[]): string[] {
+  const seen = new Set<number | string>();
+  const duplicates = new Set<number | string>();
+  for (const value of values) {
+    if (seen.has(value)) duplicates.add(value);
+    seen.add(value);
+  }
+  return [...duplicates].map(String).sort();
+}
+
+function assertUniqueMigrationNetworks(networks: readonly DatabaseMigrationNetwork[]): void {
+  if (networks.length === 0) throw new Error('At least one migration network is required');
+  const dimensions: { label: string; values: (number | string)[] }[] = [
+    { label: 'network keys', values: networks.map(({ network }) => network.key) },
+    { label: 'chain IDs', values: networks.map(({ network }) => network.chainId) },
+    { label: 'schemas', values: networks.map(({ schema }) => schema) },
+    { label: 'writer roles', values: networks.map(({ role }) => role) },
+    {
+      label: 'runtime logins',
+      values: networks.flatMap(({ runtimeLogin }) => (runtimeLogin == null ? [] : [runtimeLogin])),
+    },
+  ];
+  for (const { label, values } of dimensions) {
+    const duplicates = findDuplicates(values);
+    if (duplicates.length > 0) {
+      throw new Error(`Migration networks contain duplicate ${label}: ${duplicates.join(', ')}`);
+    }
+  }
+}
+
+async function assertExpectedNetworkIdentity(
+  client: PoolClient,
+  network: DatabaseMigrationNetwork,
+): Promise<void> {
+  const tableExists = await client.query<TableExistsRow>(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM pg_class relation
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       WHERE namespace.nspname = $1
+         AND relation.relname = 'network_config'
+         AND relation.relkind IN ('r', 'p')
+     ) AS exists`,
+    [network.schema],
+  );
+  if (tableExists.rows[0]?.exists !== true) return;
+
+  const qualifiedTable = `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier('network_config')}`;
+  const result = await client.query<NetworkIdentityRow>(
+    `SELECT network, chain_id::text AS "chainId" FROM ${qualifiedTable} ORDER BY network, chain_id`,
+  );
+  const expectedChainId = String(network.network.chainId);
+  if (
+    result.rows.length > 1 ||
+    (result.rows[0] != null &&
+      (result.rows[0].network !== network.network.key ||
+        result.rows[0].chainId !== expectedChainId))
+  ) {
+    const actual = result.rows
+      .map(({ chainId, network: storedNetwork }) => `${storedNetwork}:${chainId}`)
+      .join(', ');
+    throw new Error(
+      `Network schema "${network.schema}" contains unexpected identities: ${actual}; expected only ${network.network.key}:${expectedChainId}`,
+    );
+  }
+}
+
 async function migrateNetwork(
   client: PoolClient,
   network: DatabaseMigrationNetwork,
@@ -433,6 +768,7 @@ async function migrateNetwork(
     `SET search_path TO ${quotePostgresIdentifier(network.schema)}, ${quotePostgresIdentifier(SHARED_SCHEMA)}, ${quotePostgresIdentifier('public')}`,
   );
   try {
+    await assertExpectedNetworkIdentity(client, network);
     const db = drizzle(client, { schema });
     const migrationTable = `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(MIGRATIONS_TABLE)}`;
     await client.query(`
@@ -478,6 +814,7 @@ async function migrateNetwork(
         `);
       }
     });
+    await assertExpectedNetworkIdentity(client, network);
     await db
       .insert(networkConfig)
       .values({
@@ -572,7 +909,7 @@ export async function migrateDatabaseWithPool(
   config: DatabaseMigrationConfig,
   options: DatabaseMigrationOptions = {},
 ): Promise<DatabaseMigrationResult> {
-  if (config.networks.length === 0) throw new Error('At least one migration network is required');
+  assertUniqueMigrationNetworks(config.networks);
   const migrationsDirectory = options.migrationsDirectory ?? defaultMigrationsDirectory;
   const client = await pool.connect();
   let lockAcquired = false;

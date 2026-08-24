@@ -1,6 +1,6 @@
 import type { BlockCursor, HookContext } from '@subsquid/pipes';
 import { drizzleTarget, type Transaction } from '@subsquid/pipes/targets/drizzle/node-postgres';
-import { sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
 import type { NetworkDatabaseConfig } from './config.js';
@@ -131,19 +131,39 @@ async function writeIndexedHead(
           finalizedBlockNumber: head.finalizedBlockNumber,
           finalizedBlockHash: head.finalizedBlockHash.toLowerCase(),
         };
+  if (finalizedValues != null) {
+    const stored = (
+      await tx
+        .select({
+          finalizedBlockNumber: indexedHeads.finalizedBlockNumber,
+          finalizedBlockHash: indexedHeads.finalizedBlockHash,
+        })
+        .from(indexedHeads)
+        .where(and(eq(indexedHeads.network, head.network), eq(indexedHeads.chainId, head.chainId)))
+        .for('update')
+    )[0];
+    if (
+      stored?.finalizedBlockNumber === finalizedValues.finalizedBlockNumber &&
+      stored.finalizedBlockHash?.toLowerCase() !== finalizedValues.finalizedBlockHash
+    ) {
+      throw new Error(
+        `Finalized block ${finalizedValues.finalizedBlockNumber} conflicts with stored hash ${stored.finalizedBlockHash ?? 'null'}`,
+      );
+    }
+  }
   const finalizedUpdate =
     finalizedValues == null
       ? undefined
       : {
           finalizedBlockNumber: sql<number | null>`CASE
             WHEN ${indexedHeads.finalizedBlockNumber} IS NULL
-              OR ${finalizedValues.finalizedBlockNumber} >= ${indexedHeads.finalizedBlockNumber}
+              OR ${finalizedValues.finalizedBlockNumber} > ${indexedHeads.finalizedBlockNumber}
             THEN ${finalizedValues.finalizedBlockNumber}
             ELSE ${indexedHeads.finalizedBlockNumber}
           END`,
           finalizedBlockHash: sql<string | null>`CASE
             WHEN ${indexedHeads.finalizedBlockNumber} IS NULL
-              OR ${finalizedValues.finalizedBlockNumber} >= ${indexedHeads.finalizedBlockNumber}
+              OR ${finalizedValues.finalizedBlockNumber} > ${indexedHeads.finalizedBlockNumber}
             THEN ${finalizedValues.finalizedBlockHash}
             ELSE ${indexedHeads.finalizedBlockHash}
           END`,

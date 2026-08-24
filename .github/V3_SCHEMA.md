@@ -85,8 +85,9 @@ and lets Pipes save its cursor before one commit. Any thrown decoder, RPC, reduc
 database error rolls the entire batch back. When a source batch omits a finalized cursor, the
 indexed head retains its previously known finalized number and hash. A lower finalized cursor also
 cannot reduce that watermark during forward processing; only restoration of the tracked head
-snapshot may move it backwards during fork handling. The target takes rollback retention directly
-from the validated network database configuration.
+snapshot may move it backwards during fork handling. A source that reports a conflicting hash at the
+stored finalized height aborts the transaction. The target takes rollback retention directly from
+the validated network database configuration.
 
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
@@ -102,15 +103,22 @@ default `public` qualifiers and enum creation; the migration owner creates share
 owner and writer roles must be capability-limited non-login roles without direct or transitive role
 memberships. The migrator traverses the reverse membership graph for each writer and fails if any
 role other than the migration admin or configured runtime login can reach it; an old login must be
-revoked before credential rotation. Each chain has an independent migration history whose
-normalized hashes are verified on every run. A cluster-wide advisory lock rejects concurrent
-migration commands, and reapplying the same plan is idempotent.
+revoked before credential rotation, and the runtime membership cannot carry `ADMIN OPTION`. Only the
+current migration admin may reach the API owner role. Each chain has an independent migration
+history whose normalized hashes are verified on every run. Exported entry points reject duplicate
+network keys, chain IDs, schemas, writer roles, and runtime logins before connecting. Existing chain
+schemas must have an empty identity table or exactly the configured singleton before it is seeded. A
+cluster-wide advisory lock rejects concurrent migration commands, and reapplying the same plan is
+idempotent.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
 migration history, and rollback artifacts are intentionally absent. Unexpected API relations abort
-the rebuild, and the reader receives `SELECT` only on those 14 enumerated views. Hasura and future
-packages must join, filter, cache, and subscribe with both `network` and `chain_id`.
+the rebuild. The shared namespace is accepted only when it contains the four canonical enums and
+their generated array types. The reader may not own a schema, relation, routine, type, or database
+and may hold only API/shared schema usage, canonical enum usage, and `SELECT` on the 14 enumerated
+views. Hasura and future packages must join, filter, cache, and subscribe with both `network` and
+`chain_id`.
 
 Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
 migration therefore fails before execution whenever any snapshot table exists, even if retention
