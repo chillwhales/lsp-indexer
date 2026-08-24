@@ -147,12 +147,14 @@ The released event decoder already provides block hash, timestamp, transaction h
 index, and log index. V3 must not throw that provenance away when producing domain facts.
 
 RPC calls used for `supportsInterface`, decimals, ownership, or other state reads carry the
-triggering block number and hash. When a client supports EIP-1898, it reads by hash. A number-only
-client must verify that the provider maps that number to the triggering hash immediately before and
-after each read. A mismatch on either side rejects the result instead of mixing state from two
-forks. Reads run in a transform before the database transaction so a slow provider does not hold
-database locks. Provider transport failures and block-identity mismatches abort the batch; because
-the cursor has not committed, retry starts from the same canonical position.
+triggering block number and hash. Every direct call and Multicall3 aggregate uses an EIP-1898
+`{ blockHash, requireCanonical: true }` selector, so the state read itself is bound to the Portal
+block even when an RPC endpoint load-balances across backends. The provider's number-to-hash mapping
+is also checked immediately before and after each read. A mismatch on either side rejects the result
+instead of mixing state from two forks. Reads run in a transform before the database transaction so
+a slow provider does not hold database locks. Provider transport failures, lack of EIP-1898 support,
+and block-identity mismatches abort the batch; because the cursor has not committed, retry starts
+from the same canonical position.
 
 Deterministic contract-level failures are isolated per call. A revert, unsupported selector, or
 invalid return value records an invalid or unknown verification result, preserves the raw fact, and
@@ -348,12 +350,13 @@ fact but cannot apply it twice.
 Interface verification is planned per exact `(block number, block hash, category, address)` and
 supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded
 Multicall3 deployment block, bounded direct `eth_call` reads are used; from the deployment block
-onward, calls use bounded sequential Multicall requests. The RPC provider's hash is checked before
-and after either path. Transport or response-shape failures fail the batch. Individual
-contract-call failures classify that candidate as invalid; they do not delete its raw event or
-ERC725Y value. A later invalid result marks an existing core row invalid and prevents subsequent
-typed reduction until verification succeeds again. Decimals are accepted only for a verified LSP7
-asset.
+onward, calls use bounded sequential Multicall requests. Both paths bind the actual `eth_call` to
+the triggering hash with EIP-1898 and require canonical membership; the provider's block hash is
+also checked before and after each path. Transport or response-shape failures fail the batch.
+Individual contract-call failures classify that candidate as invalid; they do not delete its raw
+event or ERC725Y value. A later invalid result marks an existing core row invalid and prevents
+subsequent typed reduction until verification succeeds again. Decimals are accepted only for a
+verified LSP7 asset.
 
 The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
 updates use the same deterministic reducer. Each available Portal head checks at most 250

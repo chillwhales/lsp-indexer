@@ -11,8 +11,9 @@ chain-scoped current-state tables.
 
 - Interface candidates are deduplicated by exact `(block number, block hash, category, address)`.
   Bounded direct reads are used before the recorded Multicall3 deployment and bounded Multicall3
-  batches afterward. The RPC hash is checked before and after every read. Current and legacy LSP0,
-  LSP7, and LSP8 interface IDs are supported.
+  batches afterward. Both paths bind `eth_call` to the Portal hash with EIP-1898 and
+  `requireCanonical`; the RPC hash is also checked before and after every read. Current and legacy
+  LSP0, LSP7, and LSP8 interface IDs are supported.
 - A transport error or malformed multicall response aborts the batch. A failed individual contract
   call is an invalid candidate. Raw facts and raw ERC725Y values remain stored either way.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional

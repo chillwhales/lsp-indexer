@@ -261,8 +261,10 @@ The event pipe also performs deterministic current-state reduction. It deduplica
 candidates by exact block number and hash, category, and address; checks current and legacy
 LSP0/LSP7/LSP8 interface IDs through bounded direct reads before the configured Multicall3
 deployment and bounded Multicall3 batches afterward; and pins every RPC read to its triggering
-block. The provider's block hash is checked before and after either path so results from a changing
-fork cannot commit.
+block. Each actual `eth_call` uses the Portal hash through EIP-1898 with canonical membership
+required. The provider's block hash is also checked before and after either path, so results from a
+changing fork or a different load-balanced backend cannot commit. The RPC endpoint must support
+EIP-1898 block identifiers.
 
 Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
 order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and

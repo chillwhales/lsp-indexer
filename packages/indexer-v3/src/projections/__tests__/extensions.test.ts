@@ -1,4 +1,11 @@
-import { toHex } from 'viem';
+import {
+  encodeFunctionData,
+  encodeFunctionResult,
+  getAddress,
+  multicall3Abi,
+  toHex,
+  type Hex,
+} from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import type { NetworkDatabase } from '../../db/client.js';
@@ -17,6 +24,31 @@ import {
 import { CHILLWHALES_EXTENSION, ZERO_ADDRESS } from '../standards.js';
 
 const tokenId = toHex(42n, { size: 32 });
+const chillClaimAbi = [
+  {
+    type: 'function',
+    name: 'getClaimedStatusFor',
+    stateMutability: 'view',
+    inputs: [{ name: 'tokenId', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+] as const;
+
+function encodeMulticallResults(results: readonly { success: boolean; returnData: Hex }[]): Hex {
+  return encodeFunctionResult({
+    abi: multicall3Abi,
+    functionName: 'aggregate3',
+    result: results,
+  });
+}
+
+function encodeChillClaim(): Hex {
+  return encodeFunctionData({
+    abi: chillClaimAbi,
+    functionName: 'getClaimedStatusFor',
+    args: [tokenId],
+  });
+}
 
 function mintBatch(): EventIngestionBatch {
   const blockHash = toHex(100n, { size: 32 });
@@ -137,44 +169,67 @@ describe('Chillwhales product extension reads', () => {
     ]);
   });
 
-  it('pins claim calls to the current block and configured Multicall3 deployment', async () => {
-    const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
+  it('binds claim-status Multicall3 reads to the current Portal block hash', async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValue(
+        encodeMulticallResults([{ success: true, returnData: toHex(1n, { size: 32 }) }]),
+      );
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const blockNumber = runtime.network.multicall.fromBlock;
     const blockHash = toHex(BigInt(blockNumber), { size: 32 });
     const getBlock = vi.fn().mockResolvedValue({ hash: blockHash });
-    const rpc = { getBlock, multicall } as unknown as NetworkRpcClient;
+    const rpc = { getBlock, request } as unknown as NetworkRpcClient;
     const execute = createClaimStatusCallExecutor(rpc, runtime);
 
     await execute({ number: blockNumber, hash: blockHash }, [{ kind: 'chill', tokenId }]);
 
-    expect(multicall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        blockNumber: BigInt(blockNumber),
-        multicallAddress: runtime.network.multicall.address,
-        allowFailure: true,
-      }),
-    );
+    const callData = encodeChillClaim();
+    expect(request).toHaveBeenCalledWith({
+      method: 'eth_call',
+      params: [
+        {
+          to: runtime.network.multicall.address,
+          data: encodeFunctionData({
+            abi: multicall3Abi,
+            functionName: 'aggregate3',
+            args: [
+              [
+                {
+                  target: getAddress(CHILLWHALES_EXTENSION.chillAddress),
+                  allowFailure: true,
+                  callData,
+                },
+              ],
+            ],
+          }),
+        },
+        { blockHash, requireCanonical: true },
+      ],
+    });
     expect(getBlock).toHaveBeenCalledTimes(2);
   });
 
   it('uses direct claim reads before the configured Multicall3 deployment', async () => {
     const blockHash = toHex(100n, { size: 32 });
-    const call = vi.fn().mockResolvedValue({ data: toHex(1n, { size: 32 }) });
-    const multicall = vi.fn();
+    const request = vi.fn().mockResolvedValue(toHex(1n, { size: 32 }));
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const rpc = {
-      call,
       getBlock: vi.fn().mockResolvedValue({ hash: blockHash }),
-      multicall,
+      request,
     } as unknown as NetworkRpcClient;
     const execute = createClaimStatusCallExecutor(rpc, runtime);
 
     await expect(
       execute({ number: 100, hash: blockHash }, [{ kind: 'chill', tokenId }]),
     ).resolves.toEqual([{ status: 'success', value: true }]);
-    expect(call).toHaveBeenCalledWith(expect.objectContaining({ blockNumber: 100n }));
-    expect(multicall).not.toHaveBeenCalled();
+    expect(request).toHaveBeenCalledWith({
+      method: 'eth_call',
+      params: [
+        { to: getAddress(CHILLWHALES_EXTENSION.chillAddress), data: encodeChillClaim() },
+        { blockHash, requireCanonical: true },
+      ],
+    });
   });
 
   it('schedules false statuses at the normal cadence and rejects incomplete batches', async () => {
@@ -213,7 +268,7 @@ describe('Chillwhales product extension reads', () => {
     ).rejects.toThrow('returned 0 results for 1 calls');
   });
 
-  it('rejects malformed persisted token IDs and malformed successful RPC values', async () => {
+  it('rejects malformed persisted token IDs and isolates malformed claim return data', async () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const database = fakeDatabase([
       {
@@ -231,7 +286,9 @@ describe('Chillwhales product extension reads', () => {
       getBlock: vi.fn().mockResolvedValue({
         hash: toHex(BigInt(runtime.network.multicall.fromBlock), { size: 32 }),
       }),
-      multicall: vi.fn().mockResolvedValue([{ status: 'success', result: 1 }]),
+      request: vi
+        .fn()
+        .mockResolvedValue(encodeMulticallResults([{ success: true, returnData: '0x12' }])),
     } as unknown as NetworkRpcClient;
     const execute = createClaimStatusCallExecutor(rpc, runtime);
     await expect(
@@ -242,7 +299,7 @@ describe('Chillwhales product extension reads', () => {
         },
         [{ kind: 'orbs', tokenId }],
       ),
-    ).rejects.toThrow('invalid success value');
+    ).resolves.toEqual([{ status: 'failure' }]);
   });
 
   it('ignores ordinary non-mint facts during claim planning', async () => {

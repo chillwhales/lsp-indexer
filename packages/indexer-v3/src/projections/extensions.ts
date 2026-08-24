@@ -1,12 +1,5 @@
 import { and, asc, eq, lte, or } from 'drizzle-orm';
-import {
-  decodeFunctionResult,
-  encodeFunctionData,
-  getAddress,
-  hexToBytes,
-  isHex,
-  type Hex,
-} from 'viem';
+import { decodeFunctionResult, encodeFunctionData, hexToBytes, isHex, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import { chillwhalesNfts } from '../db/schema.js';
@@ -14,7 +7,11 @@ import type { EventIngestionBatch } from '../events/decode.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
 import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
-import { executeDirectContractCalls, type DirectContractCall } from './direct.js';
+import {
+  executeDirectContractCalls,
+  executeMulticallContractCalls,
+  type DirectContractCall,
+} from './direct.js';
 import { CHILLWHALES_EXTENSION, ZERO_ADDRESS } from './standards.js';
 
 export const CLAIM_STATUS_PAGE_SIZE = 250;
@@ -152,17 +149,6 @@ export async function loadClaimStatusCandidates(
   return [...candidates.values()].sort((left, right) => left.tokenId.localeCompare(right.tokenId));
 }
 
-function normalizeResult(result: unknown): ClaimStatusCallResult {
-  if (typeof result !== 'object' || result == null || !('status' in result)) {
-    throw new Error('Claim-status multicall returned an invalid result');
-  }
-  if (result.status === 'failure') return { status: 'failure' };
-  if (result.status !== 'success' || !('result' in result) || typeof result.result !== 'boolean') {
-    throw new Error('Claim-status multicall returned an invalid success value');
-  }
-  return { status: 'success', value: result.result };
-}
-
 function decodeChillClaim(data: Hex): boolean | undefined {
   try {
     const result = decodeFunctionResult({
@@ -220,41 +206,16 @@ export function createClaimStatusCallExecutor(
     block: ProjectionBlockRef,
     calls: readonly ClaimStatusCall[],
   ): Promise<readonly ClaimStatusCallResult[]> {
+    const encodedCalls = calls.map(createDirectClaimCall);
     if (block.number < runtime.network.multicall.fromBlock) {
       return readAtVerifiedBlock(rpc, block, () =>
-        executeDirectContractCalls(
-          rpc,
-          block.number,
-          calls.map(createDirectClaimCall),
-          runtime.network.rpc.batchSize,
-        ),
+        executeDirectContractCalls(rpc, block, encodedCalls, runtime.network.rpc.batchSize),
       );
     }
 
-    const contracts = calls.map((call) =>
-      call.kind === 'chill'
-        ? {
-            address: getAddress(CHILLWHALES_EXTENSION.chillAddress),
-            abi: CHILL_CLAIM_ABI,
-            functionName: 'getClaimedStatusFor' as const,
-            args: [call.tokenId] as const,
-          }
-        : {
-            address: getAddress(CHILLWHALES_EXTENSION.orbsAddress),
-            abi: ORBS_CLAIM_ABI,
-            functionName: 'getChillwhaleClaimStatus' as const,
-            args: [call.tokenId] as const,
-          },
+    return readAtVerifiedBlock(rpc, block, () =>
+      executeMulticallContractCalls(rpc, block, runtime.network.multicall.address, encodedCalls),
     );
-    const results: readonly unknown[] = await readAtVerifiedBlock(rpc, block, () =>
-      rpc.multicall({
-        contracts,
-        blockNumber: BigInt(block.number),
-        multicallAddress: runtime.network.multicall.address,
-        allowFailure: true,
-      }),
-    );
-    return results.map(normalizeResult);
   };
 }
 

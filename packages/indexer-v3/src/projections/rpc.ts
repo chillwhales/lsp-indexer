@@ -1,10 +1,14 @@
-import { decodeFunctionResult, encodeFunctionData, getAddress, type Hex } from 'viem';
+import { decodeFunctionResult, encodeFunctionData, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
 import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
 import type { VerificationCandidate, VerificationCategory } from './candidates.js';
-import { executeDirectContractCalls, type DirectContractCall } from './direct.js';
+import {
+  executeDirectContractCalls,
+  executeMulticallContractCalls,
+  type DirectContractCall,
+} from './direct.js';
 import { INTERFACE_IDS } from './standards.js';
 
 const SUPPORTS_INTERFACE_ABI = [
@@ -114,17 +118,6 @@ function planCandidate(candidate: VerificationCandidate): PlannedCall[] {
   ];
 }
 
-function normalizeViemResult(result: unknown): ProjectionContractCallResult {
-  if (typeof result !== 'object' || result == null || !('status' in result)) {
-    throw new Error('RPC multicall returned an invalid result');
-  }
-  if (result.status === 'failure') return { status: 'failure' };
-  if (result.status !== 'success' || !('result' in result)) {
-    throw new Error('RPC multicall returned an unknown result status');
-  }
-  return { status: 'success', value: result.result };
-}
-
 function decodeSupportsInterface(data: Hex): unknown | undefined {
   try {
     return decodeFunctionResult({
@@ -172,40 +165,16 @@ export function createProjectionCallExecutor(
     block: ProjectionBlockRef,
     calls: readonly ProjectionContractCall[],
   ): Promise<readonly ProjectionContractCallResult[]> {
+    const encodedCalls = calls.map(createDirectProjectionCall);
     if (block.number < runtime.network.multicall.fromBlock) {
       return readAtVerifiedBlock(rpc, block, () =>
-        executeDirectContractCalls(
-          rpc,
-          block.number,
-          calls.map(createDirectProjectionCall),
-          runtime.network.rpc.batchSize,
-        ),
+        executeDirectContractCalls(rpc, block, encodedCalls, runtime.network.rpc.batchSize),
       );
     }
 
-    const contracts = calls.map((call) =>
-      call.functionName === 'supportsInterface'
-        ? {
-            address: getAddress(call.address),
-            abi: SUPPORTS_INTERFACE_ABI,
-            functionName: 'supportsInterface' as const,
-            args: [call.interfaceId] as const,
-          }
-        : {
-            address: getAddress(call.address),
-            abi: DECIMALS_ABI,
-            functionName: 'decimals' as const,
-          },
+    return readAtVerifiedBlock(rpc, block, () =>
+      executeMulticallContractCalls(rpc, block, runtime.network.multicall.address, encodedCalls),
     );
-    const results: readonly unknown[] = await readAtVerifiedBlock(rpc, block, () =>
-      rpc.multicall({
-        contracts,
-        blockNumber: BigInt(block.number),
-        multicallAddress: runtime.network.multicall.address,
-        allowFailure: true,
-      }),
-    );
-    return results.map(normalizeViemResult);
   };
 }
 

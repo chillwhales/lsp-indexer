@@ -101,8 +101,10 @@ The event command also runs the v3 projection pipeline. It deduplicates verifica
 exact block number and hash, interface category, and address; executes current and legacy
 LSP0/LSP7/LSP8 interface checks through bounded direct reads before the configured Multicall3
 deployment and bounded Multicall3 batches afterward; and pins every read to its triggering block.
-The RPC block hash is checked both before and after either path so a provider reorg cannot commit
-results from the wrong fork. Decimals are accepted only for verified LSP7 assets.
+The actual `eth_call` in either path uses the Portal block hash through EIP-1898 with canonical
+membership required. The RPC block hash is also checked before and after the read, so a provider
+reorg or load-balanced backend cannot commit results from the wrong fork. The configured endpoint
+must support EIP-1898 block identifiers. Decimals are accepted only for verified LSP7 assets.
 
 The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
 
