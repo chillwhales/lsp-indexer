@@ -343,9 +343,11 @@ interface. Verification affects typed relationships and projections, not histori
 preserves the useful v2 behavior without porting its enrichment queue implementation.
 
 The reducer receives only event IDs inserted by the current transaction. It loads the smallest
-existing state scope needed by those facts, applies them in canonical order, deletes stale registry
-or zero-balance rows, and upserts the resulting current state. Exact replay can validate an existing
-fact but cannot apply it twice.
+existing state scope needed by those facts through bounded lookup chunks, applies them in canonical
+order, deletes stale registry or zero-balance rows, and upserts the resulting current state. A
+transfer affects typed state only when its decoded LSP7/LSP8 domain matches the asset's verified
+standard. The canonical empty ERC725Y array-length value is length zero; malformed non-empty lengths
+do not mutate current arrays. Exact replay can validate an existing fact but cannot apply it twice.
 
 Interface verification is planned per exact `(block number, block hash, category, address)` and
 supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded

@@ -1,4 +1,4 @@
-import { and, eq, inArray, or } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import {
   createDeterministicId,
   createRelationshipId,
@@ -32,6 +32,9 @@ export type CreatorRow = typeof creators.$inferSelect;
 export type IssuedAssetRow = typeof issuedAssets.$inferSelect;
 export type ControllerRow = typeof controllers.$inferSelect;
 export type ChillwhalesNftRow = typeof chillwhalesNfts.$inferSelect;
+
+// Leaves ample bind-parameter headroom for the chain predicate and future scoped filters.
+const PROJECTION_STATE_LOOKUP_CHUNK_SIZE = 10_000;
 
 export interface ProjectionState {
   universalProfiles: Map<string, UniversalProfileRow>;
@@ -194,6 +197,46 @@ function rowsByAddress<T extends { address: string }>(rows: readonly T[]): Map<s
   return new Map(rows.map((row) => [row.address, row]));
 }
 
+function createStateLookupChunks(values: readonly string[]): string[][] {
+  const chunks: string[][] = [];
+  for (let index = 0; index < values.length; index += PROJECTION_STATE_LOOKUP_CHUNK_SIZE) {
+    chunks.push(values.slice(index, index + PROJECTION_STATE_LOOKUP_CHUNK_SIZE));
+  }
+  return chunks;
+}
+
+async function loadInChunks<T>(
+  values: readonly string[],
+  load: (chunk: string[]) => Promise<T[]>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (const chunk of createStateLookupChunks(values)) rows.push(...(await load(chunk)));
+  return rows;
+}
+
+async function loadNftRows(
+  tx: PersistenceHandlerContext['tx'],
+  chainId: number,
+  ids: readonly string[],
+  collectionAddresses: readonly string[],
+): Promise<NftRow[]> {
+  const [byId, byCollection] = await Promise.all([
+    loadInChunks(ids, async (chunk) =>
+      tx
+        .select()
+        .from(nfts)
+        .where(and(eq(nfts.chainId, chainId), inArray(nfts.id, chunk))),
+    ),
+    loadInChunks(collectionAddresses, async (chunk) =>
+      tx
+        .select()
+        .from(nfts)
+        .where(and(eq(nfts.chainId, chainId), inArray(nfts.address, chunk))),
+    ),
+  ]);
+  return [...new Map([...byId, ...byCollection].map((row) => [row.id, row])).values()];
+}
+
 /** Load only the current rows that can be touched by this canonical event subset. */
 export async function loadProjectionState(
   tx: PersistenceHandlerContext['tx'],
@@ -208,17 +251,6 @@ export async function loadProjectionState(
       createDeterministicId('chillwhales-nft', chainId, [update.address, update.tokenId]),
     );
   }
-  const nftCondition =
-    scope.nftIds.size > 0 && scope.nftCollectionAddresses.size > 0
-      ? or(
-          inArray(nfts.id, [...scope.nftIds]),
-          inArray(nfts.address, [...scope.nftCollectionAddresses]),
-        )
-      : scope.nftIds.size > 0
-        ? inArray(nfts.id, [...scope.nftIds])
-        : scope.nftCollectionAddresses.size > 0
-          ? inArray(nfts.address, [...scope.nftCollectionAddresses])
-          : null;
   const [
     profileRows,
     assetRows,
@@ -231,111 +263,63 @@ export async function loadProjectionState(
     controllerRows,
     extensionRows,
   ] = await Promise.all([
-    scope.profileAddresses.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(universalProfiles)
-          .where(
-            and(
-              eq(universalProfiles.chainId, chainId),
-              inArray(universalProfiles.address, [...scope.profileAddresses]),
-            ),
-          ),
-    scope.assetAddresses.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(digitalAssets)
-          .where(
-            and(
-              eq(digitalAssets.chainId, chainId),
-              inArray(digitalAssets.address, [...scope.assetAddresses]),
-            ),
-          ),
-    nftCondition == null
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(nfts)
-          .where(and(eq(nfts.chainId, chainId), nftCondition)),
-    scope.ownedAssetIds.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(ownedAssets)
-          .where(
-            and(
-              eq(ownedAssets.chainId, chainId),
-              inArray(ownedAssets.id, [...scope.ownedAssetIds]),
-            ),
-          ),
-    scope.ownedTokenIds.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(ownedTokens)
-          .where(
-            and(
-              eq(ownedTokens.chainId, chainId),
-              inArray(ownedTokens.id, [...scope.ownedTokenIds]),
-            ),
-          ),
-    scope.followerEdgeIds.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(followerEdges)
-          .where(
-            and(
-              eq(followerEdges.chainId, chainId),
-              inArray(followerEdges.id, [...scope.followerEdgeIds]),
-            ),
-          ),
-    scope.creatorAssets.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(creators)
-          .where(
-            and(
-              eq(creators.chainId, chainId),
-              inArray(creators.assetAddress, [...scope.creatorAssets]),
-            ),
-          ),
-    scope.issuerProfiles.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(issuedAssets)
-          .where(
-            and(
-              eq(issuedAssets.chainId, chainId),
-              inArray(issuedAssets.issuerAddress, [...scope.issuerProfiles]),
-            ),
-          ),
-    scope.controllerProfiles.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(controllers)
-          .where(
-            and(
-              eq(controllers.chainId, chainId),
-              inArray(controllers.profileAddress, [...scope.controllerProfiles]),
-            ),
-          ),
-    scope.extensionIds.size === 0
-      ? Promise.resolve([])
-      : tx
-          .select()
-          .from(chillwhalesNfts)
-          .where(
-            and(
-              eq(chillwhalesNfts.chainId, chainId),
-              inArray(chillwhalesNfts.id, [...scope.extensionIds]),
-            ),
-          ),
+    loadInChunks([...scope.profileAddresses], async (chunk) =>
+      tx
+        .select()
+        .from(universalProfiles)
+        .where(
+          and(eq(universalProfiles.chainId, chainId), inArray(universalProfiles.address, chunk)),
+        ),
+    ),
+    loadInChunks([...scope.assetAddresses], async (chunk) =>
+      tx
+        .select()
+        .from(digitalAssets)
+        .where(and(eq(digitalAssets.chainId, chainId), inArray(digitalAssets.address, chunk))),
+    ),
+    loadNftRows(tx, chainId, [...scope.nftIds], [...scope.nftCollectionAddresses]),
+    loadInChunks([...scope.ownedAssetIds], async (chunk) =>
+      tx
+        .select()
+        .from(ownedAssets)
+        .where(and(eq(ownedAssets.chainId, chainId), inArray(ownedAssets.id, chunk))),
+    ),
+    loadInChunks([...scope.ownedTokenIds], async (chunk) =>
+      tx
+        .select()
+        .from(ownedTokens)
+        .where(and(eq(ownedTokens.chainId, chainId), inArray(ownedTokens.id, chunk))),
+    ),
+    loadInChunks([...scope.followerEdgeIds], async (chunk) =>
+      tx
+        .select()
+        .from(followerEdges)
+        .where(and(eq(followerEdges.chainId, chainId), inArray(followerEdges.id, chunk))),
+    ),
+    loadInChunks([...scope.creatorAssets], async (chunk) =>
+      tx
+        .select()
+        .from(creators)
+        .where(and(eq(creators.chainId, chainId), inArray(creators.assetAddress, chunk))),
+    ),
+    loadInChunks([...scope.issuerProfiles], async (chunk) =>
+      tx
+        .select()
+        .from(issuedAssets)
+        .where(and(eq(issuedAssets.chainId, chainId), inArray(issuedAssets.issuerAddress, chunk))),
+    ),
+    loadInChunks([...scope.controllerProfiles], async (chunk) =>
+      tx
+        .select()
+        .from(controllers)
+        .where(and(eq(controllers.chainId, chainId), inArray(controllers.profileAddress, chunk))),
+    ),
+    loadInChunks([...scope.extensionIds], async (chunk) =>
+      tx
+        .select()
+        .from(chillwhalesNfts)
+        .where(and(eq(chillwhalesNfts.chainId, chainId), inArray(chillwhalesNfts.id, chunk))),
+    ),
   ]);
 
   return {

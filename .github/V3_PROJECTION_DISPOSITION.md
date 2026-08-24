@@ -26,12 +26,16 @@ chain-scoped current-state tables.
   cursor permits continuation only when `INDEXER_FROM_BLOCK` does not skip the next block.
 - Only event IDs newly inserted in the target transaction reach the reducer. Resetting a cursor and
   replaying identical facts therefore cannot double-apply supply, balances, registries, or edges.
+- Projection-state lookups are split into bounded queries, and transfer facts mutate typed state
+  only when their event domain matches the asset's verified LSP7/LSP8 standard.
 - Current state is keyed by chain ID plus its domain natural key. All IDs are deterministic and all
   writes, indexed-head visibility, rollback snapshots, and the Pipes cursor commit together.
 - Changed creator, issued-asset, and controller rows are deleted before reinsertion, allowing
   unique array indexes to swap without transient collisions.
 - Controller array membership and permission maps are independent. Removing a slot nulls its index;
   the row remains until its permissions, allowed calls, and allowed data keys are all empty.
+- The canonical empty ERC725Y array-length value means zero for creators, issued assets, and
+  controllers; malformed non-empty lengths leave current rows unchanged.
 - Metadata bytes and URLs are durable chain inputs here. External IPFS/HTTP fetching, revision
   publication, retry policy, and metadata sub-entities belong to #385.
 

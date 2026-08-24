@@ -207,6 +207,38 @@ describe('deterministic v3 domain reducer', () => {
     ]);
   });
 
+  it('ignores transfers whose event domain mismatches the verified asset standard', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const lsp7Fact = transfer(runtime, 1, asset, 'lsp7', ZERO_ADDRESS, alice, '10');
+    const lsp7Mutations = reduceProjectionEvents(
+      runtime,
+      emptyState(),
+      [lsp7Fact],
+      verifications([lsp7Fact], [alice], new Map([[asset, 'lsp8']])),
+    );
+
+    expect(lsp7Mutations.digitalAssets).toEqual([
+      expect.objectContaining({ standard: 'lsp8', totalSupply: null }),
+    ]);
+    expect(lsp7Mutations.ownedAssets).toEqual([]);
+    expect(lsp7Mutations.nfts).toEqual([]);
+
+    const lsp8Fact = transfer(runtime, 2, asset, 'lsp8', ZERO_ADDRESS, alice, '1');
+    const lsp8Mutations = reduceProjectionEvents(
+      runtime,
+      emptyState(),
+      [lsp8Fact],
+      verifications([lsp8Fact], [alice], new Map([[asset, 'lsp7']])),
+    );
+
+    expect(lsp8Mutations.digitalAssets).toEqual([
+      expect.objectContaining({ standard: 'lsp7', totalSupply: null }),
+    ]);
+    expect(lsp8Mutations.ownedAssets).toEqual([]);
+    expect(lsp8Mutations.nfts).toEqual([]);
+    expect(lsp8Mutations.ownedTokens).toEqual([]);
+  });
+
   it('clears LSP8-only state when an asset is reclassified as LSP7', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const baseUri = `0x0000000000000000${stringToHex('ipfs://collection').slice(2)}`;
@@ -632,34 +664,39 @@ describe('deterministic v3 domain reducer', () => {
     expect(mutations.dataValues).toHaveLength(changes.length);
   });
 
-  it('removes issued assets and controllers when their registries shrink', () => {
+  it('treats empty creator, issued-asset, and controller array lengths as zero', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const creatorIndex = `${DATA_KEYS.lsp4CreatorsIndex}${toHex(0n, { size: 16 }).slice(2)}`;
     const issuedIndex = `${DATA_KEYS.lsp12IssuedAssetsIndex}${toHex(0n, { size: 16 }).slice(2)}`;
     const controllerIndex = `${DATA_KEYS.lsp6ControllersIndex}${toHex(0n, { size: 16 }).slice(2)}`;
     const setup = [
-      dataChanged(runtime, 1, alice, issuedIndex, asset),
-      dataChanged(runtime, 2, alice, controllerIndex, controller),
+      dataChanged(runtime, 1, asset, creatorIndex, bob),
+      dataChanged(runtime, 2, alice, issuedIndex, asset),
+      dataChanged(runtime, 3, alice, controllerIndex, controller),
     ];
     const state = emptyState();
     reduceProjectionEvents(
       runtime,
       state,
       setup,
-      verifications(setup, [alice], new Map([[asset, 'lsp7']])),
+      verifications(setup, [alice, bob], new Map([[asset, 'lsp7']])),
     );
     const shrink = [
-      dataChanged(runtime, 3, alice, DATA_KEYS.lsp12IssuedAssetsLength, toHex(0n, { size: 16 })),
-      dataChanged(runtime, 4, alice, DATA_KEYS.lsp6ControllersLength, toHex(0n, { size: 16 })),
+      dataChanged(runtime, 4, asset, DATA_KEYS.lsp4CreatorsLength, '0x'),
+      dataChanged(runtime, 5, alice, DATA_KEYS.lsp12IssuedAssetsLength, '0x'),
+      dataChanged(runtime, 6, alice, DATA_KEYS.lsp6ControllersLength, '0x'),
     ];
     const mutations = reduceProjectionEvents(
       runtime,
       state,
       shrink,
-      verifications(shrink, [alice], new Map()),
+      verifications(shrink, [alice], new Map([[asset, 'lsp7']])),
     );
 
+    expect(mutations.creators).toEqual([]);
     expect(mutations.issuedAssets).toEqual([]);
     expect(mutations.controllers).toEqual([]);
+    expect(mutations.deletedCreatorIds).toHaveLength(1);
     expect(mutations.deletedIssuedAssetIds).toHaveLength(1);
     expect(mutations.deletedControllerIds).toHaveLength(1);
   });

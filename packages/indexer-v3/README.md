@@ -106,7 +106,9 @@ membership required. The RPC block hash is also checked before and after the rea
 reorg or load-balanced backend cannot commit results from the wrong fork. The configured endpoint
 must support EIP-1898 block identifiers. Decimals are accepted only for verified LSP7 assets.
 
-The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
+The reducer applies only newly inserted facts in block/transaction/log order. Existing rows are
+loaded through bounded state-query chunks so large Pipes batches stay below PostgreSQL's parameter
+limit. It atomically writes:
 
 - Universal Profiles and digital assets, including owner, standard, decimals, supply, and LSP4/LSP8
   scalar state
@@ -115,6 +117,9 @@ The reducer applies only newly inserted facts in block/transaction/log order and
 - Follower tombstones, creators, issued assets, controllers, permissions, and raw ERC725Y values
 - The LUKSO-only Chillwhales extension for claim flags and Orb level, cooldown, and faction
 
+Transfer facts mutate balances, supply, and NFTs only when their LSP7/LSP8 event domain matches the
+asset's verified standard.
+
 A failed individual interface call produces no new typed entity. If a previously verified contract
 later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
 until it verifies again. A later successful verification refreshes the asset's current standard and
@@ -122,8 +127,11 @@ standard-specific fields, so implementation upgrades do not retain a stale class
 away from LSP8 also clears the collection-only format, reference, base URI, NFTs, token ownership,
 and extension rows while raw events and ERC725Y values remain stored. Removing a controller array
 slot clears only its index; independent permission maps keep that controller materialized until all
-of them are empty. A transport or
-malformed-response failure aborts the transaction and leaves the cursor at the preceding position.
+of them are empty. Clearing a creator, issued-asset, or controller array length with the canonical
+empty ERC725Y value treats its length as zero. Creator and issued-asset members are removed;
+controller indexes are cleared while rows with independent permission maps remain. Other malformed
+lengths are ignored. A transport or malformed-response failure aborts the transaction and leaves
+the cursor at the preceding position.
 Exact replay validates existing deterministic facts but does not reduce them again, preventing
 double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
 deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one

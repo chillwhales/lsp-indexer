@@ -906,6 +906,7 @@ function reduceTransfer(context: ReducerContext, event: EventFactRecord): void {
 
   const asset = context.state.digitalAssets.get(event.address);
   if (asset == null) return;
+  if (asset.standard !== event.eventDomain) return;
   if (from === ZERO_ADDRESS || to === ZERO_ADDRESS) {
     const currentSupply = asset.totalSupply == null ? 0n : BigInt(asset.totalSupply);
     const withMint = from === ZERO_ADDRESS ? currentSupply + amount : currentSupply;

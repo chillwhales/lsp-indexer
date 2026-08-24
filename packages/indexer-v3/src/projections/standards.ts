@@ -79,6 +79,7 @@ export function decodeArrayIndex(dataKey: string): bigint | null {
 
 /** Decode an exact uint128 array length without losing precision. */
 export function decodeArrayLength(value: string): bigint | null {
+  if (value === '0x') return 0n;
   if (!isHex(value) || hexToBytes(value).length !== 16) return null;
   return BigInt(value);
 }

@@ -47,10 +47,15 @@ function event(
   };
 }
 
+function addressFor(value: number): string {
+  return toHex(BigInt(value), { size: 20 });
+}
+
 function fakeTransaction(
   rows: ReadonlyMap<unknown, readonly unknown[]>,
   selected: Set<unknown>,
   predicates?: Map<unknown, SQL>,
+  queryCounts?: Map<unknown, number>,
 ): PersistenceHandlerContext['tx'] {
   const transaction = {
     select() {
@@ -60,6 +65,7 @@ function fakeTransaction(
           return {
             where(predicate: SQL): Promise<readonly unknown[]> {
               predicates?.set(table, predicate);
+              queryCounts?.set(table, (queryCounts.get(table) ?? 0) + 1);
               return Promise.resolve(rows.get(table) ?? []);
             },
           };
@@ -272,5 +278,35 @@ describe('projection state loader', () => {
     expect(query.sql).toContain('"nfts"."address" in');
     expect(query.sql).not.toContain('"nfts"."id" in');
     expect(query.params).toContain(asset);
+  });
+
+  it('chunks large state scopes into PostgreSQL-safe lookup queries', async () => {
+    const transfers = Array.from({ length: 5_001 }, (_, index) =>
+      event(index, {
+        address: asset,
+        eventName: 'Transfer',
+        eventDomain: 'lsp8',
+        decoded: {
+          operator: ZERO_ADDRESS,
+          from: addressFor(1_000 + index * 2),
+          to: addressFor(1_001 + index * 2),
+          amount: '1',
+          tokenId: toHex(BigInt(index + 1), { size: 32 }),
+        },
+      }),
+    );
+    const selected = new Set<unknown>();
+    const queryCounts = new Map<unknown, number>();
+
+    await loadProjectionState(
+      fakeTransaction(new Map(), selected, undefined, queryCounts),
+      42,
+      transfers,
+    );
+
+    expect(queryCounts.get(universalProfiles)).toBe(2);
+    expect(queryCounts.get(ownedAssets)).toBe(2);
+    expect(queryCounts.get(ownedTokens)).toBe(2);
+    expect(queryCounts.get(nfts)).toBe(1);
   });
 });

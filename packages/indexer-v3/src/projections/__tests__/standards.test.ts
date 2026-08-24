@@ -29,6 +29,8 @@ describe('LSP projection value decoders', () => {
     expect(decodeAddressKey(mapKey)).toBe(address);
     expect(decodeArrayIndex(indexKey)).toBe(7n);
     expect(decodeArrayIndex(maximumIndexKey)).toBe(maximumUint128);
+    expect(decodeArrayLength('0x')).toBe(0n);
+    expect(decodeArrayLength('0x00')).toBeNull();
     expect(decodeArrayLength(toHex(8n, { size: 16 }))).toBe(8n);
     expect(decodeArrayLength(toHex(maximumUint128, { size: 16 }))).toBe(maximumUint128);
     expect(decodeRegistryValue(registryValue)).toEqual({

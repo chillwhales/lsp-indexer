@@ -32,6 +32,10 @@ It does **not** yet include the external metadata workers, applied Hasura metada
 consumer package contracts. Those land in subsequent v3 goals and the v2 implementation remains
 the production path meanwhile.
 
+The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 alpha projection. It
+stores CHILL/ORBS claim flags and Orb level, cooldown, and faction state; Node, React, and Next.js
+consumer APIs are deliberately deferred to the v3 package-contract goal.
+
 ### Multi-chain process model
 
 ```mermaid
@@ -269,11 +273,13 @@ required. The provider's block hash is also checked before and after either path
 changing fork or a different load-balanced backend cannot commit. The RPC endpoint must support
 EIP-1898 block identifiers.
 
-Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
-order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and
-token ownership; follower tombstones; creators; issued assets; controllers and permissions; and
-raw ERC725Y current values. NFT formatting and base-URI changes also update existing NFT token
-locations.
+Only newly inserted event facts reach the reducer. Existing projection rows are loaded with bounded
+state queries so a large Pipes batch cannot exceed PostgreSQL's bind-parameter limit. Facts are
+applied in block, transaction, and log order to produce verified Universal Profiles and digital
+assets; NFTs; supply; UP-scoped asset and token ownership; follower tombstones; creators; issued
+assets; controllers and permissions; and raw ERC725Y current values. A transfer mutates typed state
+only when its LSP7/LSP8 event domain matches the asset's verified standard. NFT formatting and
+base-URI changes also update existing NFT token locations.
 
 Invalid interface candidates do not create typed rows. If a previously verified contract later
 fails verification, its core row becomes `invalid` and later facts cannot mutate typed state until
@@ -282,7 +288,10 @@ standard-specific fields, so implementation upgrades do not retain a stale class
 change from LSP8 to another standard clears the collection-only format, reference, base URI, NFTs,
 token ownership, and extension rows while preserving raw facts and ERC725Y values. Controller array
 membership is independent of permission maps: removing an array slot clears its index but retains
-the controller until its permission, allowed-call, and allowed-data-key maps are all empty. RPC
+the controller until its permission, allowed-call, and allowed-data-key maps are all empty.
+The canonical empty ERC725Y value for a creator, issued-asset, or controller array length means
+length zero. It removes creator and issued-asset members and clears every controller array index,
+while controllers with independent permission maps remain. Other malformed lengths are ignored. RPC
 transport or result-shape failures abort the batch before the cursor commits. Exact replay can
 validate existing deterministic facts but cannot double-apply balances or supply. Changed creator,
 issued-asset, and controller rows are deleted before reinsertion so unique array indexes may safely
