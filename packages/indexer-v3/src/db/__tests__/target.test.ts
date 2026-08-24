@@ -43,6 +43,23 @@ describe('persistence batch provenance', () => {
     ).not.toHaveProperty('finalizedBlockNumber');
   });
 
+  it('clamps source finality ahead of a backfill cursor to the processed block', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'ethereum-mainnet' });
+    const batch = createPersistenceBatch(runtime, 'payload', {
+      stream: {
+        state: { current: { number: 10, hash: blockHash, timestamp: 1_700_000_000 } },
+        head: { finalized: { number: 20, hash: finalizedHash } },
+      },
+    });
+
+    expect(batch.head).toMatchObject({
+      blockNumber: 10,
+      blockHash,
+      finalizedBlockNumber: 10,
+      finalizedBlockHash: blockHash,
+    });
+  });
+
   it('rejects a source query that omitted required block provenance', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'ethereum-mainnet' });
     expect(() =>

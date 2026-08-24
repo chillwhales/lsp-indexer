@@ -46,10 +46,13 @@ functions, triggers, and cursors are created and used only inside that chain sch
 Creator and issued-asset ERC725Y array indexes retain their complete unsigned 128-bit range as
 PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
 Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
-identity. During forward processing, indexed heads retain the last known finalized watermark when a
-later source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is
-the only path that moves the watermark backwards during a fork. A provider that reports a different
-hash at the already-stored finalized height aborts the batch.
+identity. Before advancing the head, the target verifies every parent link after the previously
+indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected
+tip. During forward processing, indexed heads retain the last known finalized watermark when a later
+source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is the
+only path that moves the watermark backwards during a fork. Source-wide finality ahead of a
+historical backfill is clamped to the processed cursor and its hash. A provider that reports a
+different hash at the already-stored finalized height aborts the batch.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will

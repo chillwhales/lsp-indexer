@@ -1,13 +1,14 @@
 import type { BlockCursor, HookContext } from '@subsquid/pipes';
 import { drizzleTarget, type Transaction } from '@subsquid/pipes/targets/drizzle/node-postgres';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, gt, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
 import type { NetworkDatabaseConfig } from './config.js';
 import { normalizeBytes32 } from './identity.js';
 import { CURSOR_TABLE } from './names.js';
 import { verifyDatabaseReadiness } from './readiness.js';
-import { indexedHeads, rollbackTables } from './schema.js';
+import { blocks, indexedHeads, rollbackTables } from './schema.js';
 
 export interface PersistenceHead {
   network: string;
@@ -100,7 +101,11 @@ export function createPersistenceBatch<T>(
   if (!Number.isSafeInteger(current.timestamp) || current.timestamp < 0) {
     throw new Error('Persistence block timestamp must be a non-negative safe integer');
   }
-  const finalized = ctx.stream.head.finalized;
+  const sourceFinalized = ctx.stream.head.finalized;
+  const finalized =
+    sourceFinalized?.hash != null && sourceFinalized.number > current.number
+      ? current
+      : sourceFinalized;
   const head: PersistenceHead = {
     network: runtime.network.key,
     chainId: runtime.network.chainId,
@@ -118,6 +123,70 @@ export function createPersistenceBatch<T>(
   return { payload, head };
 }
 
+// Exercised against PostgreSQL by persistence.integration.test.ts.
+/* v8 ignore start */
+async function assertCanonicalBlockHistory(
+  tx: Transaction,
+  head: PersistenceHead,
+  storedBlockNumber: number | undefined,
+): Promise<void> {
+  const firstStoredBlockNumber =
+    storedBlockNumber == null
+      ? (
+          await tx
+            .select({ blockNumber: blocks.number })
+            .from(blocks)
+            .where(
+              and(
+                eq(blocks.network, head.network),
+                eq(blocks.chainId, head.chainId),
+                lte(blocks.number, head.blockNumber),
+              ),
+            )
+            .orderBy(blocks.number)
+            .limit(1)
+        )[0]?.blockNumber
+      : undefined;
+  const anchorBlockNumber = storedBlockNumber ?? firstStoredBlockNumber;
+  if (anchorBlockNumber == null || head.blockNumber <= anchorBlockNumber) return;
+
+  const canonicalBlock = alias(blocks, 'canonical_block');
+  const canonicalParent = alias(blocks, 'canonical_parent');
+  const discontinuity = (
+    await tx
+      .select({
+        blockNumber: canonicalBlock.number,
+        parentHash: canonicalBlock.parentHash,
+        canonicalParentHash: canonicalParent.hash,
+      })
+      .from(canonicalBlock)
+      .leftJoin(
+        canonicalParent,
+        and(
+          eq(canonicalParent.chainId, canonicalBlock.chainId),
+          eq(canonicalParent.number, sql`${canonicalBlock.number} - 1`),
+        ),
+      )
+      .where(
+        and(
+          eq(canonicalBlock.network, head.network),
+          eq(canonicalBlock.chainId, head.chainId),
+          gt(canonicalBlock.number, anchorBlockNumber),
+          lte(canonicalBlock.number, head.blockNumber),
+          or(isNull(canonicalParent.hash), ne(canonicalBlock.parentHash, canonicalParent.hash)),
+        ),
+      )
+      .orderBy(canonicalBlock.number)
+      .limit(1)
+  )[0];
+  if (discontinuity == null) return;
+
+  throw new Error(
+    `Block ${discontinuity.blockNumber} links to parent hash ${discontinuity.parentHash}, but canonical block ${discontinuity.blockNumber - 1} has hash ${discontinuity.canonicalParentHash ?? 'missing'}`,
+  );
+}
+/* v8 ignore stop */
+
 async function writeIndexedHead(
   tx: Transaction,
   runtime: RuntimeConfig,
@@ -131,17 +200,19 @@ async function writeIndexedHead(
           finalizedBlockNumber: head.finalizedBlockNumber,
           finalizedBlockHash: head.finalizedBlockHash.toLowerCase(),
         };
+  const stored = (
+    await tx
+      .select({
+        blockNumber: indexedHeads.blockNumber,
+        finalizedBlockNumber: indexedHeads.finalizedBlockNumber,
+        finalizedBlockHash: indexedHeads.finalizedBlockHash,
+      })
+      .from(indexedHeads)
+      .where(and(eq(indexedHeads.network, head.network), eq(indexedHeads.chainId, head.chainId)))
+      .for('update')
+  )[0];
+  await assertCanonicalBlockHistory(tx, head, stored?.blockNumber);
   if (finalizedValues != null) {
-    const stored = (
-      await tx
-        .select({
-          finalizedBlockNumber: indexedHeads.finalizedBlockNumber,
-          finalizedBlockHash: indexedHeads.finalizedBlockHash,
-        })
-        .from(indexedHeads)
-        .where(and(eq(indexedHeads.network, head.network), eq(indexedHeads.chainId, head.chainId)))
-        .for('update')
-    )[0];
     if (
       stored?.finalizedBlockNumber === finalizedValues.finalizedBlockNumber &&
       stored.finalizedBlockHash?.toLowerCase() !== finalizedValues.finalizedBlockHash

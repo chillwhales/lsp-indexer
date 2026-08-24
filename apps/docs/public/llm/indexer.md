@@ -100,10 +100,14 @@ creator, issued-asset, permission, ERC725Y, metadata, and indexed-head projectio
 metadata queue; and the Pipes cursor. All 15 application tables changed by ingestion have primary
 keys and are registered with the official Pipes rollback target. A cluster-wide advisory lock
 rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
-and indexed heads reference that same exact block identity. During forward processing, indexed heads
-retain a known finalized watermark when a later source batch omits finality or reports a lower
-height; only Pipes rollback restoration moves it backwards. A different hash at the stored finalized
-height aborts the batch. The target consumes the loaded database configuration directly, so
+and indexed heads reference that same exact block identity. Before advancing the head, the target
+validates every parent link after the previously indexed head, so a replay cannot retain a stale
+intermediate block and append a disconnected tip. During forward processing, indexed heads retain a
+known finalized watermark when a later source batch omits finality or reports a lower height; only
+Pipes rollback restoration moves it backwards. When a live source reports finality ahead of a
+historical backfill cursor, the target records the processed cursor and its hash as the highest
+finalized block available locally. A different hash at the stored finalized height aborts the batch.
+The target consumes the loaded database configuration directly, so
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
 ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
 `numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot

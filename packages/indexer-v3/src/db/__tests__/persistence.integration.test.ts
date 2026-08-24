@@ -130,6 +130,12 @@ const alternateBlock2 = mockBlock({
   hash: hashFor(202),
   parentHash: block1.header.hash,
 });
+const alternateBlock3 = mockBlock({
+  number: 3,
+  timestamp: 1_700_000_003,
+  hash: hashFor(204),
+  parentHash: alternateBlock2.header.hash,
+});
 
 let controlPool: Pool;
 let testAdminPool: Pool;
@@ -1398,6 +1404,29 @@ describe.sequential('PostgreSQL persistence', () => {
 
     expect(await countRows(ethereumPool, 'blocks')).toBe(2);
     expect(await countRows(ethereumPool, 'event_facts')).toBe(2);
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      blockNumber: block2.header.number,
+      blockHash: block2.header.hash,
+    });
+    expect(
+      (
+        await ethereumDb
+          .select()
+          .from(universalProfiles)
+          .where(eq(universalProfiles.address, testAddress))
+      )[0],
+    ).toMatchObject({ lastBlockHash: block2.header.hash });
+  });
+
+  it('rejects a conflicting intermediate block hash during replay', async () => {
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await expect(
+      runBlocks(createTestTarget(undefined, false), [alternateBlock2, alternateBlock3], null),
+    ).rejects.toThrow(
+      `Block 3 links to parent hash ${alternateBlock2.header.hash}, but canonical block 2 has hash ${block2.header.hash}`,
+    );
+
+    expect(await countRows(ethereumPool, 'blocks')).toBe(2);
     expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
       blockNumber: block2.header.number,
       blockHash: block2.header.hash,

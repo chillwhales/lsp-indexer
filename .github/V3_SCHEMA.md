@@ -68,8 +68,10 @@ the raw identity.
 
 `indexed_heads` uses the same exact block-identity foreign key. A replay range with no matching
 events therefore cannot publish a new head hash while the old canonical block remains at that
-height. Deleting a block cascades to its head row, while Pipes orders tracked rollback operations so
-parent blocks are restored before their dependent heads.
+height. Before advancing the head, the target also validates every parent link after the previously
+indexed height, so a conflicting intermediate block cannot be ignored while a disconnected new tip
+is committed. Deleting a block cascades to its head row, while Pipes orders tracked rollback
+operations so parent blocks are restored before their dependent heads.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in
@@ -90,9 +92,11 @@ and lets Pipes save its cursor before one commit. Any thrown decoder, RPC, reduc
 database error rolls the entire batch back. When a source batch omits a finalized cursor, the
 indexed head retains its previously known finalized number and hash. A lower finalized cursor also
 cannot reduce that watermark during forward processing; only restoration of the tracked head
-snapshot may move it backwards during fork handling. A source that reports a conflicting hash at the
-stored finalized height aborts the transaction. The target takes rollback retention directly from
-the validated network database configuration.
+snapshot may move it backwards during fork handling. When a live source reports a finalized head
+ahead of the historical cursor being processed, the target records that processed cursor and its
+hash as the highest finalized block available locally. A source that reports a conflicting hash at
+the stored finalized height aborts the transaction. The target takes rollback retention directly
+from the validated network database configuration.
 
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
