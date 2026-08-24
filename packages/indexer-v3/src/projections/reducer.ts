@@ -62,6 +62,7 @@ export interface ProjectionMutations {
   dataValues: DataValueRow[];
   deletedOwnedAssetIds: string[];
   deletedOwnedTokenIds: string[];
+  deletedNftCollections: { chainId: number; address: string }[];
   deletedCreatorIds: string[];
   deletedIssuedAssetIds: string[];
   deletedControllerIds: string[];
@@ -81,6 +82,7 @@ interface ChangeTracker {
   dataValues: Map<string, DataValueRow>;
   deletedOwnedAssetIds: Set<string>;
   deletedOwnedTokenIds: Set<string>;
+  deletedNftCollections: Map<string, { chainId: number; address: string }>;
   deletedCreatorIds: Set<string>;
   deletedIssuedAssetIds: Set<string>;
   deletedControllerIds: Set<string>;
@@ -116,6 +118,7 @@ function createChangeTracker(): ChangeTracker {
     dataValues: new Map(),
     deletedOwnedAssetIds: new Set(),
     deletedOwnedTokenIds: new Set(),
+    deletedNftCollections: new Map(),
     deletedCreatorIds: new Set(),
     deletedIssuedAssetIds: new Set(),
     deletedControllerIds: new Set(),
@@ -152,6 +155,29 @@ function hasVerifiedProfile(context: ReducerContext, address: string): boolean {
 
 function hasVerifiedAsset(context: ReducerContext, address: string): boolean {
   return context.state.digitalAssets.get(address)?.verification === 'verified';
+}
+
+function clearLsp8State(context: ReducerContext, address: string): void {
+  context.changes.deletedNftCollections.set(address, {
+    chainId: context.runtime.network.chainId,
+    address,
+  });
+
+  for (const [key, row] of context.state.nfts) {
+    if (row.address !== address) continue;
+    context.state.nfts.delete(key);
+    context.changes.nfts.delete(key);
+  }
+  for (const [key, row] of context.state.ownedTokens) {
+    if (row.assetAddress !== address) continue;
+    context.state.ownedTokens.delete(key);
+    context.changes.ownedTokens.delete(key);
+  }
+  for (const [key, row] of context.state.chillwhalesNfts) {
+    if (row.address !== address) continue;
+    context.state.chillwhalesNfts.delete(key);
+    context.changes.chillwhalesNfts.delete(key);
+  }
 }
 
 function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): void {
@@ -238,11 +264,16 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         existing.standard !== standard ||
         existing.decimals !== decimals
       ) {
+        const clearsLsp8State = existing.standard === 'lsp8' && standard !== 'lsp8';
+        if (clearsLsp8State) clearLsp8State(context, candidate.address);
         context.state.digitalAssets.set(candidate.address, {
           ...existing,
           verification: 'verified',
           standard,
           decimals,
+          tokenIdFormat: clearsLsp8State ? null : existing.tokenIdFormat,
+          tokenIdReferenceContract: clearsLsp8State ? null : existing.tokenIdReferenceContract,
+          baseUri: clearsLsp8State ? null : existing.baseUri,
           ...provenance(event),
         });
         context.changes.digitalAssets.add(candidate.address);
@@ -551,35 +582,47 @@ function deleteController(context: ReducerContext, key: string): void {
   context.changes.deletedControllerIds.add(row.id);
 }
 
+function hasControllerMappings(row: ControllerRow): boolean {
+  return (
+    row.permissions != null ||
+    (row.allowedCalls?.length ?? 0) > 0 ||
+    (row.allowedDataKeys?.length ?? 0) > 0
+  );
+}
+
 function deleteControllersAtOrAfter(
   context: ReducerContext,
-  profileAddress: string,
+  event: EventFactRecord,
   minimumIndex: bigint,
 ): void {
   for (const [key, row] of context.state.controllers) {
     if (
-      row.profileAddress === profileAddress &&
+      row.profileAddress === event.address &&
       row.arrayIndex != null &&
       row.arrayIndex >= minimumIndex
     ) {
-      deleteController(context, key);
+      if (hasControllerMappings(row))
+        upsertController(context, event, row.controllerAddress, { arrayIndex: null });
+      else deleteController(context, key);
     }
   }
 }
 
 function deleteControllerAtIndex(
   context: ReducerContext,
-  profileAddress: string,
+  event: EventFactRecord,
   arrayIndex: bigint,
   exceptAddress?: string,
 ): void {
   for (const [key, row] of context.state.controllers) {
     if (
-      row.profileAddress === profileAddress &&
+      row.profileAddress === event.address &&
       row.arrayIndex === arrayIndex &&
       row.controllerAddress !== exceptAddress
     ) {
-      deleteController(context, key);
+      if (hasControllerMappings(row))
+        upsertController(context, event, row.controllerAddress, { arrayIndex: null });
+      else deleteController(context, key);
     }
   }
 }
@@ -595,7 +638,7 @@ function upsertController(
   if (!hasVerifiedProfile(context, event.address)) return;
   const key = pairKey(event.address, controllerAddress);
   const existing = context.state.controllers.get(key);
-  context.state.controllers.set(key, {
+  const row: ControllerRow = {
     id:
       existing?.id ??
       createRelationshipId('controller', context.runtime.network.chainId, [
@@ -612,7 +655,12 @@ function upsertController(
     allowedDataKeys: existing?.allowedDataKeys ?? null,
     ...updates,
     ...provenance(event),
-  });
+  };
+  if (row.arrayIndex == null && !hasControllerMappings(row)) {
+    deleteController(context, key);
+    return;
+  }
+  context.state.controllers.set(key, row);
   context.changes.deletedControllerIds.delete(existing?.id ?? '');
   context.changes.controllers.add(key);
 }
@@ -625,15 +673,15 @@ function reduceControllers(context: ReducerContext, event: EventFactRecord): voi
 
   if (dataKey === DATA_KEYS.lsp6ControllersLength) {
     const length = decodeArrayLength(dataValue);
-    if (length != null) deleteControllersAtOrAfter(context, event.address, length);
+    if (length != null) deleteControllersAtOrAfter(context, event, length);
   } else if (dataKey.startsWith(DATA_KEYS.lsp6ControllersIndex)) {
     const arrayIndex = decodeArrayIndex(dataKey);
     if (arrayIndex == null) return;
     const controllerAddress = decodeAddressValue(dataValue);
     if (controllerAddress == null) {
-      deleteControllerAtIndex(context, event.address, arrayIndex);
+      deleteControllerAtIndex(context, event, arrayIndex);
     } else {
-      deleteControllerAtIndex(context, event.address, arrayIndex, controllerAddress);
+      deleteControllerAtIndex(context, event, arrayIndex, controllerAddress);
       upsertController(context, event, controllerAddress, { arrayIndex });
     }
   } else if (dataKey.startsWith(DATA_KEYS.lsp6Permissions)) {
@@ -908,12 +956,17 @@ function reduceTokenIdDataChanged(context: ReducerContext, event: EventFactRecor
   ) {
     return;
   }
-  if (dataKey === CHILLWHALES_EXTENSION.orbLevelKey && isHex(dataValue)) {
-    const bytes = hexToBytes(dataValue);
-    if (bytes.length >= 8) {
+  if (dataKey === CHILLWHALES_EXTENSION.orbLevelKey) {
+    const bytes = isHex(dataValue) ? hexToBytes(dataValue) : null;
+    if (bytes != null && bytes.length >= 8) {
       upsertChillwhalesExtension(context, event, tokenId, {
         level: bytesToNumber(bytes.slice(0, 4)),
         cooldownExpiry: bytesToNumber(bytes.slice(4, 8)),
+      });
+    } else {
+      upsertChillwhalesExtension(context, event, tokenId, {
+        level: null,
+        cooldownExpiry: null,
       });
     }
   } else if (dataKey === CHILLWHALES_EXTENSION.orbFactionKey) {
@@ -1063,6 +1116,7 @@ export function reduceProjectionEvents(
     dataValues: [...changes.dataValues.values()],
     deletedOwnedAssetIds: [...changes.deletedOwnedAssetIds],
     deletedOwnedTokenIds: [...changes.deletedOwnedTokenIds],
+    deletedNftCollections: [...changes.deletedNftCollections.values()],
     deletedCreatorIds: [...changes.deletedCreatorIds],
     deletedIssuedAssetIds: [...changes.deletedIssuedAssetIds],
     deletedControllerIds: [...changes.deletedControllerIds],

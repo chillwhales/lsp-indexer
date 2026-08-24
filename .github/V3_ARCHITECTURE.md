@@ -358,8 +358,16 @@ event or ERC725Y value. A later invalid result marks an existing core row invali
 subsequent typed reduction until verification succeeds again. Decimals are accepted only for a
 verified LSP7 asset.
 
+Successful re-verification also owns standard-transition cleanup. When an asset moves away from
+LSP8, the writer clears its token-ID format, reference contract, base URI, NFT rows, token ownership,
+and collection extension rows before writing the new standard, while raw facts and ERC725Y values
+remain immutable. Controller array membership is not ownership of its permission maps: clearing an
+array slot nulls the index and keeps the controller while any permission, allowed-call, or
+allowed-data-key mapping remains. The row is deleted only after every independent mapping is empty.
+
 The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
-updates use the same deterministic reducer. Each available Portal head checks at most 250
+updates use the same deterministic reducer. Empty or malformed packed Orb level data clears the
+derived level and cooldown together without changing faction. Each available Portal head checks at most 250
 unresolved CHILL and ORBS claim rows, prioritizing new mints. Successful false results wait 720
 blocks and individual call failures wait 30 blocks before becoming due again. Reads are pinned to
 the head's exact number and hash, and flags move monotonically from false to true. Other networks do

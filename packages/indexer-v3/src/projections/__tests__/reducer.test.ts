@@ -207,6 +207,56 @@ describe('deterministic v3 domain reducer', () => {
     ]);
   });
 
+  it('clears LSP8-only state when an asset is reclassified as LSP7', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const baseUri = `0x0000000000000000${stringToHex('ipfs://collection').slice(2)}`;
+    const setup = [
+      dataChanged(runtime, 1, asset, DATA_KEYS.lsp8TokenIdFormat, '0x00'),
+      dataChanged(runtime, 2, asset, DATA_KEYS.lsp8ReferenceContract, bob),
+      dataChanged(runtime, 3, asset, DATA_KEYS.lsp8MetadataBaseUri, baseUri),
+      transfer(runtime, 4, asset, 'lsp8', ZERO_ADDRESS, alice, '1'),
+    ];
+    const state = emptyState();
+    reduceProjectionEvents(
+      runtime,
+      state,
+      setup,
+      verifications(setup, [alice], new Map([[asset, 'lsp8']])),
+    );
+    expect(state.nfts.size).toBe(1);
+    expect(state.ownedTokens.size).toBe(1);
+
+    const reclassified = dataChanged(
+      runtime,
+      5,
+      asset,
+      DATA_KEYS.lsp4TokenName,
+      stringToHex('Now fungible'),
+    );
+    const mutations = reduceProjectionEvents(
+      runtime,
+      state,
+      [reclassified],
+      verifications([reclassified], [], new Map([[asset, 'lsp7']])),
+    );
+
+    expect(mutations.digitalAssets).toEqual([
+      expect.objectContaining({
+        address: asset,
+        standard: 'lsp7',
+        decimals: 18,
+        tokenIdFormat: null,
+        tokenIdReferenceContract: null,
+        baseUri: null,
+      }),
+    ]);
+    expect(mutations.deletedNftCollections).toEqual([{ chainId: 42, address: asset }]);
+    expect(mutations.nfts).toEqual([]);
+    expect(mutations.ownedTokens).toEqual([]);
+    expect(state.nfts.size).toBe(0);
+    expect(state.ownedTokens.size).toBe(0);
+  });
+
   it('orders LSP7 mint, transfer, and burn facts and produces exact supply and balances', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const events = [
@@ -503,9 +553,10 @@ describe('deterministic v3 domain reducer', () => {
       },
     });
     const events = [faction, mint, level];
+    const state = emptyState();
     const mutations = reduceProjectionEvents(
       runtime,
-      emptyState(),
+      state,
       events,
       verifications(events, [alice], new Map([[CHILLWHALES_EXTENSION.orbsAddress, 'lsp8']])),
     );
@@ -520,6 +571,26 @@ describe('deterministic v3 domain reducer', () => {
       }),
     ]);
     expect(mutations.dataValues).toHaveLength(2);
+
+    const cleared = event(runtime, 4, 0, {
+      address: CHILLWHALES_EXTENSION.orbsAddress,
+      eventName: 'TokenIdDataChanged',
+      eventDomain: 'lsp8',
+      decoded: {
+        tokenId,
+        dataKey: CHILLWHALES_EXTENSION.orbLevelKey,
+        dataValue: '0x',
+      },
+    });
+    const clearMutations = reduceProjectionEvents(
+      runtime,
+      state,
+      [cleared],
+      verifications([cleared], [], new Map([[CHILLWHALES_EXTENSION.orbsAddress, 'lsp8']])),
+    );
+    expect(clearMutations.chillwhalesNfts).toEqual([
+      expect.objectContaining({ level: null, cooldownExpiry: null, faction: 'Fire' }),
+    ]);
   });
 
   it('decodes all scalar asset and controller value families while preserving raw values', () => {
@@ -591,5 +662,44 @@ describe('deterministic v3 domain reducer', () => {
     expect(mutations.controllers).toEqual([]);
     expect(mutations.deletedIssuedAssetIds).toHaveLength(1);
     expect(mutations.deletedControllerIds).toHaveLength(1);
+  });
+
+  it('preserves controller permission maps when an array membership is removed', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const controllerIndex = `${DATA_KEYS.lsp6ControllersIndex}${toHex(0n, { size: 16 }).slice(2)}`;
+    const permissionsKey = `${DATA_KEYS.lsp6Permissions}${controller.slice(2)}`;
+    const permissions = toHex(1n, { size: 32 });
+    const setup = [
+      dataChanged(runtime, 1, alice, controllerIndex, controller),
+      dataChanged(runtime, 2, alice, permissionsKey, permissions),
+    ];
+    const state = emptyState();
+    reduceProjectionEvents(runtime, state, setup, verifications(setup, [alice], new Map()));
+
+    const removeSlot = dataChanged(runtime, 3, alice, controllerIndex, '0x');
+    const withoutSlot = reduceProjectionEvents(
+      runtime,
+      state,
+      [removeSlot],
+      verifications([removeSlot], [alice], new Map()),
+    );
+    expect(withoutSlot.controllers).toEqual([
+      expect.objectContaining({
+        controllerAddress: controller,
+        arrayIndex: null,
+        permissions,
+      }),
+    ]);
+    expect(withoutSlot.deletedControllerIds).toEqual([]);
+
+    const clearPermissions = dataChanged(runtime, 4, alice, permissionsKey, '0x');
+    const withoutMappings = reduceProjectionEvents(
+      runtime,
+      state,
+      [clearPermissions],
+      verifications([clearPermissions], [alice], new Map()),
+    );
+    expect(withoutMappings.controllers).toEqual([]);
+    expect(withoutMappings.deletedControllerIds).toHaveLength(1);
   });
 });

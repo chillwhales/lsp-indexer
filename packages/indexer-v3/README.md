@@ -118,14 +118,18 @@ The reducer applies only newly inserted facts in block/transaction/log order and
 A failed individual interface call produces no new typed entity. If a previously verified contract
 later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
 until it verifies again. A later successful verification refreshes the asset's current standard and
-standard-specific fields, so implementation upgrades do not retain a stale classification. Raw
-events and ERC725Y values remain stored. A transport or
+standard-specific fields, so implementation upgrades do not retain a stale classification. Moving
+away from LSP8 also clears the collection-only format, reference, base URI, NFTs, token ownership,
+and extension rows while raw events and ERC725Y values remain stored. Removing a controller array
+slot clears only its index; independent permission maps keep that controller materialized until all
+of them are empty. A transport or
 malformed-response failure aborts the transaction and leaves the cursor at the preceding position.
 Exact replay validates existing deterministic facts but does not reduce them again, preventing
 double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
 deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one
 batch.
 
+An empty or malformed packed Orb level value clears both level and cooldown while retaining faction.
 CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
 number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
 tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30

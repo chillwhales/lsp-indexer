@@ -60,6 +60,7 @@ import { verifyDatabaseReadiness } from '../readiness.js';
 import { createChainObjectOwnershipQuery, type ChainObjectOwnershipRow } from '../roleBoundary.js';
 import {
   blocks,
+  chillwhalesNfts,
   controllers,
   creators,
   digitalAssets,
@@ -67,7 +68,9 @@ import {
   indexedHeads,
   issuedAssets,
   metadataJobs,
+  nfts,
   ownedAssets,
+  ownedTokens,
   rollbackTables,
   universalProfiles,
 } from '../schema.js';
@@ -1250,6 +1253,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         dataValues: [],
         deletedOwnedAssetIds: [],
         deletedOwnedTokenIds: [],
+        deletedNftCollections: [],
         deletedCreatorIds: [],
         deletedIssuedAssetIds: [],
         deletedControllerIds: [],
@@ -1299,6 +1303,116 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         .where(eq(universalProfiles.address, issuerAddress));
       await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, firstAssetAddress));
       await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, secondAssetAddress));
+    }
+  });
+
+  it('deletes an LSP8 collection and its dependent ownership and extension rows', async () => {
+    const assetAddress = addressFor(245);
+    const ownerAddress = addressFor(246);
+    const tokenId = hashFor(245);
+    const blockHash = hashFor(246);
+    const provenance = {
+      lastBlockNumber: 0,
+      lastBlockHash: blockHash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    };
+
+    await ethereumDb.insert(universalProfiles).values({
+      id: createAddressId('profile', ethereumRuntime.network.chainId, ownerAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: ownerAddress,
+      ...provenance,
+    });
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('asset', ethereumRuntime.network.chainId, assetAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: assetAddress,
+      standard: 'lsp8',
+      verification: 'verified',
+      ...provenance,
+    });
+
+    try {
+      await ethereumDb.insert(nfts).values({
+        id: 'reclassified-nft',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: assetAddress,
+        tokenId,
+        ownerAddress,
+        verification: 'verified',
+        ...provenance,
+      });
+      await ethereumDb.insert(ownedTokens).values({
+        id: 'reclassified-owned-token',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        ownerAddress,
+        assetAddress,
+        tokenId,
+        balance: '1',
+        ...provenance,
+      });
+      await ethereumDb.insert(chillwhalesNfts).values({
+        id: 'reclassified-extension',
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: assetAddress,
+        tokenId,
+        ...provenance,
+      });
+
+      const mutations: ProjectionMutations = {
+        universalProfiles: [],
+        digitalAssets: [],
+        nfts: [],
+        ownedAssets: [],
+        ownedTokens: [],
+        followerEdges: [],
+        creators: [],
+        issuedAssets: [],
+        controllers: [],
+        chillwhalesNfts: [],
+        dataValues: [],
+        deletedOwnedAssetIds: [],
+        deletedOwnedTokenIds: [],
+        deletedNftCollections: [
+          { chainId: ethereumRuntime.network.chainId, address: assetAddress },
+        ],
+        deletedCreatorIds: [],
+        deletedIssuedAssetIds: [],
+        deletedControllerIds: [],
+      };
+      await ethereumDb.transaction((tx) => applyProjectionMutations(tx, mutations));
+
+      expect(await ethereumDb.select().from(nfts).where(eq(nfts.address, assetAddress))).toEqual(
+        [],
+      );
+      expect(
+        await ethereumDb
+          .select()
+          .from(ownedTokens)
+          .where(eq(ownedTokens.assetAddress, assetAddress)),
+      ).toEqual([]);
+      expect(
+        await ethereumDb
+          .select()
+          .from(chillwhalesNfts)
+          .where(eq(chillwhalesNfts.address, assetAddress)),
+      ).toEqual([]);
+      expect(
+        await ethereumDb
+          .select()
+          .from(digitalAssets)
+          .where(eq(digitalAssets.address, assetAddress)),
+      ).toHaveLength(1);
+    } finally {
+      await ethereumDb.delete(digitalAssets).where(eq(digitalAssets.address, assetAddress));
+      await ethereumDb.delete(universalProfiles).where(eq(universalProfiles.address, ownerAddress));
     }
   });
 

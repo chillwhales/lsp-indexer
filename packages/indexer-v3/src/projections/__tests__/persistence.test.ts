@@ -281,6 +281,7 @@ function mutations(): ProjectionMutations {
     ],
     deletedOwnedAssetIds: ['old-owned-asset'],
     deletedOwnedTokenIds: ['old-owned-token'],
+    deletedNftCollections: [{ chainId: 42, address: asset }],
     deletedCreatorIds: ['old-creator'],
     deletedIssuedAssetIds: ['old-issued'],
     deletedControllerIds: ['old-controller'],
@@ -294,6 +295,7 @@ describe('projection mutation persistence', () => {
 
     expect(state.deletedTables).toEqual([
       'owned_tokens',
+      'nfts',
       'owned_assets',
       'creators',
       'issued_assets',
@@ -335,6 +337,7 @@ describe('projection mutation persistence', () => {
     values.dataValues = [];
     values.deletedOwnedAssetIds = [];
     values.deletedOwnedTokenIds = [];
+    values.deletedNftCollections = [];
     values.deletedCreatorIds = [];
     values.deletedIssuedAssetIds = [];
     values.deletedControllerIds = [];
@@ -350,6 +353,7 @@ describe('projection mutation persistence', () => {
     const values = mutations();
     values.deletedOwnedAssetIds = [];
     values.deletedOwnedTokenIds = [];
+    values.deletedNftCollections = [];
     values.deletedCreatorIds = [];
     values.deletedIssuedAssetIds = [];
     values.deletedControllerIds = [];

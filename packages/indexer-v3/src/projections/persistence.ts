@@ -1,4 +1,4 @@
-import { desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import type { NetworkDatabaseConfig } from '../db/config.js';
@@ -84,11 +84,29 @@ async function deleteIds(
   for (const chunk of chunks(ids)) await tx.delete(table).where(inArray(table.id, chunk));
 }
 
+async function deleteNftCollections(
+  tx: ProjectionTransaction,
+  collections: ProjectionMutations['deletedNftCollections'],
+): Promise<void> {
+  const addressesByChain = new Map<number, Set<string>>();
+  for (const collection of collections) {
+    const addresses = addressesByChain.get(collection.chainId) ?? new Set<string>();
+    addresses.add(collection.address);
+    addressesByChain.set(collection.chainId, addresses);
+  }
+  for (const [chainId, addresses] of addressesByChain) {
+    for (const chunk of chunks([...addresses])) {
+      await tx.delete(nfts).where(and(eq(nfts.chainId, chainId), inArray(nfts.address, chunk)));
+    }
+  }
+}
+
 async function applyDeletes(
   tx: ProjectionTransaction,
   mutations: ProjectionMutations,
 ): Promise<void> {
   await deleteIds(tx, ownedTokens, mutations.deletedOwnedTokenIds);
+  await deleteNftCollections(tx, mutations.deletedNftCollections);
   await deleteIds(tx, ownedAssets, mutations.deletedOwnedAssetIds);
   await deleteIds(tx, creators, [
     ...new Set([...mutations.deletedCreatorIds, ...mutations.creators.map(({ id }) => id)]),

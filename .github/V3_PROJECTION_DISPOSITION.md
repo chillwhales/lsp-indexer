@@ -19,7 +19,9 @@ chain-scoped current-state tables.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional
   references remain absent while their source fact/value remains queryable. A later invalid result
   marks an existing core row invalid and blocks further typed mutations until it verifies again.
-  Successful re-verification refreshes the current asset standard and its standard-specific fields.
+  Successful re-verification refreshes the current asset standard and its standard-specific fields;
+  moving away from LSP8 clears the collection-only fields and dependent NFT, token-ownership, and
+  extension rows without deleting raw facts or values.
 - A fresh or reset projection database must start at the configured network origin. An existing
   cursor permits continuation only when `INDEXER_FROM_BLOCK` does not skip the next block.
 - Only event IDs newly inserted in the target transaction reach the reducer. Resetting a cursor and
@@ -28,42 +30,44 @@ chain-scoped current-state tables.
   writes, indexed-head visibility, rollback snapshots, and the Pipes cursor commit together.
 - Changed creator, issued-asset, and controller rows are deleted before reinsertion, allowing
   unique array indexes to swap without transient collisions.
+- Controller array membership and permission maps are independent. Removing a slot nulls its index;
+  the row remains until its permissions, allowed calls, and allowed data keys are all empty.
 - Metadata bytes and URLs are durable chain inputs here. External IPFS/HTTP fetching, revision
   publication, retry policy, and metadata sub-entities belong to #385.
 
 ## Handler matrix
 
-| V2 handler                 | V3 disposition                                                                                                                | V3 storage or owner                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `decimals`                 | Replaced by the block-pinned verification read plan; only meaningful for verified LSP7 assets.                                | `digital_assets.decimals`                                                  |
-| `universalProfileOwner`    | Integrated into the ownership reducer.                                                                                        | `universal_profiles.owner_address`                                         |
-| `digitalAssetOwner`        | Integrated into the same ownership reducer without creating the wrong domain for an emitter.                                  | `digital_assets.owner_address`                                             |
-| `totalSupply`              | Integrated into ordered mint/burn transfer reduction with non-negative clamping.                                              | `digital_assets.total_supply`                                              |
-| `nft`                      | Integrated for mint, burn, transfer ownership, and token-data stubs.                                                          | `nfts`                                                                     |
-| `formattedTokenId`         | Collapsed into NFT reduction and retroactive reformatting when the collection format changes.                                 | `nfts.formatted_token_id`                                                  |
-| `ownedAssets`              | Replaced by transfer-authoritative balances; zero balances delete current ownership.                                          | `owned_assets`, `owned_tokens`                                             |
-| `follower`                 | Integrated as a current edge with follow/unfollow timestamps and an unfollow tombstone.                                       | `follower_edges`                                                           |
-| `lsp4TokenName`            | Integrated scalar decode; raw bytes are retained even when invalid.                                                           | `digital_assets.name`, `data_values`                                       |
-| `lsp4TokenSymbol`          | Integrated scalar decode.                                                                                                     | `digital_assets.symbol`, `data_values`                                     |
-| `lsp4TokenType`            | Integrated bounded integer decode.                                                                                            | `digital_assets.token_type`, `data_values`                                 |
-| `lsp8TokenIdFormat`        | Integrated current/legacy formats plus retroactive NFT formatting.                                                            | `digital_assets.token_id_format`, `nfts.formatted_token_id`, `data_values` |
-| `lsp8ReferenceContract`    | Integrated exact address decode.                                                                                              | `digital_assets.token_id_reference_contract`, `data_values`                |
-| `lsp8MetadataBaseURI`      | Integrated header validation and retroactive token-URI derivation.                                                            | `digital_assets.base_uri`, `nfts.token_uri`, `data_values`                 |
-| `lsp4MetadataBaseUri`      | Its deterministic URL derivation is collapsed into the NFT/base-URI reducer; external content handling is #385.               | `nfts.token_uri`; #385 metadata revisions/jobs                             |
-| `lsp4Creators`             | Length/index/map events merge into one row per creator. Shrinks and cleared map values delete stale rows.                     | `creators`, `data_values`                                                  |
-| `lsp12IssuedAssets`        | Length/index/map events merge into one verified asset relationship; unresolved references remain only as raw values.          | `issued_assets`, `data_values`                                             |
-| `lsp5ReceivedAssets`       | No duplicate registry projection. Raw registry state is retained, while transfers are authoritative for current balances.     | `data_values`, `owned_assets`                                              |
-| `lsp6Controllers`          | Length/index/maps merge into one controller row; permissions remain lossless and CompactBytesArray values become JSON arrays. | `controllers`, `data_values`                                               |
-| `lsp3Profile`              | Chain value is durable; parsing and publication are assigned to #385.                                                         | `data_values`; #385 metadata revisions/jobs                                |
-| `lsp3ProfileFetch`         | Deliberately deferred; no network fetch occurs inside the Pipes transaction.                                                  | #385 metadata worker                                                       |
-| `lsp4Metadata`             | Contract/token-scoped chain value is durable; parsing and publication are assigned to #385.                                   | `data_values`; #385 metadata revisions/jobs                                |
-| `lsp4MetadataFetch`        | Deliberately deferred; stale-response and retry semantics are owned by #385.                                                  | #385 metadata worker                                                       |
-| `lsp29EncryptedAsset`      | LSP29 length/index/map/revision bytes are retained without v2 helper entities.                                                | `data_values`                                                              |
-| `lsp29EncryptedAssetFetch` | Deliberately deferred with all external metadata work.                                                                        | #385 metadata worker                                                       |
-| `chillClaimed`             | Network-gated Chillwhales mint default plus monotonic claim polling at the exact available Portal head.                       | `chillwhales_nfts.chill_claimed`                                           |
-| `orbsClaimed`              | Network-gated mint default plus block-pinned ORBS claim polling.                                                              | `chillwhales_nfts.orbs_claimed`                                            |
-| `orbLevel`                 | Network-gated mint defaults and packed token-data reduction.                                                                  | `chillwhales_nfts.level`, `cooldown_expiry`                                |
-| `orbFaction`               | Network-gated mint default and UTF-8 token-data reduction.                                                                    | `chillwhales_nfts.faction`                                                 |
+| V2 handler                 | V3 disposition                                                                                                                              | V3 storage or owner                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `decimals`                 | Replaced by the block-pinned verification read plan; only meaningful for verified LSP7 assets.                                              | `digital_assets.decimals`                                                  |
+| `universalProfileOwner`    | Integrated into the ownership reducer.                                                                                                      | `universal_profiles.owner_address`                                         |
+| `digitalAssetOwner`        | Integrated into the same ownership reducer without creating the wrong domain for an emitter.                                                | `digital_assets.owner_address`                                             |
+| `totalSupply`              | Integrated into ordered mint/burn transfer reduction with non-negative clamping.                                                            | `digital_assets.total_supply`                                              |
+| `nft`                      | Integrated for mint, burn, transfer ownership, and token-data stubs.                                                                        | `nfts`                                                                     |
+| `formattedTokenId`         | Collapsed into NFT reduction and retroactive reformatting when the collection format changes.                                               | `nfts.formatted_token_id`                                                  |
+| `ownedAssets`              | Replaced by transfer-authoritative balances; zero balances delete current ownership.                                                        | `owned_assets`, `owned_tokens`                                             |
+| `follower`                 | Integrated as a current edge with follow/unfollow timestamps and an unfollow tombstone.                                                     | `follower_edges`                                                           |
+| `lsp4TokenName`            | Integrated scalar decode; raw bytes are retained even when invalid.                                                                         | `digital_assets.name`, `data_values`                                       |
+| `lsp4TokenSymbol`          | Integrated scalar decode.                                                                                                                   | `digital_assets.symbol`, `data_values`                                     |
+| `lsp4TokenType`            | Integrated bounded integer decode.                                                                                                          | `digital_assets.token_type`, `data_values`                                 |
+| `lsp8TokenIdFormat`        | Integrated current/legacy formats plus retroactive NFT formatting.                                                                          | `digital_assets.token_id_format`, `nfts.formatted_token_id`, `data_values` |
+| `lsp8ReferenceContract`    | Integrated exact address decode.                                                                                                            | `digital_assets.token_id_reference_contract`, `data_values`                |
+| `lsp8MetadataBaseURI`      | Integrated header validation and retroactive token-URI derivation.                                                                          | `digital_assets.base_uri`, `nfts.token_uri`, `data_values`                 |
+| `lsp4MetadataBaseUri`      | Its deterministic URL derivation is collapsed into the NFT/base-URI reducer; external content handling is #385.                             | `nfts.token_uri`; #385 metadata revisions/jobs                             |
+| `lsp4Creators`             | Length/index/map events merge into one row per creator. Shrinks and cleared map values delete stale rows.                                   | `creators`, `data_values`                                                  |
+| `lsp12IssuedAssets`        | Length/index/map events merge into one verified asset relationship; unresolved references remain only as raw values.                        | `issued_assets`, `data_values`                                             |
+| `lsp5ReceivedAssets`       | No duplicate registry projection. Raw registry state is retained, while transfers are authoritative for current balances.                   | `data_values`, `owned_assets`                                              |
+| `lsp6Controllers`          | Length/index/maps merge into one row; array removal preserves independent permission maps, and CompactBytesArray values become JSON arrays. | `controllers`, `data_values`                                               |
+| `lsp3Profile`              | Chain value is durable; parsing and publication are assigned to #385.                                                                       | `data_values`; #385 metadata revisions/jobs                                |
+| `lsp3ProfileFetch`         | Deliberately deferred; no network fetch occurs inside the Pipes transaction.                                                                | #385 metadata worker                                                       |
+| `lsp4Metadata`             | Contract/token-scoped chain value is durable; parsing and publication are assigned to #385.                                                 | `data_values`; #385 metadata revisions/jobs                                |
+| `lsp4MetadataFetch`        | Deliberately deferred; stale-response and retry semantics are owned by #385.                                                                | #385 metadata worker                                                       |
+| `lsp29EncryptedAsset`      | LSP29 length/index/map/revision bytes are retained without v2 helper entities.                                                              | `data_values`                                                              |
+| `lsp29EncryptedAssetFetch` | Deliberately deferred with all external metadata work.                                                                                      | #385 metadata worker                                                       |
+| `chillClaimed`             | Network-gated Chillwhales mint default plus monotonic claim polling at the exact available Portal head.                                     | `chillwhales_nfts.chill_claimed`                                           |
+| `orbsClaimed`              | Network-gated mint default plus block-pinned ORBS claim polling.                                                                            | `chillwhales_nfts.orbs_claimed`                                            |
+| `orbLevel`                 | Network-gated mint defaults and packed token-data reduction; empty or short values clear both derived fields.                               | `chillwhales_nfts.level`, `cooldown_expiry`                                |
+| `orbFaction`               | Network-gated mint default and UTF-8 token-data reduction.                                                                                  | `chillwhales_nfts.faction`                                                 |
 
 The Chillwhales extension is enabled only by the LUKSO Mainnet network catalog entry. Its claim
 reads are monotonic and bounded to 250 tokens per head, with new mints ahead of due stored rows. A
