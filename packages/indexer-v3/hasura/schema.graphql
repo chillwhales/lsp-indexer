@@ -356,6 +356,7 @@ type chillwhales_nft {
   address: String
   chain_id: bigint
   chill_claimed: Boolean
+  claim_check_after_block: bigint
   cooldown_expiry: bigint
 
   """An object relationship"""
@@ -404,6 +405,7 @@ type chillwhales_nft_aggregate_fields {
 """aggregate avg on columns"""
 type chillwhales_nft_avg_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -421,6 +423,7 @@ input chillwhales_nft_bool_exp {
   address: String_comparison_exp
   chain_id: bigint_comparison_exp
   chill_claimed: Boolean_comparison_exp
+  claim_check_after_block: bigint_comparison_exp
   cooldown_expiry: bigint_comparison_exp
   digitalAsset: digital_asset_bool_exp
   faction: String_comparison_exp
@@ -441,6 +444,7 @@ input chillwhales_nft_bool_exp {
 type chillwhales_nft_max_fields {
   address: String
   chain_id: bigint
+  claim_check_after_block: bigint
   cooldown_expiry: bigint
   faction: String
   id: String
@@ -458,6 +462,7 @@ type chillwhales_nft_max_fields {
 type chillwhales_nft_min_fields {
   address: String
   chain_id: bigint
+  claim_check_after_block: bigint
   cooldown_expiry: bigint
   faction: String
   id: String
@@ -476,6 +481,7 @@ input chillwhales_nft_order_by {
   address: order_by
   chain_id: order_by
   chill_claimed: order_by
+  claim_check_after_block: order_by
   cooldown_expiry: order_by
   digitalAsset: digital_asset_order_by
   faction: order_by
@@ -504,6 +510,9 @@ enum chillwhales_nft_select_column {
 
   """column name"""
   chill_claimed
+
+  """column name"""
+  claim_check_after_block
 
   """column name"""
   cooldown_expiry
@@ -545,6 +554,7 @@ enum chillwhales_nft_select_column {
 """aggregate stddev on columns"""
 type chillwhales_nft_stddev_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -555,6 +565,7 @@ type chillwhales_nft_stddev_fields {
 """aggregate stddev_pop on columns"""
 type chillwhales_nft_stddev_pop_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -565,6 +576,7 @@ type chillwhales_nft_stddev_pop_fields {
 """aggregate stddev_samp on columns"""
 type chillwhales_nft_stddev_samp_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -575,6 +587,7 @@ type chillwhales_nft_stddev_samp_fields {
 """aggregate sum on columns"""
 type chillwhales_nft_sum_fields {
   chain_id: bigint
+  claim_check_after_block: bigint
   cooldown_expiry: bigint
   last_block_number: bigint
   last_log_index: Int
@@ -585,6 +598,7 @@ type chillwhales_nft_sum_fields {
 """aggregate var_pop on columns"""
 type chillwhales_nft_var_pop_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -595,6 +609,7 @@ type chillwhales_nft_var_pop_fields {
 """aggregate var_samp on columns"""
 type chillwhales_nft_var_samp_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -605,6 +620,7 @@ type chillwhales_nft_var_samp_fields {
 """aggregate variance on columns"""
 type chillwhales_nft_variance_fields {
   chain_id: Float
+  claim_check_after_block: Float
   cooldown_expiry: Float
   last_block_number: Float
   last_log_index: Float
@@ -2626,7 +2642,7 @@ input jsonb_comparison_exp {
 columns and relationships of "api.creators"
 """
 type lsp4_creator {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
 
@@ -2743,7 +2759,7 @@ input lsp4_creator_bool_exp {
   _and: [lsp4_creator_bool_exp!]
   _not: lsp4_creator_bool_exp
   _or: [lsp4_creator_bool_exp!]
-  array_index: Int_comparison_exp
+  array_index: numeric_comparison_exp
   asset_address: String_comparison_exp
   chain_id: bigint_comparison_exp
   creatorProfile: universal_profile_bool_exp
@@ -2762,7 +2778,7 @@ input lsp4_creator_bool_exp {
 
 """aggregate max on columns"""
 type lsp4_creator_max_fields {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
   creator_address: String
@@ -2796,7 +2812,7 @@ input lsp4_creator_max_order_by {
 
 """aggregate min on columns"""
 type lsp4_creator_min_fields {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
   creator_address: String
@@ -2969,7 +2985,7 @@ input lsp4_creator_stddev_samp_order_by {
 
 """aggregate sum on columns"""
 type lsp4_creator_sum_fields {
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
   last_block_number: bigint
   last_log_index: Int
@@ -3059,7 +3075,7 @@ type lsp6_controller {
     """JSON select path"""
     path: String
   ): jsonb
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
 
   """An object relationship"""
@@ -3161,7 +3177,7 @@ input lsp6_controller_bool_exp {
   _or: [lsp6_controller_bool_exp!]
   allowed_calls: jsonb_comparison_exp
   allowed_data_keys: jsonb_comparison_exp
-  array_index: Int_comparison_exp
+  array_index: numeric_comparison_exp
   chain_id: bigint_comparison_exp
   controllerProfile: universal_profile_bool_exp
   controller_address: String_comparison_exp
@@ -3179,7 +3195,7 @@ input lsp6_controller_bool_exp {
 
 """aggregate max on columns"""
 type lsp6_controller_max_fields {
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
   controller_address: String
   id: String
@@ -3213,7 +3229,7 @@ input lsp6_controller_max_order_by {
 
 """aggregate min on columns"""
 type lsp6_controller_min_fields {
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
   controller_address: String
   id: String
@@ -3374,7 +3390,7 @@ input lsp6_controller_stddev_samp_order_by {
 
 """aggregate sum on columns"""
 type lsp6_controller_sum_fields {
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
   last_block_number: bigint
   last_log_index: Int
@@ -3456,7 +3472,7 @@ input lsp6_controller_variance_order_by {
 columns and relationships of "api.issued_assets"
 """
 type lsp12_issued_asset {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
 
@@ -3556,7 +3572,7 @@ input lsp12_issued_asset_bool_exp {
   _and: [lsp12_issued_asset_bool_exp!]
   _not: lsp12_issued_asset_bool_exp
   _or: [lsp12_issued_asset_bool_exp!]
-  array_index: Int_comparison_exp
+  array_index: numeric_comparison_exp
   asset_address: String_comparison_exp
   chain_id: bigint_comparison_exp
   digitalAsset: digital_asset_bool_exp
@@ -3574,7 +3590,7 @@ input lsp12_issued_asset_bool_exp {
 
 """aggregate max on columns"""
 type lsp12_issued_asset_max_fields {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
   id: String
@@ -3608,7 +3624,7 @@ input lsp12_issued_asset_max_order_by {
 
 """aggregate min on columns"""
 type lsp12_issued_asset_min_fields {
-  array_index: Int
+  array_index: numeric
   asset_address: String
   chain_id: bigint
   id: String
@@ -3761,7 +3777,7 @@ input lsp12_issued_asset_stddev_samp_order_by {
 
 """aggregate sum on columns"""
 type lsp12_issued_asset_sum_fields {
-  array_index: Int
+  array_index: numeric
   chain_id: bigint
   last_block_number: bigint
   last_log_index: Int
@@ -4412,6 +4428,9 @@ type nft {
   ): metadata_revision_aggregate!
   network: String
 
+  """An object relationship"""
+  ownedToken: owned_token
+
   """An array relationship"""
   ownedTokens(
     """distinct select on columns"""
@@ -4565,6 +4584,7 @@ input nft_bool_exp {
   metadataRevisions: metadata_revision_bool_exp
   metadataRevisions_aggregate: metadata_revision_aggregate_bool_exp
   network: String_comparison_exp
+  ownedToken: owned_token_bool_exp
   ownedTokens: owned_token_bool_exp
   ownedTokens_aggregate: owned_token_aggregate_bool_exp
   owner_address: String_comparison_exp
@@ -4667,6 +4687,7 @@ input nft_order_by {
   last_transaction_index: order_by
   metadataRevisions_aggregate: metadata_revision_aggregate_order_by
   network: order_by
+  ownedToken: owned_token_order_by
   ownedTokens_aggregate: owned_token_aggregate_order_by
   owner_address: order_by
   token_id: order_by
@@ -4932,6 +4953,42 @@ type owned_asset {
   network: String
   owner_address: String
 
+  """An array relationship"""
+  tokenIds(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): [owned_token!]!
+
+  """An aggregate relationship"""
+  tokenIds_aggregate(
+    """distinct select on columns"""
+    distinct_on: [owned_token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [owned_token_order_by!]
+
+    """filter the rows returned"""
+    where: owned_token_bool_exp
+  ): owned_token_aggregate!
+
   """An object relationship"""
   universalProfile: universal_profile
 }
@@ -5028,6 +5085,8 @@ input owned_asset_bool_exp {
   last_transaction_index: Int_comparison_exp
   network: String_comparison_exp
   owner_address: String_comparison_exp
+  tokenIds: owned_token_bool_exp
+  tokenIds_aggregate: owned_token_aggregate_bool_exp
   universalProfile: universal_profile_bool_exp
 }
 
@@ -5109,6 +5168,7 @@ input owned_asset_order_by {
   last_transaction_index: order_by
   network: order_by
   owner_address: order_by
+  tokenIds_aggregate: owned_token_aggregate_order_by
   universalProfile: universal_profile_order_by
 }
 
@@ -5310,6 +5370,9 @@ type owned_token {
 
   """An object relationship"""
   nft: nft
+
+  """An object relationship"""
+  ownedAsset: owned_asset
   owner_address: String
   token_id: String
 
@@ -5409,6 +5472,7 @@ input owned_token_bool_exp {
   last_transaction_index: Int_comparison_exp
   network: String_comparison_exp
   nft: nft_bool_exp
+  ownedAsset: owned_asset_bool_exp
   owner_address: String_comparison_exp
   token_id: String_comparison_exp
   universalProfile: universal_profile_bool_exp
@@ -5496,6 +5560,7 @@ input owned_token_order_by {
   last_transaction_index: order_by
   network: order_by
   nft: nft_order_by
+  ownedAsset: owned_asset_order_by
   owner_address: order_by
   token_id: order_by
   universalProfile: universal_profile_order_by
