@@ -353,6 +353,20 @@ async function countRows(pool: Pool, qualifiedTable: string): Promise<number> {
   return Number(result.rows[0]?.count ?? 0);
 }
 
+async function waitForDatabaseClientsToClose(pool: Pool, database: string): Promise<void> {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const result = await pool.query<{ connections: number }>(
+      `SELECT count(*)::integer AS connections
+       FROM pg_stat_activity
+       WHERE datname = $1 AND pid <> pg_backend_pid()`,
+      [database],
+    );
+    if (result.rows[0]?.connections === 0) return;
+    await pool.query('SELECT pg_sleep(0.05)');
+  }
+  throw new Error(`Timed out waiting for PostgreSQL clients to leave database "${database}"`);
+}
+
 async function createPendingMigrationDirectory(
   statement = 'ALTER TABLE universal_profiles ADD COLUMN forbidden_schema_change text;',
 ): Promise<{
@@ -415,10 +429,7 @@ afterAll(async (): Promise<void> => {
     testAdminPool?.end(),
   ]);
   if (controlPool != null) {
-    await controlPool.query(
-      'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
-      [testDatabaseName],
-    );
+    await waitForDatabaseClientsToClose(controlPool, testDatabaseName);
     await controlPool.query(`DROP DATABASE IF EXISTS ${quotePostgresIdentifier(testDatabaseName)}`);
     for (const role of Object.values(runtimeLogins)) {
       await controlPool.query(`DROP ROLE IF EXISTS ${quotePostgresIdentifier(role)}`);
@@ -575,10 +586,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       expect(await countRows(scratchPool, 'api.blocks')).toBe(0);
     } finally {
       await scratchPool?.end();
-      await controlPool.query(
-        'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
-        [scratchDatabaseName],
-      );
+      await waitForDatabaseClientsToClose(controlPool, scratchDatabaseName);
       await controlPool.query(
         `DROP DATABASE IF EXISTS ${quotePostgresIdentifier(scratchDatabaseName)}`,
       );
@@ -645,10 +653,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       expect(viewsAfterFailure.rows).toHaveLength(14);
     } finally {
       await scratchPool?.end();
-      await controlPool.query(
-        'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
-        [scratchDatabaseName],
-      );
+      await waitForDatabaseClientsToClose(controlPool, scratchDatabaseName);
       await controlPool.query(
         `DROP DATABASE IF EXISTS ${quotePostgresIdentifier(scratchDatabaseName)}`,
       );
