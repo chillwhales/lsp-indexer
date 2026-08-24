@@ -1,9 +1,10 @@
-import { getAddress, type Hex } from 'viem';
+import { decodeFunctionResult, encodeFunctionData, getAddress, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
 import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
 import type { VerificationCandidate, VerificationCategory } from './candidates.js';
+import { executeDirectContractCalls, type DirectContractCall } from './direct.js';
 import { INTERFACE_IDS } from './standards.js';
 
 const SUPPORTS_INTERFACE_ABI = [
@@ -124,6 +125,44 @@ function normalizeViemResult(result: unknown): ProjectionContractCallResult {
   return { status: 'success', value: result.result };
 }
 
+function decodeSupportsInterface(data: Hex): unknown | undefined {
+  try {
+    return decodeFunctionResult({
+      abi: SUPPORTS_INTERFACE_ABI,
+      functionName: 'supportsInterface',
+      data,
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+function decodeDecimalsCall(data: Hex): unknown | undefined {
+  try {
+    return decodeFunctionResult({ abi: DECIMALS_ABI, functionName: 'decimals', data });
+  } catch {
+    return undefined;
+  }
+}
+
+function createDirectProjectionCall(call: ProjectionContractCall): DirectContractCall<unknown> {
+  return call.functionName === 'supportsInterface'
+    ? {
+        address: call.address,
+        data: encodeFunctionData({
+          abi: SUPPORTS_INTERFACE_ABI,
+          functionName: 'supportsInterface',
+          args: [call.interfaceId],
+        }),
+        decode: decodeSupportsInterface,
+      }
+    : {
+        address: call.address,
+        data: encodeFunctionData({ abi: DECIMALS_ABI, functionName: 'decimals' }),
+        decode: decodeDecimalsCall,
+      };
+}
+
 /** Adapt the configured viem client to the projection reader's small testable boundary. */
 export function createProjectionCallExecutor(
   rpc: NetworkRpcClient,
@@ -133,6 +172,17 @@ export function createProjectionCallExecutor(
     block: ProjectionBlockRef,
     calls: readonly ProjectionContractCall[],
   ): Promise<readonly ProjectionContractCallResult[]> {
+    if (block.number < runtime.network.multicall.fromBlock) {
+      return readAtVerifiedBlock(rpc, block, () =>
+        executeDirectContractCalls(
+          rpc,
+          block.number,
+          calls.map(createDirectProjectionCall),
+          runtime.network.rpc.batchSize,
+        ),
+      );
+    }
+
     const contracts = calls.map((call) =>
       call.functionName === 'supportsInterface'
         ? {
@@ -151,7 +201,7 @@ export function createProjectionCallExecutor(
       rpc.multicall({
         contracts,
         blockNumber: BigInt(block.number),
-        multicallAddress: runtime.network.multicallAddress,
+        multicallAddress: runtime.network.multicall.address,
         allowFailure: true,
       }),
     );

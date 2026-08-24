@@ -24,6 +24,7 @@ import {
 } from '../../events/index.js';
 import {
   applyProjectionMutations,
+  assertProjectionReplayStart,
   collectProjectionCandidates,
   createProjectionPersistenceTarget,
   type ProjectionBatch,
@@ -2773,9 +2774,18 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
   });
 
   it('keeps projections idempotent on replay and restores ownership across a fork', async () => {
-    const projectionRuntime = loadRuntimeConfig({
+    const partialRuntime = loadRuntimeConfig({
       INDEXER_NETWORK: 'ethereum-mainnet',
       INDEXER_FROM_BLOCK: '20',
+      INDEXER_TO_BLOCK: '21',
+    });
+    await expect(assertProjectionReplayStart(ethereumDb, partialRuntime)).rejects.toThrow(
+      'has no cursor and must start at block 0',
+    );
+
+    const projectionRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '0',
       INDEXER_TO_BLOCK: '21',
     });
     const mintLog = encodeEvent({

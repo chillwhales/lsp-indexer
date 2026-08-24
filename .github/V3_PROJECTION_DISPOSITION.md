@@ -9,13 +9,17 @@ chain-scoped current-state tables.
 
 ## Shared projection contract
 
-- Interface candidates are deduplicated by exact `(block number, block hash, category, address)`
-  and read through bounded Multicall3 batches at that block. The RPC hash is checked before and
-  after every read. Current and legacy LSP0, LSP7, and LSP8 interface IDs are supported.
+- Interface candidates are deduplicated by exact `(block number, block hash, category, address)`.
+  Bounded direct reads are used before the recorded Multicall3 deployment and bounded Multicall3
+  batches afterward. The RPC hash is checked before and after every read. Current and legacy LSP0,
+  LSP7, and LSP8 interface IDs are supported.
 - A transport error or malformed multicall response aborts the batch. A failed individual contract
   call is an invalid candidate. Raw facts and raw ERC725Y values remain stored either way.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional
-  references remain absent while their source fact/value remains queryable.
+  references remain absent while their source fact/value remains queryable. A later invalid result
+  marks an existing core row invalid and blocks further typed mutations until it verifies again.
+- A fresh or reset projection database must start at the configured network origin. An existing
+  cursor permits continuation only when `INDEXER_FROM_BLOCK` does not skip the next block.
 - Only event IDs newly inserted in the target transaction reach the reducer. Resetting a cursor and
   replaying identical facts therefore cannot double-apply supply, balances, registries, or edges.
 - Current state is keyed by chain ID plus its domain natural key. All IDs are deterministic and all

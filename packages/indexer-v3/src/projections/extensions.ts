@@ -1,5 +1,12 @@
 import { and, asc, eq, lte, or } from 'drizzle-orm';
-import { getAddress, hexToBytes, isHex, type Hex } from 'viem';
+import {
+  decodeFunctionResult,
+  encodeFunctionData,
+  getAddress,
+  hexToBytes,
+  isHex,
+  type Hex,
+} from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import { chillwhalesNfts } from '../db/schema.js';
@@ -7,6 +14,7 @@ import type { EventIngestionBatch } from '../events/decode.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
 import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
+import { executeDirectContractCalls, type DirectContractCall } from './direct.js';
 import { CHILLWHALES_EXTENSION, ZERO_ADDRESS } from './standards.js';
 
 export const CLAIM_STATUS_PAGE_SIZE = 250;
@@ -155,6 +163,54 @@ function normalizeResult(result: unknown): ClaimStatusCallResult {
   return { status: 'success', value: result.result };
 }
 
+function decodeChillClaim(data: Hex): boolean | undefined {
+  try {
+    const result = decodeFunctionResult({
+      abi: CHILL_CLAIM_ABI,
+      functionName: 'getClaimedStatusFor',
+      data,
+    });
+    return typeof result === 'boolean' ? result : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function decodeOrbsClaim(data: Hex): boolean | undefined {
+  try {
+    const result = decodeFunctionResult({
+      abi: ORBS_CLAIM_ABI,
+      functionName: 'getChillwhaleClaimStatus',
+      data,
+    });
+    return typeof result === 'boolean' ? result : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function createDirectClaimCall(call: ClaimStatusCall): DirectContractCall<boolean> {
+  return call.kind === 'chill'
+    ? {
+        address: CHILLWHALES_EXTENSION.chillAddress,
+        data: encodeFunctionData({
+          abi: CHILL_CLAIM_ABI,
+          functionName: 'getClaimedStatusFor',
+          args: [call.tokenId],
+        }),
+        decode: decodeChillClaim,
+      }
+    : {
+        address: CHILLWHALES_EXTENSION.orbsAddress,
+        data: encodeFunctionData({
+          abi: ORBS_CLAIM_ABI,
+          functionName: 'getChillwhaleClaimStatus',
+          args: [call.tokenId],
+        }),
+        decode: decodeOrbsClaim,
+      };
+}
+
 /** Adapt viem to the small, block-pinned claim-status RPC boundary. */
 export function createClaimStatusCallExecutor(
   rpc: NetworkRpcClient,
@@ -164,6 +220,17 @@ export function createClaimStatusCallExecutor(
     block: ProjectionBlockRef,
     calls: readonly ClaimStatusCall[],
   ): Promise<readonly ClaimStatusCallResult[]> {
+    if (block.number < runtime.network.multicall.fromBlock) {
+      return readAtVerifiedBlock(rpc, block, () =>
+        executeDirectContractCalls(
+          rpc,
+          block.number,
+          calls.map(createDirectClaimCall),
+          runtime.network.rpc.batchSize,
+        ),
+      );
+    }
+
     const contracts = calls.map((call) =>
       call.kind === 'chill'
         ? {
@@ -183,7 +250,7 @@ export function createClaimStatusCallExecutor(
       rpc.multicall({
         contracts,
         blockNumber: BigInt(block.number),
-        multicallAddress: runtime.network.multicallAddress,
+        multicallAddress: runtime.network.multicall.address,
         allowFailure: true,
       }),
     );

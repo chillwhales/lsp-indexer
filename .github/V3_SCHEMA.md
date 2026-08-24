@@ -205,5 +205,6 @@ retention has emptied it. The projection rollout is the sole marked alpha except
 indexers stopped, one transaction drops obsolete rollback artifacts and truncates all mutable
 tables plus `sqd_cursor` across enabled schemas while preserving `network_config` and migration
 history. Pipes recreates the 16 artifacts from the new tracked schema on restart, and the configured
-range is replayed. PostgreSQL integration tests exercise non-empty old snapshots, atomic reset, and
-artifact recreation.
+range is replayed from the network start. Startup rejects a missing cursor with a later start block
+and rejects a gap after an existing cursor. PostgreSQL integration tests exercise non-empty old
+snapshots, atomic reset, and artifact recreation.

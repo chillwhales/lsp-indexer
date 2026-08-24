@@ -146,6 +146,14 @@ function hasExtension(runtime: RuntimeConfig, name: string): boolean {
   return runtime.network.extensions.includes(name);
 }
 
+function hasVerifiedProfile(context: ReducerContext, address: string): boolean {
+  return context.state.universalProfiles.get(address)?.verification === 'verified';
+}
+
+function hasVerifiedAsset(context: ReducerContext, address: string): boolean {
+  return context.state.digitalAssets.get(address)?.verification === 'verified';
+}
+
 function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): void {
   for (const candidate of collectEventVerificationCandidates(event)) {
     const verification = context.verifications.get(
@@ -156,10 +164,21 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         candidate.address,
       ),
     );
-    if (verification?.status !== 'verified') continue;
+    if (verification == null) continue;
 
     if (candidate.category === 'universalProfile') {
       const existing = context.state.universalProfiles.get(candidate.address);
+      if (verification.status === 'invalid') {
+        if (existing != null && existing.verification !== 'invalid') {
+          context.state.universalProfiles.set(candidate.address, {
+            ...existing,
+            verification: 'invalid',
+            ...provenance(event),
+          });
+          context.changes.universalProfiles.add(candidate.address);
+        }
+        continue;
+      }
       if (existing == null) {
         context.state.universalProfiles.set(candidate.address, {
           id: createAddressId('profile', context.runtime.network.chainId, candidate.address),
@@ -181,6 +200,17 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
       }
     } else {
       const existing = context.state.digitalAssets.get(candidate.address);
+      if (verification.status === 'invalid') {
+        if (existing != null && existing.verification !== 'invalid') {
+          context.state.digitalAssets.set(candidate.address, {
+            ...existing,
+            verification: 'invalid',
+            ...provenance(event),
+          });
+          context.changes.digitalAssets.add(candidate.address);
+        }
+        continue;
+      }
       if (existing == null) {
         context.state.digitalAssets.set(candidate.address, {
           id: createAddressId('digital-asset', context.runtime.network.chainId, candidate.address),
@@ -228,7 +258,7 @@ function setProfileOwner(
   ownerAddress: string,
 ): void {
   const existing = context.state.universalProfiles.get(event.address);
-  if (existing == null) return;
+  if (existing?.verification !== 'verified') return;
   context.state.universalProfiles.set(event.address, {
     ...existing,
     ownerAddress,
@@ -243,7 +273,7 @@ function updateAsset(
   updates: Partial<DigitalAssetRow>,
 ): void {
   const existing = context.state.digitalAssets.get(event.address);
-  if (existing == null) return;
+  if (existing?.verification !== 'verified') return;
   context.state.digitalAssets.set(event.address, {
     ...existing,
     ...updates,
@@ -284,7 +314,7 @@ function persistDataValue(context: ReducerContext, event: EventFactRecord): void
 
 function reformatNfts(context: ReducerContext, event: EventFactRecord): void {
   const asset = context.state.digitalAssets.get(event.address);
-  if (asset == null) return;
+  if (asset?.verification !== 'verified') return;
   for (const [key, nft] of context.state.nfts) {
     if (nft.address !== event.address) continue;
     const formattedTokenId = formatTokenId(nft.tokenId, asset.tokenIdFormat);
@@ -369,7 +399,7 @@ function upsertCreator(
   arrayIndex: bigint,
   interfaceId: string | null,
 ): void {
-  if (!context.state.digitalAssets.has(event.address)) return;
+  if (!hasVerifiedAsset(context, event.address)) return;
   deleteCreatorAtIndex(context, event.address, arrayIndex, creatorAddress);
   const key = pairKey(event.address, creatorAddress);
   const existing = context.state.creators.get(key);
@@ -386,7 +416,7 @@ function upsertCreator(
     creatorAddress,
     arrayIndex,
     interfaceId: interfaceId ?? existing?.interfaceId ?? null,
-    verified: context.state.universalProfiles.has(creatorAddress),
+    verified: hasVerifiedProfile(context, creatorAddress),
     ...provenance(event),
   });
   context.changes.deletedCreatorIds.delete(existing?.id ?? '');
@@ -394,7 +424,7 @@ function upsertCreator(
 }
 
 function reduceCreators(context: ReducerContext, event: EventFactRecord): void {
-  if (!context.state.digitalAssets.has(event.address)) return;
+  if (!hasVerifiedAsset(context, event.address)) return;
   const dataKey = readString(event, 'dataKey');
   const dataValue = readString(event, 'dataValue');
   if (dataKey == null || dataValue == null) return;
@@ -464,10 +494,7 @@ function upsertIssuedAsset(
   interfaceId: string | null,
 ): void {
   deleteIssuedAtIndex(context, event.address, arrayIndex, assetAddress);
-  if (
-    !context.state.universalProfiles.has(event.address) ||
-    !context.state.digitalAssets.has(assetAddress)
-  ) {
+  if (!hasVerifiedProfile(context, event.address) || !hasVerifiedAsset(context, assetAddress)) {
     return;
   }
   const key = pairKey(event.address, assetAddress);
@@ -492,7 +519,7 @@ function upsertIssuedAsset(
 }
 
 function reduceIssuedAssets(context: ReducerContext, event: EventFactRecord): void {
-  if (!context.state.universalProfiles.has(event.address)) return;
+  if (!hasVerifiedProfile(context, event.address)) return;
   const dataKey = readString(event, 'dataKey');
   const dataValue = readString(event, 'dataValue');
   if (dataKey == null || dataValue == null) return;
@@ -566,7 +593,7 @@ function upsertController(
     Pick<ControllerRow, 'arrayIndex' | 'permissions' | 'allowedCalls' | 'allowedDataKeys'>
   >,
 ): void {
-  if (!context.state.universalProfiles.has(event.address)) return;
+  if (!hasVerifiedProfile(context, event.address)) return;
   const key = pairKey(event.address, controllerAddress);
   const existing = context.state.controllers.get(key);
   context.state.controllers.set(key, {
@@ -592,7 +619,7 @@ function upsertController(
 }
 
 function reduceControllers(context: ReducerContext, event: EventFactRecord): void {
-  if (!context.state.universalProfiles.has(event.address)) return;
+  if (!hasVerifiedProfile(context, event.address)) return;
   const dataKey = readString(event, 'dataKey');
   const dataValue = readString(event, 'dataValue');
   if (dataKey == null || dataValue == null) return;
@@ -679,8 +706,8 @@ function addOwnedAsset(
 ): void {
   if (
     amount === 0n ||
-    !context.state.universalProfiles.has(ownerAddress) ||
-    !context.state.digitalAssets.has(event.address)
+    !hasVerifiedProfile(context, ownerAddress) ||
+    !hasVerifiedAsset(context, event.address)
   ) {
     return;
   }
@@ -725,7 +752,7 @@ function addOwnedToken(
   tokenId: string,
 ): void {
   if (
-    !context.state.universalProfiles.has(ownerAddress) ||
+    !hasVerifiedProfile(context, ownerAddress) ||
     !context.state.nfts.has(tokenKey(event.address, tokenId))
   ) {
     return;
@@ -759,7 +786,7 @@ function upsertNft(
   ownerAddress?: string | null,
 ): void {
   const asset = context.state.digitalAssets.get(event.address);
-  if (asset == null || asset.standard !== 'lsp8') return;
+  if (asset?.verification !== 'verified' || asset.standard !== 'lsp8') return;
   const key = tokenKey(event.address, tokenId);
   const existing = context.state.nfts.get(key);
   const from = readString(event, 'from');
@@ -795,6 +822,7 @@ function upsertChillwhalesExtension(
   >,
 ): void {
   if (!hasExtension(context.runtime, 'chillwhales')) return;
+  if (!hasVerifiedAsset(context, event.address)) return;
   const key = tokenKey(event.address, tokenId);
   if (!context.state.nfts.has(key)) return;
   const existing = context.state.chillwhalesNfts.get(key);
@@ -825,12 +853,7 @@ function reduceTransfer(context: ReducerContext, event: EventFactRecord): void {
   const from = readString(event, 'from');
   const to = readString(event, 'to');
   const amount = readUnsigned(readString(event, 'amount'));
-  if (
-    from == null ||
-    to == null ||
-    amount == null ||
-    !context.state.digitalAssets.has(event.address)
-  ) {
+  if (from == null || to == null || amount == null || !hasVerifiedAsset(context, event.address)) {
     return;
   }
 
@@ -916,8 +939,8 @@ function reduceFollower(context: ReducerContext, event: EventFactRecord): void {
     followerAddress == null ||
     followedAddress == null ||
     followerAddress === followedAddress ||
-    !context.state.universalProfiles.has(followerAddress) ||
-    !context.state.universalProfiles.has(followedAddress)
+    !hasVerifiedProfile(context, followerAddress) ||
+    !hasVerifiedProfile(context, followedAddress)
   ) {
     return;
   }
@@ -944,6 +967,7 @@ function reduceFollower(context: ReducerContext, event: EventFactRecord): void {
 }
 
 function applyClaimStatusUpdate(context: ReducerContext, update: ClaimStatusUpdate): void {
+  if (!hasVerifiedAsset(context, update.address)) return;
   const key = tokenKey(update.address, update.tokenId);
   const existing = context.state.chillwhalesNfts.get(key);
   if (existing == null) return;

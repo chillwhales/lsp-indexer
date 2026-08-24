@@ -99,10 +99,10 @@ advancing the cursor.
 
 The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
 exact block number and hash, interface category, and address; executes current and legacy
-LSP0/LSP7/LSP8 interface checks through the configured Multicall3 deployment in bounded batches;
-and pins every read to its triggering block. The RPC block hash is checked both before and after
-each Multicall so a provider reorg cannot commit results from the wrong fork. Decimals are accepted
-only for verified LSP7 assets.
+LSP0/LSP7/LSP8 interface checks through bounded direct reads before the configured Multicall3
+deployment and bounded Multicall3 batches afterward; and pins every read to its triggering block.
+The RPC block hash is checked both before and after either path so a provider reorg cannot commit
+results from the wrong fork. Decimals are accepted only for verified LSP7 assets.
 
 The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
 
@@ -113,12 +113,14 @@ The reducer applies only newly inserted facts in block/transaction/log order and
 - Follower tombstones, creators, issued assets, controllers, permissions, and raw ERC725Y values
 - The LUKSO-only Chillwhales extension for claim flags and Orb level, cooldown, and faction
 
-A failed individual interface call produces no typed entity. Its raw event and ERC725Y value remain
-stored. A transport or malformed-response failure aborts the transaction and leaves the cursor at
-the preceding position. Exact replay validates existing deterministic facts but does not reduce
-them again, preventing double-applied balances and supply. Changed creator, issued-asset, and
-controller relationships are deleted before reinsertion so two rows may safely exchange a unique
-ERC725Y array index in one batch.
+A failed individual interface call produces no new typed entity. If a previously verified contract
+later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
+until it verifies again. Raw events and ERC725Y values remain stored. A transport or
+malformed-response failure aborts the transaction and leaves the cursor at the preceding position.
+Exact replay validates existing deterministic facts but does not reduce them again, preventing
+double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
+deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one
+batch.
 
 CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
 number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
@@ -132,7 +134,7 @@ already persists their durable chain inputs.
 | Variable                                | Required | Purpose                                                     |
 | --------------------------------------- | -------- | ----------------------------------------------------------- |
 | `INDEXER_NETWORK`                       | Yes      | Network key from the catalog                                |
-| `INDEXER_FROM_BLOCK`                    | No       | Inclusive start block; defaults to the network start block  |
+| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation |
 | `INDEXER_TO_BLOCK`                      | No       | Inclusive end block; required by the bounded source probe   |
 | `SQD_PORTAL_URL`                        | No       | Override the selected network's Portal dataset URL          |
 | `RPC_URL`                               | No       | Generic RPC override                                        |
@@ -252,7 +254,9 @@ running it. Its reviewed `destructive-replay` migration drops old Pipes snapshot
 triggers, and tables and clears every mutable chain table plus `sqd_cursor` in the same transaction
 across all enabled networks. It preserves `network_config` and migration history. On restart, Pipes
 recreates all 16 rollback artifacts from the new schema and ingestion replays from
-`INDEXER_FROM_BLOCK`. No other migration bypasses the snapshot guard.
+the configured network start block. A fresh or reset schema with a later `INDEXER_FROM_BLOCK` is
+rejected. With an existing cursor, a custom start is accepted only when it does not leave a gap
+after the latest committed block. No other migration bypasses the snapshot guard.
 
 ## Commands
 
@@ -288,7 +292,9 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 The command uses the narrow event query, query-aware decoder, block-pinned RPC planner,
 deterministic reducer, official rollback-aware Drizzle target, and the same stable per-network
-cursor ID. Add `INDEXER_FROM_BLOCK` and `INDEXER_TO_BLOCK` for a bounded backfill or fixture run.
+cursor ID. `INDEXER_TO_BLOCK` can bound an initial replay. A custom `INDEXER_FROM_BLOCK` is only for
+a contiguous continuation from an existing cursor; use `probe:network` for arbitrary source
+fixtures that intentionally start later.
 
 Run local validation:
 

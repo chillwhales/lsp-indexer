@@ -1,4 +1,4 @@
-import { toHex } from 'viem';
+import { ExecutionRevertedError, toHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import type { NetworkRpcClient } from '../../rpc/index.js';
@@ -105,23 +105,77 @@ describe('block-pinned projection RPC reads', () => {
 
   it('passes the exact block and configured Multicall3 address to viem', async () => {
     const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
-    const getBlock = vi.fn().mockResolvedValue({ hash: block10Hash });
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const blockNumber = runtime.network.multicall.fromBlock;
+    const blockHash = toHex(BigInt(blockNumber), { size: 32 });
+    const getBlock = vi.fn().mockResolvedValue({ hash: blockHash });
     const rpc = { getBlock, multicall } as unknown as NetworkRpcClient;
     const execute = createProjectionCallExecutor(rpc, runtime);
 
-    await execute({ number: 10, hash: block10Hash }, [
+    await execute({ number: blockNumber, hash: blockHash }, [
       { address: profile, functionName: 'supportsInterface', interfaceId: INTERFACE_IDS.lsp0[0] },
     ]);
 
     expect(multicall).toHaveBeenCalledWith(
       expect.objectContaining({
-        blockNumber: 10n,
-        multicallAddress: runtime.network.multicallAddress,
+        blockNumber: BigInt(blockNumber),
+        multicallAddress: runtime.network.multicall.address,
         allowFailure: true,
       }),
     );
     expect(getBlock).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses bounded direct reads before Multicall3 is deployed', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const getBlock = vi.fn().mockResolvedValue({ hash: block10Hash });
+    const call = vi.fn().mockResolvedValue({ data: toHex(1n, { size: 32 }) });
+    const multicall = vi.fn();
+    const rpc = { call, getBlock, multicall } as unknown as NetworkRpcClient;
+    const execute = createProjectionCallExecutor(rpc, runtime);
+
+    await expect(
+      execute({ number: 10, hash: block10Hash }, [
+        {
+          address: profile,
+          functionName: 'supportsInterface',
+          interfaceId: INTERFACE_IDS.lsp0[0],
+        },
+      ]),
+    ).resolves.toEqual([{ status: 'success', value: true }]);
+
+    expect(call).toHaveBeenCalledWith(expect.objectContaining({ to: profile, blockNumber: 10n }));
+    expect(multicall).not.toHaveBeenCalled();
+    expect(getBlock).toHaveBeenCalledTimes(2);
+  });
+
+  it('isolates malformed direct return data but propagates direct transport failures', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const getBlock = vi.fn().mockResolvedValue({ hash: block10Hash });
+    const rpc = {
+      getBlock,
+      call: vi
+        .fn()
+        .mockResolvedValueOnce({ data: '0x12' })
+        .mockRejectedValueOnce(new ExecutionRevertedError())
+        .mockRejectedValueOnce(new Error('down')),
+    } as unknown as NetworkRpcClient;
+    const execute = createProjectionCallExecutor(rpc, runtime);
+    const calls = [
+      {
+        address: profile,
+        functionName: 'supportsInterface' as const,
+        interfaceId: INTERFACE_IDS.lsp0[0],
+      },
+    ];
+
+    await expect(execute({ number: 10, hash: block10Hash }, calls)).resolves.toEqual([
+      { status: 'failure' },
+    ]);
+    await expect(execute({ number: 10, hash: block10Hash }, calls)).resolves.toEqual([
+      { status: 'failure' },
+    ]);
+    await expect(execute({ number: 10, hash: block10Hash }, calls)).rejects.toThrow('down');
   });
 
   it('rejects reads when the RPC provider disagrees with the Portal block hash', async () => {
@@ -146,25 +200,27 @@ describe('block-pinned projection RPC reads', () => {
 
   it('rejects results when the RPC block changes while a multicall is in flight', async () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const blockNumber = runtime.network.multicall.fromBlock;
+    const blockHash = toHex(BigInt(blockNumber), { size: 32 });
     const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
     const rpc = {
       getBlock: vi
         .fn()
-        .mockResolvedValueOnce({ hash: block10Hash })
+        .mockResolvedValueOnce({ hash: blockHash })
         .mockResolvedValueOnce({ hash: block11Hash }),
       multicall,
     } as unknown as NetworkRpcClient;
     const execute = createProjectionCallExecutor(rpc, runtime);
 
     await expect(
-      execute({ number: 10, hash: block10Hash }, [
+      execute({ number: blockNumber, hash: blockHash }, [
         {
           address: profile,
           functionName: 'supportsInterface',
           interfaceId: INTERFACE_IDS.lsp0[0],
         },
       ]),
-    ).rejects.toThrow('RPC block 10 changed during projection reads');
+    ).rejects.toThrow(`RPC block ${blockNumber} changed during projection reads`);
     expect(multicall).toHaveBeenCalledTimes(1);
   });
 

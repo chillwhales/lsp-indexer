@@ -33,6 +33,9 @@ describe('network registry', () => {
   });
 
   it('represents deployed contract capabilities without zero-address fallbacks', () => {
+    expect(NETWORKS['lukso-mainnet'].multicall.fromBlock).toBe(4_964_839);
+    expect(NETWORKS['ethereum-mainnet'].multicall.fromBlock).toBe(14_353_601);
+    expect(NETWORKS['ethereum-sepolia'].multicall.fromBlock).toBe(751_532);
     expect(NETWORKS['lukso-mainnet'].contracts.lsp23Factory?.fromBlock).toBe(1_143_651);
     expect(NETWORKS['lukso-mainnet'].contracts.lsp26FollowerSystem?.fromBlock).toBe(3_179_471);
     expect(NETWORKS['ethereum-mainnet'].contracts.lsp23Factory?.fromBlock).toBe(20_217_894);
@@ -49,6 +52,7 @@ describe('network registry', () => {
     expect(Object.isFrozen(network.nativeCurrency)).toBe(true);
     expect(Object.isFrozen(network.portal)).toBe(true);
     expect(Object.isFrozen(network.rpc)).toBe(true);
+    expect(Object.isFrozen(network.multicall)).toBe(true);
     expect(Object.isFrozen(network.contracts)).toBe(true);
     expect(Object.isFrozen(network.contracts.lsp23Factory)).toBe(true);
     expect(Object.isFrozen(network.contracts.lsp26FollowerSystem)).toBe(true);

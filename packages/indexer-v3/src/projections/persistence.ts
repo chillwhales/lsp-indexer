@@ -1,4 +1,4 @@
-import { inArray, sql } from 'drizzle-orm';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import type { NetworkDatabaseConfig } from '../db/config.js';
@@ -13,6 +13,7 @@ import {
   nfts,
   ownedAssets,
   ownedTokens,
+  sqdCursor,
   universalProfiles,
 } from '../db/schema.js';
 import { createPersistenceTarget, type PersistenceHandlerContext } from '../db/target.js';
@@ -36,6 +37,38 @@ function chunks<T>(values: readonly T[]): T[][] {
     result.push(values.slice(index, index + WRITE_CHUNK_SIZE));
   }
   return result;
+}
+
+/** Reject fresh or reset projection runs that would silently skip canonical history. */
+export async function assertProjectionReplayStart(
+  db: NetworkDatabase,
+  runtime: RuntimeConfig,
+): Promise<void> {
+  if (runtime.range.from === runtime.network.startBlock) return;
+
+  const cursor = (
+    await db
+      .select({ currentNumber: sqdCursor.currentNumber })
+      .from(sqdCursor)
+      .where(eq(sqdCursor.id, runtime.streamId))
+      .orderBy(desc(sqdCursor.currentNumber))
+      .limit(1)
+  )[0];
+  if (cursor == null) {
+    throw new Error(
+      `Projection replay for ${runtime.network.key} has no cursor and must start at block ${runtime.network.startBlock}; received ${runtime.range.from}`,
+    );
+  }
+
+  const currentNumber = Number(cursor.currentNumber);
+  if (!Number.isSafeInteger(currentNumber) || currentNumber < runtime.network.startBlock) {
+    throw new Error(`Projection cursor for ${runtime.network.key} has an invalid block number`);
+  }
+  if (runtime.range.from > currentNumber + 1) {
+    throw new Error(
+      `Projection replay for ${runtime.network.key} would skip blocks ${currentNumber + 1}-${runtime.range.from - 1}`,
+    );
+  }
 }
 
 async function deleteIds(
@@ -398,6 +431,7 @@ export function createProjectionPersistenceTarget(
     runtime: options.runtime,
     databaseConfig: options.databaseConfig,
     db: options.db,
+    onStart: () => assertProjectionReplayStart(options.db, options.runtime),
     onData: (context, batch) => persistProjectionBatch(context, batch, options.runtime),
   });
 }

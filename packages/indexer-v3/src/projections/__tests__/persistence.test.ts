@@ -1,6 +1,8 @@
 import { getTableName } from 'drizzle-orm';
 import { toHex } from 'viem';
 import { describe, expect, it } from 'vitest';
+import { loadRuntimeConfig } from '../../config/index.js';
+import type { NetworkDatabase } from '../../db/client.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -15,7 +17,7 @@ import {
   universalProfiles,
 } from '../../db/schema.js';
 import type { PersistenceHandlerContext } from '../../db/target.js';
-import { applyProjectionMutations } from '../persistence.js';
+import { applyProjectionMutations, assertProjectionReplayStart } from '../persistence.js';
 import type { ProjectionMutations } from '../reducer.js';
 
 const profile = '0x0000000000000000000000000000000000000010';
@@ -28,6 +30,62 @@ interface FakeWriteState {
   deletedTables: string[];
   insertedSizes: Map<string, number[]>;
 }
+
+function fakeCursorDatabase(rows: unknown[]): NetworkDatabase {
+  const database = {
+    select() {
+      return {
+        from() {
+          return {
+            where() {
+              return {
+                orderBy() {
+                  return {
+                    limit(): Promise<unknown[]> {
+                      return Promise.resolve(rows);
+                    },
+                  };
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+  return database as unknown as NetworkDatabase;
+}
+
+describe('projection replay start guard', () => {
+  it('requires a fresh or reset schema to replay from the configured network start', async () => {
+    const runtime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '10',
+    });
+
+    await expect(assertProjectionReplayStart(fakeCursorDatabase([]), runtime)).rejects.toThrow(
+      'has no cursor and must start at block 0; received 10',
+    );
+  });
+
+  it('allows a contiguous continuation and rejects a gap after the latest cursor', async () => {
+    const contiguous = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '10',
+    });
+    await expect(
+      assertProjectionReplayStart(fakeCursorDatabase([{ currentNumber: '9' }]), contiguous),
+    ).resolves.toBeUndefined();
+
+    const gap = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '12',
+    });
+    await expect(
+      assertProjectionReplayStart(fakeCursorDatabase([{ currentNumber: '9' }]), gap),
+    ).rejects.toThrow('would skip blocks 10-11');
+  });
+});
 
 function fakeTransaction(): {
   tx: PersistenceHandlerContext['tx'];

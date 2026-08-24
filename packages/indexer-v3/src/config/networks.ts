@@ -38,7 +38,7 @@ export interface NetworkConfig {
   readonly finalityConfirmations: number;
   readonly portal: PortalConfig;
   readonly rpc: RpcConfig;
-  readonly multicallAddress: Address;
+  readonly multicall: ContractDeployment;
   readonly ipfsGateway: string;
   readonly contracts: NetworkContracts;
   readonly extensions: readonly string[];
@@ -48,6 +48,7 @@ function freezeNetworkConfig(config: NetworkConfig): void {
   Object.freeze(config.nativeCurrency);
   Object.freeze(config.portal);
   Object.freeze(config.rpc);
+  Object.freeze(config.multicall);
   for (const deployment of Object.values(config.contracts)) {
     Object.freeze(deployment);
   }
@@ -79,7 +80,10 @@ const NETWORK_DEFINITIONS = {
       batchSize: 100,
       batchWaitMs: 20,
     },
-    multicallAddress: '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869',
+    multicall: {
+      address: '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869',
+      fromBlock: 4_964_839,
+    },
     ipfsGateway: 'https://api.universalprofile.cloud/ipfs/',
     contracts: {
       lsp23Factory: {
@@ -115,7 +119,10 @@ const NETWORK_DEFINITIONS = {
       batchSize: 100,
       batchWaitMs: 20,
     },
-    multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    multicall: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      fromBlock: 14_353_601,
+    },
     ipfsGateway: 'https://ipfs.io/ipfs/',
     contracts: {
       lsp23Factory: {
@@ -151,7 +158,10 @@ const NETWORK_DEFINITIONS = {
       batchSize: 100,
       batchWaitMs: 20,
     },
-    multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    multicall: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      fromBlock: 751_532,
+    },
     ipfsGateway: 'https://ipfs.io/ipfs/',
     contracts: {
       lsp23Factory: {

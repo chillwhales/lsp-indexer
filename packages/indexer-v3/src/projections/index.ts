@@ -1,5 +1,6 @@
 export * from './block.js';
 export * from './candidates.js';
+export * from './direct.js';
 export * from './extensions.js';
 export * from './output.js';
 export * from './persistence.js';

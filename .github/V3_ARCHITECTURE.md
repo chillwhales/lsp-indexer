@@ -103,7 +103,7 @@ interface NetworkConfig {
   portalDataset?: string;
   rpcUrlEnv: string;
   finalityConfirmations: number;
-  multicallAddress: string;
+  multicall: { address: string; fromBlock: number };
   ipfsGateway: string;
   contracts: {
     lsp23Factory?: { address: string; fromBlock: number };
@@ -315,8 +315,10 @@ any rollback snapshot table exists, even when empty, it fails before executing t
 projection rollout is the sole marked alpha rebuild exception. With every v3 process stopped, its
 cross-network transaction drops old rollback artifacts, clears mutable rows and cursors, preserves
 network identity and migration history, and forces a complete replay. Pipes recreates the 16
-snapshot tables, functions, and triggers from the current tracked schema on restart. PostgreSQL
-integration tests cover both generic refusal and the marked reset with non-empty old snapshots.
+snapshot tables, functions, and triggers from the current tracked schema on restart. With no cursor,
+startup requires the configured network start block; with a cursor, it rejects a source range that
+would leave a gap after the latest committed block. PostgreSQL integration tests cover both generic
+refusal and the marked reset with non-empty old snapshots.
 
 The bounded-finality fix is also still a draft:
 [subsquid/pipes-sdk#143](https://github.com/subsquid/pipes-sdk/pull/143). Backfill completion evidence
@@ -343,12 +345,15 @@ existing state scope needed by those facts, applies them in canonical order, del
 or zero-balance rows, and upserts the resulting current state. Exact replay can validate an existing
 fact but cannot apply it twice.
 
-Interface verification is planned per exact `(block number, block hash, category, address)`, split
-into bounded sequential Multicall requests at that block, and supports current and legacy LSP0,
-LSP7, and LSP8 IDs. The RPC provider's hash is checked before and after each read. Transport or
-response-shape failures fail the batch. Individual contract-call failures classify that candidate
-as invalid; they do not delete its raw event or ERC725Y value. Decimals are accepted only for a
-verified LSP7 asset.
+Interface verification is planned per exact `(block number, block hash, category, address)` and
+supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded
+Multicall3 deployment block, bounded direct `eth_call` reads are used; from the deployment block
+onward, calls use bounded sequential Multicall requests. The RPC provider's hash is checked before
+and after either path. Transport or response-shape failures fail the batch. Individual
+contract-call failures classify that candidate as invalid; they do not delete its raw event or
+ERC725Y value. A later invalid result marks an existing core row invalid and prevents subsequent
+typed reduction until verification succeeds again. Decimals are accepted only for a verified LSP7
+asset.
 
 The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
 updates use the same deterministic reducer. Each available Portal head checks at most 250

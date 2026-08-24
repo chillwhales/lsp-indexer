@@ -68,7 +68,7 @@ through event modules.
 | Variable                                | Required | Default or behavior                                         |
 | --------------------------------------- | -------- | ----------------------------------------------------------- |
 | `INDEXER_NETWORK`                       | Yes      | One network key from the table above                        |
-| `INDEXER_FROM_BLOCK`                    | No       | Configured network start block                              |
+| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation |
 | `INDEXER_TO_BLOCK`                      | No       | Inclusive bound; required for `probe:network`               |
 | `SQD_PORTAL_URL`                        | No       | Selected network's catalog URL                              |
 | `RPC_URL`                               | No       | Generic RPC override                                        |
@@ -221,8 +221,10 @@ The projection rollout contains one reviewed `destructive-replay` alpha migratio
 indexer before running it. The migration transactionally removes old snapshot functions, triggers,
 and tables and clears every mutable chain table and Pipes cursor across all enabled networks while
 preserving network identity and migration history. Pipes recreates all 16 rollback artifacts on
-restart, and ingestion replays from `INDEXER_FROM_BLOCK`. Other migrations cannot bypass the
-snapshot guard.
+restart, and ingestion replays from the configured network start block. A fresh or reset schema
+with a later `INDEXER_FROM_BLOCK` is rejected. With an existing cursor, a custom start is accepted
+only when it does not leave a gap after the latest committed block. Other migrations cannot bypass
+the snapshot guard.
 
 ### V3 raw event ingestion
 
@@ -260,9 +262,10 @@ cursor unchanged.
 
 The event pipe also performs deterministic current-state reduction. It deduplicates verification
 candidates by exact block number and hash, category, and address; checks current and legacy
-LSP0/LSP7/LSP8 interface IDs through the configured Multicall3 contract in bounded batches; and
-pins every RPC read to its triggering block. The provider's block hash is checked before and after
-each Multicall so results from a changing fork cannot commit.
+LSP0/LSP7/LSP8 interface IDs through bounded direct reads before the configured Multicall3
+deployment and bounded Multicall3 batches afterward; and pins every RPC read to its triggering
+block. The provider's block hash is checked before and after either path so results from a changing
+fork cannot commit.
 
 Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
 order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and
@@ -270,11 +273,12 @@ token ownership; follower tombstones; creators; issued assets; controllers and p
 raw ERC725Y current values. NFT formatting and base-URI changes also update existing NFT token
 locations.
 
-Invalid interface candidates do not create typed rows, but their raw facts and ERC725Y values remain
-available. RPC transport or result-shape failures abort the batch before the cursor commits. Exact
-replay can validate existing deterministic facts but cannot double-apply balances or supply.
-Changed creator, issued-asset, and controller rows are deleted before reinsertion so unique array
-indexes may safely swap within one batch.
+Invalid interface candidates do not create typed rows. If a previously verified contract later
+fails verification, its core row becomes `invalid` and later facts cannot mutate typed state until
+it verifies again. Raw facts and ERC725Y values remain available. RPC transport or result-shape
+failures abort the batch before the cursor commits. Exact replay can validate existing deterministic
+facts but cannot double-apply balances or supply. Changed creator, issued-asset, and controller rows
+are deleted before reinsertion so unique array indexes may safely swap within one batch.
 
 LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
 cooldown, and faction. Claim reads happen only at the Portal's available head and use its exact
@@ -291,8 +295,10 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
   pnpm --filter @chillwhales/indexer-v3 index:events
 ```
 
-Use `INDEXER_FROM_BLOCK` and `INDEXER_TO_BLOCK` for a bounded run. Production still uses one isolated
-process per network; this command does not turn the local development runner into a supervisor.
+Use `INDEXER_TO_BLOCK` to bound an initial replay. A custom `INDEXER_FROM_BLOCK` is accepted only as
+a contiguous continuation from an existing cursor; a fresh or reset projection database must begin
+at the configured network start. Production still uses one isolated process per network; this
+command does not turn the local development runner into a supervisor.
 
 ### Validate a source
 

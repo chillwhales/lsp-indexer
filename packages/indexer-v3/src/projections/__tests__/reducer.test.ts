@@ -146,6 +146,40 @@ describe('deterministic v3 domain reducer', () => {
     ]);
   });
 
+  it('invalidates a previously verified contract and blocks later typed mutations', () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const mint = transfer(runtime, 1, asset, 'lsp7', ZERO_ADDRESS, alice, '10');
+    const state = emptyState();
+    reduceProjectionEvents(
+      runtime,
+      state,
+      [mint],
+      verifications([mint], [alice], new Map([[asset, 'lsp7']])),
+    );
+
+    const invalidTransfer = transfer(runtime, 2, asset, 'lsp7', alice, bob, '4');
+    const mutations = reduceProjectionEvents(
+      runtime,
+      state,
+      [invalidTransfer],
+      verifications([invalidTransfer], [alice, bob], new Map()),
+    );
+
+    expect(mutations.digitalAssets).toEqual([
+      expect.objectContaining({
+        address: asset,
+        verification: 'invalid',
+        totalSupply: '10',
+        lastBlockNumber: 2,
+      }),
+    ]);
+    expect(mutations.ownedAssets).toEqual([]);
+    expect(state.ownedAssets.get(`${alice}:${asset}`)).toEqual(
+      expect.objectContaining({ balance: '10' }),
+    );
+    expect(state.ownedAssets.has(`${bob}:${asset}`)).toBe(false);
+  });
+
   it('orders LSP7 mint, transfer, and burn facts and produces exact supply and balances', () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const events = [
