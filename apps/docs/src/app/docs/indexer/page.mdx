@@ -111,7 +111,10 @@ other shared-schema object aborts migration. The `api` schema excludes migration
 metadata jobs, snapshots, functions, and triggers. Unexpected API relations or routines abort
 migration. The API reader may not own a schema, relation, routine, type, or database and may hold only
 shared-enum usage, API schema usage, and `SELECT` on the enumerated public views; any inventoried
-stale privilege aborts migration.
+stale privilege aborts migration. The inventory includes privileges inherited from PostgreSQL's
+`PUBLIC` pseudo-role and implicit default ACLs on reachable user-defined routines and types. Public
+type usage is removed from the shared enums and API view row types, and a publicly executable custom
+routine—including a default-public `SECURITY DEFINER` routine—aborts migration.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
@@ -121,9 +124,13 @@ remain capability-limited `NOLOGIN NOINHERIT` roles without direct or transitive
 other roles. Migration also inventories every role that can reach a writer role and allows only the
 migration admin and that network's configured runtime login. Runtime membership may not carry
 `ADMIN OPTION`, and only the current migration admin may reach the API owner role. Revoke the
-previous membership before rotating either credential. Programmatic migration calls also reject
-duplicate network identities or schemas, and an existing chain schema must contain only its expected
-singleton `network_config` identity:
+previous membership before rotating either credential. Because a PostgreSQL session can `RESET
+ROLE`, migration and startup also reject direct ACLs, object ownership, default ACLs, and policy
+references held by the underlying runtime login; the only permitted direct database ACL is
+non-grantable `CONNECT` on the current database. Programmatic migration calls require every schema
+and writer role to match the deterministic mapping for its network, reject reserved mappings and
+duplicate identities, and require an existing chain schema to contain only its expected singleton
+`network_config` identity:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -133,7 +140,8 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 
 Verify that a runtime connection has the expected role and schema and cannot write another
 network. Readiness checks both the assumed role and the underlying session login for superuser
-status, every reachable role membership, and foreign write privileges:
+status, every reachable role membership, direct privilege or ownership dependencies, and foreign
+write privileges:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

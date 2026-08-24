@@ -482,6 +482,54 @@ describe.sequential('PostgreSQL persistence', () => {
     ).rejects.toThrow(`Migration networks contain duplicate schemas: ${ethereum.schema}`);
   });
 
+  it('rejects reserved and noncanonical migration schemas and writer roles', async () => {
+    const ethereum = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereum == null) throw new Error('Expected the Ethereum migration network');
+
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: migrationConfig.networks.map((network) =>
+          network === ethereum ? { ...network, schema: SHARED_SCHEMA } : network,
+        ),
+      }),
+    ).rejects.toThrow(
+      `Migration network "ethereum-mainnet" must not use reserved schema "${SHARED_SCHEMA}"`,
+    );
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: migrationConfig.networks.map((network) =>
+          network === ethereum ? { ...network, schema: 'chain_noncanonical' } : network,
+        ),
+      }),
+    ).rejects.toThrow(
+      'Migration network "ethereum-mainnet" must use canonical schema "chain_ethereum_mainnet"; received "chain_noncanonical"',
+    );
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: migrationConfig.networks.map((network) =>
+          network === ethereum ? { ...network, role: API_OWNER_ROLE } : network,
+        ),
+      }),
+    ).rejects.toThrow(
+      `Migration network "ethereum-mainnet" must not use reserved writer role "${API_OWNER_ROLE}"`,
+    );
+    await expect(
+      migrateDatabase({
+        ...migrationConfig,
+        networks: migrationConfig.networks.map((network) =>
+          network === ethereum ? { ...network, role: 'lsp_v3_noncanonical_writer' } : network,
+        ),
+      }),
+    ).rejects.toThrow(
+      'Migration network "ethereum-mainnet" must use canonical writer role "lsp_v3_chain_ethereum_mainnet_writer"; received "lsp_v3_noncanonical_writer"',
+    );
+  });
+
   it('rejects unsafe attributes on pre-existing deterministic roles', async () => {
     const ethereumRole = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
@@ -638,7 +686,7 @@ describe.sequential('PostgreSQL persistence', () => {
     );
     try {
       await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
-        `API reader role "${API_READER_ROLE}" has privileges outside the approved API boundary: ${schemaName}.metadata_jobs (relation SELECT), ${schemaName} (schema USAGE)`,
+        `API reader role "${API_READER_ROLE}" has privileges outside the approved API boundary: ${schemaName}.metadata_jobs (relation SELECT via ${API_READER_ROLE}), ${schemaName} (schema USAGE via ${API_READER_ROLE})`,
       );
     } finally {
       await testAdminPool.query(
@@ -647,6 +695,105 @@ describe.sequential('PostgreSQL persistence', () => {
       await testAdminPool.query(
         `REVOKE USAGE ON SCHEMA ${quotePostgresIdentifier(schemaName)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
       );
+    }
+  });
+
+  it('rejects user-defined routines executable through PUBLIC', async () => {
+    const routineName = `v3_test_public_routine_${suiteSuffix}`;
+    const qualifiedRoutine = `${quotePostgresIdentifier('public')}.${quotePostgresIdentifier(routineName)}`;
+    await testAdminPool.query(
+      `CREATE FUNCTION ${qualifiedRoutine}() RETURNS text LANGUAGE sql SECURITY DEFINER AS $$ SELECT 'secret'::text $$`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `API reader role "${API_READER_ROLE}" has privileges outside the approved API boundary: public.${routineName}() (routine EXECUTE via PUBLIC)`,
+      );
+    } finally {
+      await testAdminPool.query(`DROP FUNCTION ${qualifiedRoutine}()`);
+    }
+  });
+
+  it('normalizes PUBLIC usage on approved API view types before enforcing the boundary', async () => {
+    const qualifiedType = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier('blocks')}`;
+    await executeAsRole(
+      testAdminPool,
+      API_OWNER_ROLE,
+      `GRANT USAGE ON TYPE ${qualifiedType} TO PUBLIC`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).resolves.toBeDefined();
+      const publicUsage = await testAdminPool.query<{ allowed: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1
+           FROM pg_type granted_type
+           JOIN pg_namespace namespace ON namespace.oid = granted_type.typnamespace
+           CROSS JOIN LATERAL aclexplode(granted_type.typacl) acl
+           WHERE namespace.nspname = $1
+             AND granted_type.typname = $2
+             AND acl.grantee = 0
+             AND acl.privilege_type = 'USAGE'
+         ) AS allowed`,
+        [API_SCHEMA, 'blocks'],
+      );
+      expect(publicUsage.rows[0]?.allowed).toBe(false);
+    } finally {
+      await executeAsRole(
+        testAdminPool,
+        API_OWNER_ROLE,
+        `REVOKE USAGE ON TYPE ${qualifiedType} FROM PUBLIC`,
+      );
+    }
+  });
+
+  it('allows only non-grantable direct CONNECT for a runtime login', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    await testAdminPool.query(
+      `GRANT CONNECT ON DATABASE ${quotePostgresIdentifier(testDatabaseName)} TO ${quotePostgresIdentifier(runtimeLogin)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).resolves.toBeDefined();
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).resolves.toBeDefined();
+    } finally {
+      await testAdminPool.query(
+        `REVOKE CONNECT ON DATABASE ${quotePostgresIdentifier(testDatabaseName)} FROM ${quotePostgresIdentifier(runtimeLogin)}`,
+      );
+    }
+  });
+
+  it('rejects direct privileges held by runtime logins during migration and startup', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    await testAdminPool.query(
+      `GRANT CREATE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(runtimeLogin)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Configured runtime login "${runtimeLogin}" has direct privileges, ownership, or policy references outside its writer role: schema ${API_SCHEMA} (ACL)`,
+      );
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        `Database session user "${runtimeLogin}" has direct privileges, ownership, or policy references outside its writer role: schema ${API_SCHEMA} (ACL)`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE CREATE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} FROM ${quotePostgresIdentifier(runtimeLogin)}`,
+      );
+    }
+  });
+
+  it('rejects database objects owned by runtime logins during migration and startup', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    const schemaName = `v3_test_runtime_owned_${suiteSuffix}`;
+    await testAdminPool.query(
+      `CREATE SCHEMA ${quotePostgresIdentifier(schemaName)} AUTHORIZATION ${quotePostgresIdentifier(runtimeLogin)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Configured runtime login "${runtimeLogin}" has direct privileges, ownership, or policy references outside its writer role: schema ${schemaName} (ownership)`,
+      );
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        `Database session user "${runtimeLogin}" has direct privileges, ownership, or policy references outside its writer role: schema ${schemaName} (ownership)`,
+      );
+    } finally {
+      await testAdminPool.query(`DROP SCHEMA ${quotePostgresIdentifier(schemaName)}`);
     }
   });
 

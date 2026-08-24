@@ -26,6 +26,11 @@ interface ReachableRoleRow extends Record<string, unknown> {
   role: string;
 }
 
+interface RoleDependencyRow extends Record<string, unknown> {
+  kind: string;
+  object: string;
+}
+
 export interface DatabaseReadiness {
   currentRole: string;
   currentSchema: string;
@@ -125,6 +130,59 @@ export async function verifyDatabaseReadiness(
   if (membershipResult.rows.length > 0) {
     throw new Error(
       `Database session user can assume roles outside "${expectedRole}": ${membershipResult.rows.map(({ role }) => role).join(', ')}`,
+    );
+  }
+  const directPrivilegeResult = await db.execute<RoleDependencyRow>(sql`
+    WITH runtime_role AS (
+      SELECT oid FROM pg_roles WHERE rolname = session_user
+    ), current_database_object AS (
+      SELECT oid, datacl FROM pg_database WHERE datname = current_database()
+    )
+    SELECT CASE dependency.deptype
+             WHEN 'a' THEN 'ACL'
+             WHEN 'i' THEN 'initial ACL'
+             WHEN 'o' THEN 'ownership'
+             WHEN 'r' THEN 'policy reference'
+           END AS kind,
+           pg_describe_object(
+             dependency.classid,
+             dependency.objid,
+             dependency.objsubid
+           ) AS object
+    FROM pg_shdepend dependency
+    CROSS JOIN runtime_role
+    CROSS JOIN current_database_object
+    WHERE dependency.refclassid = 'pg_authid'::regclass
+      AND dependency.refobjid = runtime_role.oid
+      AND dependency.dbid IN (0, current_database_object.oid)
+      AND dependency.deptype IN ('a', 'i', 'o', 'r')
+      AND NOT (
+        dependency.deptype = 'a'
+        AND dependency.classid = 'pg_database'::regclass
+        AND dependency.objid = current_database_object.oid
+        AND dependency.objsubid = 0
+        AND EXISTS (
+          SELECT 1
+          FROM aclexplode(current_database_object.datacl) acl
+          WHERE acl.grantee = runtime_role.oid
+            AND acl.privilege_type = 'CONNECT'
+            AND NOT acl.is_grantable
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM aclexplode(current_database_object.datacl) acl
+          WHERE acl.grantee = runtime_role.oid
+            AND (
+              acl.privilege_type <> 'CONNECT'
+              OR acl.is_grantable
+            )
+        )
+      )
+    ORDER BY kind, object
+  `);
+  if (directPrivilegeResult.rows.length > 0) {
+    throw new Error(
+      `Database session user "${row.sessionUser}" has direct privileges, ownership, or policy references outside its writer role: ${directPrivilegeResult.rows.map(({ kind, object }) => `${object} (${kind})`).join(', ')}`,
     );
   }
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`

@@ -23,7 +23,8 @@ The runtime search path is always `chain_<network>,lsp_v3,public`. The released 
 tracker emits unqualified DDL and rollback SQL, so pinning that search path is a correctness
 requirement rather than a convenience. Startup readiness rejects the wrong current role or schema
 and checks the underlying session login as well: it cannot be a superuser, reach an unexpected role,
-or have direct or inherited write privileges on another configured chain schema.
+hold direct ACLs or database-object ownership beyond non-grantable connection access, or have direct
+or inherited write privileges on another configured chain schema.
 
 ## Table inventory
 
@@ -106,10 +107,11 @@ role other than the migration admin or configured runtime login can reach it; an
 revoked before credential rotation, and the runtime membership cannot carry `ADMIN OPTION`. Only the
 current migration admin may reach the API owner role. Each chain has an independent migration
 history whose normalized hashes are verified on every run. Exported entry points reject duplicate
-network keys, chain IDs, schemas, writer roles, and runtime logins before connecting. Existing chain
-schemas must have an empty identity table or exactly the configured singleton before it is seeded. A
-cluster-wide advisory lock rejects concurrent migration commands, and reapplying the same plan is
-idempotent.
+network keys, chain IDs, schemas, writer roles, and runtime logins before connecting. They also
+require the deterministic schema and writer-role mapping for every network and reject reserved
+collisions. Existing chain schemas must have an empty identity table or exactly the configured
+singleton before it is seeded. A cluster-wide advisory lock rejects concurrent migration commands,
+and reapplying the same plan is idempotent.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
@@ -117,8 +119,10 @@ migration history, and rollback artifacts are intentionally absent. Unexpected A
 the rebuild. The shared namespace is accepted only when it contains the four canonical enums and
 their generated array types. The reader may not own a schema, relation, routine, type, or database
 and may hold only API/shared schema usage, canonical enum usage, and `SELECT` on the 14 enumerated
-views. Hasura and future packages must join, filter, cache, and subscribe with both `network` and
-`chain_id`.
+views. Effective access inherited from `PUBLIC` is included in that inventory; implicit public type
+usage is removed from API view types and shared enums, while a publicly executable user-defined
+routine aborts migration. Hasura and future packages must join, filter, cache, and subscribe with
+both `network` and `chain_id`.
 
 Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
 migration therefore fails before execution whenever any snapshot table exists, even if retention

@@ -195,8 +195,10 @@ V3 prevents that class of corruption structurally:
 - Only the current migration admin may reach the API owner role. Rotating the admin credential
   requires revoking the retired login before rerunning migrations.
 - Every runtime login is unique to one network. Migration and startup check the underlying
-  `session_user` for superuser status, any reachable role other than its assigned writer, and direct
-  or inherited foreign write access.
+  `session_user` for superuser status, any reachable role other than its assigned writer, direct
+  ACLs, ownership, default ACLs or policy references beyond non-grantable database connection
+  access, and direct or inherited foreign write access. The assumed role is not treated as a sandbox
+  because a session can execute `RESET ROLE`.
 - No indexer credential receives write access to another network schema.
 - The migration test must prove the target's unqualified trigger SQL stays inside the configured
   connection `search_path`; otherwise #382 must select separate databases instead.
@@ -209,13 +211,18 @@ The migrator rejects unexpected tables, views, functions, or procedures in this 
 the API reader schema access and `SELECT` only after that inventory check, limited to the enumerated
 public views. It also rejects reader ownership or ACLs outside that exact boundary. Existing shared
 enums must match the canonical labels and ordering exactly, and the `lsp_v3` namespace may contain
-only those enums and their generated array types before any chain migration proceeds.
+only those enums and their generated array types before any chain migration proceeds. Reader checks
+include effective `PUBLIC` grants and implicit default ACLs on reachable user-defined objects;
+public type usage is removed from API view types and shared enums, and a publicly executable custom
+routine aborts migration.
 
 Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
 constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not
 a runtime `CREATE TABLE` side effect. Exported migration entry points reject duplicate keys, chain
-IDs, schemas, roles, and runtime logins before connecting. Existing schemas are rejected before
-seeding unless `network_config` is empty or contains exactly the configured singleton identity.
+IDs, schemas, roles, and runtime logins before connecting. Each schema and writer role must also
+match its deterministic network mapping and cannot collide with reserved schemas or roles. Existing
+schemas are rejected before seeding unless `network_config` is empty or contains exactly the
+configured singleton identity.
 
 Drizzle Kit emits `public` qualifiers for unqualified schemas. The checked-in migration generation
 step removes enum DDL (the immutable catalog is bootstrapped once in `lsp_v3`) and normalizes other

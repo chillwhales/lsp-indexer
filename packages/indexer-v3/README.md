@@ -89,19 +89,24 @@ The migration command is separate from every indexer process. It creates the imm
 type schema, one physical schema and non-login writer role per enabled network, Drizzle migration
 history and cursor tables, and the read-only `api` views. A cluster-wide advisory lock rejects
 concurrent migration commands. Exported migration entry points reject duplicate network keys, chain
-IDs, schemas, writer roles, and runtime logins before connecting. Runtime login roles must already
-exist; provide their names to grant each login only its matching writer role. Every login must be
-unique to one network, must not have elevated PostgreSQL capabilities or delegation rights, and may
-reach no role other than its assigned writer. Migration and startup reject direct or transitive
-memberships in any other role. Existing deterministic owner and writer roles are accepted only when
-they remain `NOLOGIN NOINHERIT`, capability-limited, and have no direct or transitive role
-memberships. The migrator inventories every role that can reach each writer role and permits only
-the migration admin and currently configured runtime login; only the current migration admin may
-reach the API owner role. Revoke old memberships before rotating either credential. Each existing
-chain schema must have no identity or exactly its configured singleton identity. The shared schema
-is rejected unless it contains only the four canonical enums and their PostgreSQL-generated array
-types. The API reader is rejected if it owns a schema, relation, routine, type, or database, or has
-grants outside shared-enum usage, API schema usage, and `SELECT` on the enumerated public views.
+IDs, schemas, writer roles, and runtime logins before connecting, and every schema and role must
+equal its deterministic network mapping without colliding with a reserved schema or role. Runtime
+login roles must already exist; provide their names to grant each login only its matching writer
+role. Every login must be unique to one network, must not have elevated PostgreSQL capabilities or
+delegation rights, and may reach no role other than its assigned writer. Migration and startup
+reject direct or transitive memberships in any other role. Because a session can `RESET ROLE`, they
+also reject direct ACLs, object ownership, default ACLs, and policy references held by the runtime
+login, except for non-grantable `CONNECT` on the current database. Existing deterministic owner and
+writer roles are accepted only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no
+direct or transitive role memberships. The migrator inventories every role that can reach each
+writer role and permits only the migration admin and currently configured runtime login; only the
+current migration admin may reach the API owner role. Revoke old memberships before rotating either
+credential. Each existing chain schema must have no identity or exactly its configured singleton
+identity. The shared schema is rejected unless it contains only the four canonical enums and their
+PostgreSQL-generated array types. The API reader is rejected if it owns a schema, relation, routine,
+type, or database, or has direct or effective `PUBLIC` access outside shared-enum usage, API schema
+usage, and `SELECT` on the enumerated public views. Publicly executable custom routines, including
+default-public `SECURITY DEFINER` routines, are rejected.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -117,7 +122,8 @@ chain_<network>,lsp_v3,public
 
 Check the role, schema, seeded chain identity, and lack of cross-network write privileges before
 starting a pipe. Readiness validates both the assumed writer role and the underlying session login,
-including superuser status and every reachable role membership:
+including superuser status, every reachable role membership, and direct privilege or ownership
+dependencies:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
