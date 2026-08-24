@@ -56,7 +56,8 @@ and cursor/snapshot assertions.
 
 ## G3 — Domain parity
 
-- [ ] Every event decoded by the 11 v2 event plugins has a documented v3 disposition.
+- [x] Every event decoded by the 11 v2 event plugins has a documented v3 disposition in
+      [`V3_EVENT_DISPOSITION.md`](./V3_EVENT_DISPOSITION.md).
 - [ ] Every projection produced by the 29 v2 handlers has a documented v3 disposition.
 - [ ] Profiles, digital assets, NFTs, ownership, followers, creators, issued assets, metadata,
       permissions, supply, and product extensions pass domain invariants.

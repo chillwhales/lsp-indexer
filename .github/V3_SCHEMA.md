@@ -74,9 +74,16 @@ tables. The official target manages `sqd_cursor` separately in the same serializ
 block/transaction/log provenance. Interface verification never determines whether this historical
 fact survives. Its `(chain_id, block_number, block_hash)` foreign key must match the exact canonical
 `blocks` row, so a cursor reset cannot attach new-fork facts to a stale block height. Event-specific
-decoding added in #383 may populate `event_name`, `event_domain`, and `decoded` without weakening
-the raw identity. The raw topic array must be one-dimensional, nonempty, null-free, and contain only
-canonical lowercase bytes32 values; its first element must equal the separately indexed `topic0`.
+decoding populates `event_name`, `event_domain`, and `decoded` for all 11 v2 plugin signatures without
+weakening the raw identity. A syntactically valid known-topic log whose ABI payload cannot decode
+keeps its raw fact and routing identity with `decoded = NULL`; unknown topics are not selected. The
+raw topic array must be one-dimensional, nonempty, null-free, and contain only canonical lowercase
+bytes32 values; its first element must equal the separately indexed `topic0`.
+
+The event source requests and persists every canonical block header even when that block has no
+selected log. Portal timestamps are already milliseconds and are stored without rescaling. This
+continuous block history supplies the exact parent links and indexed-head identity checked below
+without retaining unrelated event payloads.
 
 `indexed_heads` uses the same exact block-identity foreign key. A replay range with no matching
 events therefore cannot publish a new head hash while the old canonical block remains at that

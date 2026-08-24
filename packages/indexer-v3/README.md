@@ -2,10 +2,11 @@
 
 Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 
-> **Alpha foundation:** this package provides the typed network catalog, validated single-network
-> runtime, Portal and RPC readiness checks, Pipes EVM source construction, PostgreSQL/Drizzle
-> persistence, and a bounded source probe. It does not yet decode every LSP domain or expose the
-> final v3 GraphQL contract, so it is not a replacement for the production v2 indexer.
+> **Alpha implementation:** this package provides the typed network catalog, validated
+> single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
+> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, and a bounded source probe. It
+> does not yet build verified domain projections or expose the final v3 GraphQL contract, so it is
+> not a replacement for the production v2 indexer.
 
 ## Requirements
 
@@ -61,6 +62,37 @@ lowercase bytes32 values, and start with the separately indexed `topic0`.
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
 track only the `api` views, not chain schemas or internal job/cursor tables.
+
+## Raw event ingestion
+
+The production query is limited to the 11 signatures handled by the v2 event plugins. Seven
+signatures are global. LSP23 factory and LSP26 follower events are additionally constrained by the
+selected network's configured singleton address and deployment block. In parallel with those
+narrow log filters, the query requests and persists every block header, including blocks without a
+matching event. This keeps canonical parent links and the exact indexed-head block identity
+continuous while storing no unrelated logs. Pipes millisecond timestamps are persisted directly.
+
+| Event                    | Domain    | Scope                |
+| ------------------------ | --------- | -------------------- |
+| `DataChanged`            | `erc725y` | Global topic         |
+| `Executed`               | `erc725x` | Global topic         |
+| `UniversalReceiver`      | `lsp0`    | Global topic         |
+| LSP7 `Transfer`          | `lsp7`    | Global topic         |
+| LSP8 `Transfer`          | `lsp8`    | Global topic         |
+| `OwnershipTransferred`   | `lsp14`   | Global topic         |
+| `TokenIdDataChanged`     | `lsp8`    | Global topic         |
+| `Follow`, `Unfollow`     | `lsp26`   | Configured singleton |
+| `DeployedContracts`      | `lsp23`   | Configured singleton |
+| `DeployedERC1167Proxies` | `lsp23`   | Configured singleton |
+
+Every fact has network, chain, block hash, parent hash, transaction hash, transaction index, and log
+index provenance. Its ID is derived from the EIP-155 chain ID and canonical log position. Decoded
+unsigned integers are decimal strings and LSP8 keeps its v2-compatible synthetic amount of `1`.
+
+A known topic with a syntactically valid raw log is retained with `decoded = null` when ABI decoding
+fails. Unknown topics, wrong singleton addresses, pre-deployment singleton logs, and unavailable
+network capabilities are excluded. Invalid fundamental provenance fails the atomic batch instead of
+advancing the cursor.
 
 ## Configuration
 
@@ -206,6 +238,19 @@ blocks, logs, and the network-scoped stream identity, refuses to run without `IN
 fails unless the source returns every block exactly once in ascending order across the inclusive
 range; it is a source diagnostic, not the domain indexer.
 
+After migrations and readiness checks pass, run the raw event indexer for exactly one configured
+network:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 index:events
+```
+
+The command uses the narrow event query, query-aware decoder, official rollback-aware Drizzle
+target, and the same stable per-network cursor ID. Add `INDEXER_FROM_BLOCK` and
+`INDEXER_TO_BLOCK` for a bounded backfill or fixture run.
+
 Run local validation:
 
 ```bash
@@ -226,5 +271,6 @@ and reorg acceptance suite.
 
 See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
 [database contract](../../.github/V3_SCHEMA.md),
+[raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
 [roadmap](../../.github/V3_ROADMAP.md), and
 [acceptance gates](../../.github/V3_ACCEPTANCE_GATES.md).
