@@ -16,7 +16,7 @@ export function createUseOwnedToken(
   queryFn: (params: OwnedTokenDetailParams) => Promise<PartialOwnedToken | null>,
 ) {
   const impl = createUseDetail<OwnedTokenDetailParams, PartialOwnedToken>({
-    queryKey: (p) => ownedTokenKeys.detail(p.id, p.include),
+    queryKey: (p) => ownedTokenKeys.detail(p.network, p.id, p.include),
     queryFn,
     enabled: (p) => Boolean(p.id),
   });

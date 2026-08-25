@@ -36,6 +36,8 @@ export type UseInfiniteEncryptedAssetsReturn<F> = {
  * - Widest   → `onData(data: PartialEncryptedAsset[])`
  */
 export interface UseEncryptedAssetSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all encrypted assets) */
   filter?: EncryptedAssetFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

@@ -16,7 +16,7 @@ export function createUseDigitalAsset(
   queryFn: (params: DigitalAssetDetailParams) => Promise<PartialDigitalAsset | null>,
 ) {
   const impl = createUseDetail<DigitalAssetDetailParams, PartialDigitalAsset>({
-    queryKey: (p) => digitalAssetKeys.detail(p.address, p.include),
+    queryKey: (p) => digitalAssetKeys.detail(p.network, p.address, p.include),
     queryFn,
     enabled: (p) => Boolean(p.address),
   });

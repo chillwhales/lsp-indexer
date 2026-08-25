@@ -3,8 +3,8 @@
 /**
  * Client-side React context for env availability flags.
  *
- * Receives boolean-only `EnvAvailability` from the RSC layout via props
- * and exposes it to any client component via `useEnvAvailability()`.
+ * Receives URL-availability flags and public network slugs from the RSC layout via props and
+ * exposes them to client components via `useEnvAvailability()`.
  */
 
 import { createContext, useContext, type ReactNode } from 'react';

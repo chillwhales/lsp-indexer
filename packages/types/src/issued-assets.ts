@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  NetworkInputSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -22,47 +27,51 @@ import {
 // ---------------------------------------------------------------------------
 
 /** LSP12 issued asset — one per unique issuer↔digital-asset pair. */
-export const IssuedAssetSchema = z.object({
-  /** Address that issued the digital asset (always present) */
-  issuerAddress: z.string(),
-  /** Digital asset contract address (always present) */
-  assetAddress: z.string(),
-  /** Position in the LSP12 issued assets array (null = not included or not set) */
-  arrayIndex: z.number().nullable(),
-  /** ERC165 interface ID (null = not included or not set) */
-  interfaceId: z.string().nullable(),
-  /** Timestamp when indexed (ISO string) */
-  timestamp: z.string().nullable(),
-  /** Block number where the issued asset event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Universal Profile of the issuer (null = not included in query) */
-  issuerProfile: ProfileSchema.nullable(),
-  /** Digital asset details (null = not included in query) */
-  digitalAsset: DigitalAssetSchema.nullable(),
-});
+export const IssuedAssetSchema = z
+  .object({
+    id: z.string(),
+    /** Address that issued the digital asset (always present) */
+    issuerAddress: z.string(),
+    /** Digital asset contract address (always present) */
+    assetAddress: z.string(),
+    /** Position in the LSP12 issued assets array (null = not included or not set) */
+    arrayIndex: z.number().nullable(),
+    /** ERC165 interface ID (null = not included or not set) */
+    interfaceId: z.string().nullable(),
+    /** Timestamp when indexed (ISO string) */
+    /** Reserved v2 compatibility field; v3.0 returns `null` */
+    timestamp: z.string().nullable(),
+    /** Block number where the issued asset event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Universal Profile of the issuer (null = not included in query) */
+    issuerProfile: ProfileSchema.nullable(),
+    /** Digital asset details (null = not included in query) */
+    digitalAsset: DigitalAssetSchema.nullable(),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const IssuedAssetFilterSchema = z.object({
-  /** Case-insensitive match on issuer address */
+  /** Exact issuer address; hexadecimal input is normalized to lowercase */
   issuerAddress: z.string().optional(),
-  /** Case-insensitive match on digital asset address */
+  /** Exact digital asset address; hexadecimal input is normalized to lowercase */
   assetAddress: z.string().optional(),
-  /** Case-insensitive match on interface ID */
+  /** Exact hexadecimal interface ID; input is normalized to lowercase */
   interfaceId: z.string().optional(),
-  /** Case-insensitive match on issuer's profile name (nested via universalProfile.lsp3Profile.name) */
+  /** Exact, case-sensitive match on the issuer's current profile metadata name */
   issuerName: z.string().optional(),
-  /** Case-insensitive match on digital asset name (nested via issuedAsset.lsp4TokenName.value) */
+  /** Exact, case-sensitive match on the digital asset name */
   digitalAssetName: z.string().optional(),
-  /** ISO timestamp or unix seconds lower bound (inclusive) */
+  /** Reserved compatibility field; v3 rejects issued-asset timestamp filtering */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
-  /** ISO timestamp or unix seconds upper bound (inclusive) */
+  /** Reserved compatibility field; v3 rejects issued-asset timestamp filtering */
   timestampTo: z.union([z.string(), z.number()]).optional(),
 });
 
@@ -116,21 +125,25 @@ export const IssuedAssetIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Params for useIssuedAssets — paginated list of issued assets */
-export const UseIssuedAssetsParamsSchema = z.object({
-  filter: IssuedAssetFilterSchema.optional(),
-  sort: IssuedAssetSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: IssuedAssetIncludeSchema.optional(),
-});
+export const UseIssuedAssetsParamsSchema = z
+  .object({
+    filter: IssuedAssetFilterSchema.optional(),
+    sort: IssuedAssetSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: IssuedAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteIssuedAssets — infinite scroll variant */
-export const UseInfiniteIssuedAssetsParamsSchema = z.object({
-  filter: IssuedAssetFilterSchema.optional(),
-  sort: IssuedAssetSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: IssuedAssetIncludeSchema.optional(),
-});
+export const UseInfiniteIssuedAssetsParamsSchema = z
+  .object({
+    filter: IssuedAssetFilterSchema.optional(),
+    sort: IssuedAssetSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: IssuedAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -210,7 +223,16 @@ export type IssuedAssetResult<I extends IssuedAssetInclude | undefined = undefin
     ? IssuedAsset
     : IncludeResult<
         IssuedAsset,
-        'issuerAddress' | 'assetAddress',
+        | 'id'
+        | 'network'
+        | 'chainId'
+        | 'issuerAddress'
+        | 'assetAddress'
+        | 'lastBlockNumber'
+        | 'lastBlockHash'
+        | 'lastTransactionHash'
+        | 'lastTransactionIndex'
+        | 'lastLogIndex',
         IssuedAssetScalarIncludeFieldMap,
         I
       > &
@@ -221,4 +243,16 @@ export type IssuedAssetResult<I extends IssuedAssetInclude | undefined = undefin
  * IssuedAsset with only base fields guaranteed — used for components that accept
  * any include-narrowed IssuedAsset.
  */
-export type PartialIssuedAsset = PartialExcept<IssuedAsset, 'issuerAddress' | 'assetAddress'>;
+export type PartialIssuedAsset = PartialExcept<
+  IssuedAsset,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'issuerAddress'
+  | 'assetAddress'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

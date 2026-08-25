@@ -19,7 +19,7 @@ export function createUseOwnedTokenSubscription(useSubscription: UseSubscription
     },
   ): UseSubscriptionReturn<OwnedTokenResult<I>>;
   function useOwnedTokenSubscription(
-    params?: Omit<UseOwnedTokenSubscriptionParams, 'include'> & {
+    params: Omit<UseOwnedTokenSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: OwnedToken[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseOwnedTokenSubscription(useSubscription: UseSubscription
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useOwnedTokenSubscription(
-    params: UseOwnedTokenSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseOwnedTokenSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialOwnedToken> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseOwnedTokenSubscription(useSubscription: UseSubscription
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildOwnedTokenSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildOwnedTokenSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [ownedTokenKeys.all] : undefined,
+      invalidateKeys: invalidate ? [ownedTokenKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

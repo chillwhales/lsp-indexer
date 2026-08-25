@@ -19,7 +19,7 @@ export function createUseIssuedAssetSubscription(useSubscription: UseSubscriptio
     },
   ): UseSubscriptionReturn<IssuedAssetResult<I>>;
   function useIssuedAssetSubscription(
-    params?: Omit<UseIssuedAssetSubscriptionParams, 'include'> & {
+    params: Omit<UseIssuedAssetSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: IssuedAsset[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseIssuedAssetSubscription(useSubscription: UseSubscriptio
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useIssuedAssetSubscription(
-    params: UseIssuedAssetSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseIssuedAssetSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialIssuedAsset> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseIssuedAssetSubscription(useSubscription: UseSubscriptio
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildIssuedAssetSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildIssuedAssetSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [issuedAssetKeys.all] : undefined,
+      invalidateKeys: invalidate ? [issuedAssetKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

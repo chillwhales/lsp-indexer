@@ -19,7 +19,7 @@ export function createUseEncryptedAssetSubscription(useSubscription: UseSubscrip
     },
   ): UseSubscriptionReturn<EncryptedAssetResult<I>>;
   function useEncryptedAssetSubscription(
-    params?: Omit<UseEncryptedAssetSubscriptionParams, 'include'> & {
+    params: Omit<UseEncryptedAssetSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: EncryptedAsset[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseEncryptedAssetSubscription(useSubscription: UseSubscrip
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useEncryptedAssetSubscription(
-    params: UseEncryptedAssetSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseEncryptedAssetSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialEncryptedAsset> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseEncryptedAssetSubscription(useSubscription: UseSubscrip
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildEncryptedAssetSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildEncryptedAssetSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [encryptedAssetKeys.all] : undefined,
+      invalidateKeys: invalidate ? [encryptedAssetKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

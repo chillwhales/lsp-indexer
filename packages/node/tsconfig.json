@@ -15,6 +15,13 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["src"],
+  "include": [
+    "src/index.ts",
+    "src/client",
+    "src/errors",
+    "src/graphql",
+    "src/subscriptions",
+    "src/v3"
+  ],
   "exclude": ["node_modules", "dist"]
 }

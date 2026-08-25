@@ -22,7 +22,8 @@ export function createUseDigitalAssets(
     PartialDigitalAsset,
     FetchDigitalAssetsResult<PartialDigitalAsset>
   >({
-    queryKey: (p) => digitalAssetKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) =>
+      digitalAssetKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.digitalAssets,
   });
@@ -31,13 +32,13 @@ export function createUseDigitalAssets(
     params: UseDigitalAssetsParams & { include: I },
   ): UseDigitalAssetsReturn<DigitalAssetResult<I>>;
   function useDigitalAssets(
-    params?: Omit<UseDigitalAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseDigitalAssetsParams, 'include'> & { include?: never },
   ): UseDigitalAssetsReturn<DigitalAsset>;
   function useDigitalAssets(
     params: UseDigitalAssetsParams & { include?: DigitalAssetInclude },
   ): UseDigitalAssetsReturn<PartialDigitalAsset>;
   function useDigitalAssets(
-    params: UseDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
+    params: UseDigitalAssetsParams & { include?: DigitalAssetInclude },
   ): UseDigitalAssetsReturn<PartialDigitalAsset> {
     const { items, ...rest } = impl(params);
     return { digitalAssets: items, ...rest };

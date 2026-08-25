@@ -12,33 +12,37 @@ import {
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of issued assets. */
-export async function getIssuedAssets(params?: {
+export async function getIssuedAssets(params: {
+  network: string;
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchIssuedAssetsResult>;
-export async function getIssuedAssets<const I extends IssuedAssetInclude>(params?: {
+export async function getIssuedAssets<const I extends IssuedAssetInclude>(params: {
+  network: string;
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchIssuedAssetsResult<IssuedAssetResult<I>>>;
-export async function getIssuedAssets(params?: {
+export async function getIssuedAssets(params: {
+  network: string;
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>>;
-export async function getIssuedAssets(params?: {
+export async function getIssuedAssets(params: {
+  network: string;
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
-  if (params) validateInput(UseIssuedAssetsParamsSchema, params, 'getIssuedAssets');
+  validateInput(UseIssuedAssetsParamsSchema, params, 'getIssuedAssets');
   return await fetchIssuedAssets(getServerUrl(), params);
 }

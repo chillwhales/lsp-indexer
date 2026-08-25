@@ -5,7 +5,7 @@ data flows through the server. The browser never sees your Hasura endpoint. Subs
 `@lsp-indexer/react` hooks (see [why](#why-subscriptions-use-lsp-indexerreact)).
 
 ```bash
-npm install @lsp-indexer/next @tanstack/react-query
+npm install @lsp-indexer/next@^3 @tanstack/react-query
 ```
 
 ---
@@ -17,6 +17,7 @@ Server-side env vars (never exposed to the browser):
 ```env
 # .env.local
 INDEXER_URL=http://localhost:8080/v1/graphql
+INDEXER_NETWORK=lukso-mainnet
 # Upstream Hasura WS for the proxy (falls back to INDEXER_URL with ws://)
 # INDEXER_WS_URL=ws://localhost:8080/v1/graphql
 # Required for WS proxy CORS validation (dev and production)
@@ -28,6 +29,7 @@ Client-side env var for subscriptions:
 ```env
 # Browser connects to the WS proxy at this URL (not directly to Hasura)
 NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:4000
+NEXT_PUBLIC_INDEXER_NETWORK=lukso-mainnet
 ```
 
 > **Two WS URLs:** `NEXT_PUBLIC_INDEXER_WS_URL` is where the **browser** connects (the WS proxy).
@@ -37,19 +39,23 @@ NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:4000
 > **Note:** Server-side variables are read at runtime via `process.env`. Do **not** add them to the
 > `env` block in `next.config.ts` — that would inline their values into the client bundle.
 
+The v3 Node helpers expose `getServerNetwork()` and `getClientNetwork()`, but Next hooks and server
+actions still require `network` in their parameter object. This makes the selected chain visible at
+the call site and prevents a request from silently following a deployment default.
+
 ---
 
 ## How It Differs from @lsp-indexer/react
 
-|                     | `@lsp-indexer/react`      | `@lsp-indexer/next`                    |
-| ------------------- | ------------------------- | -------------------------------------- |
-| Data path           | Browser → Hasura          | Browser → Server Action → Hasura       |
-| Env vars            | `NEXT_PUBLIC_INDEXER_URL` | `INDEXER_URL`                          |
-| Hasura URL exposure | Visible in browser        | Hidden on server                       |
-| Hook API            | Same                      | Same                                   |
-| Subscriptions       | Direct WebSocket          | Use `@lsp-indexer/react` with WS proxy |
-| Server components   | No                        | Server actions via `'use server'`      |
-| Access control      | Hasura permissions only   | Server-side middleware possible        |
+|                     | `@lsp-indexer/react`                | `@lsp-indexer/next`                    |
+| ------------------- | ----------------------------------- | -------------------------------------- |
+| Data path           | Browser → Hasura                    | Browser → Server Action → Hasura       |
+| Env vars            | `NEXT_PUBLIC_INDEXER_URL` + network | `INDEXER_URL` + network                |
+| Hasura URL exposure | Visible in browser                  | Hidden on server                       |
+| Hook API            | Same                                | Same                                   |
+| Subscriptions       | Direct WebSocket                    | Use `@lsp-indexer/react` with WS proxy |
+| Server components   | No                                  | Server actions via `'use server'`      |
+| Access control      | Hasura permissions only             | Server-side middleware possible        |
 
 ---
 
@@ -109,15 +115,22 @@ import { useProfile } from '@lsp-indexer/react';
 import { useProfile } from '@lsp-indexer/next';
 ```
 
-Everything else stays the same — filters, sorting, include fields, infinite scroll.
+Everything else stays the same—filters, sorting, include fields, and infinite scroll. Every hook
+parameter object requires `network`; it is forwarded through the server action and included in the
+cache key.
 
 ```tsx
 import { useProfile, useDigitalAssets, useInfiniteNfts } from '@lsp-indexer/next';
 
 function MyComponent() {
-  const { profile } = useProfile({ address: '0x...' });
-  const { digitalAssets } = useDigitalAssets({ filter: { tokenType: 'NFT' }, limit: 10 });
-  const { nfts, fetchNextPage } = useInfiniteNfts({ pageSize: 20 });
+  const network = 'lukso-mainnet';
+  const { profile } = useProfile({ network, address: '0x...' });
+  const { digitalAssets } = useDigitalAssets({
+    network,
+    filter: { tokenType: 'NFT' },
+    limit: 10,
+  });
+  const { nfts, fetchNextPage } = useInfiniteNfts({ network, pageSize: 20 });
   // ...
 }
 ```
@@ -135,8 +148,9 @@ client bundle. You can also use them directly in Server Components or Route Hand
 import { getProfile, getDigitalAssets } from '@lsp-indexer/next/actions';
 
 export default async function Page() {
-  const profile = await getProfile({ address: '0x...' });
+  const profile = await getProfile({ network: 'lukso-mainnet', address: '0x...' });
   const { digitalAssets } = await getDigitalAssets({
+    network: 'lukso-mainnet',
     filter: { tokenType: 'TOKEN' },
     limit: 5,
   });
@@ -175,8 +189,8 @@ Every domain has server actions matching the fetch functions:
 | Collection Attributes | `getCollectionAttributes`                                                                                                                   |
 | Chillwhales NFTs (v3) | — (LUKSO Mainnet v3 alpha projection only)                                                                                                  |
 
-The v3 indexer persists `chillwhales_nfts`, but no Next.js action is exposed until the v3
-package-contract goal lands.
+The v3 indexer persists `chillwhales_nfts`, but no familiar Next.js action is exposed until the
+dedicated React/Next v3 goal lands. The Node v3 client already exposes this domain.
 
 ---
 
@@ -192,7 +206,10 @@ const pairs = [
   { followerAddress: '0xFollower2', followedAddress: '0xFollowed2' },
 ];
 
-const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+const { results, isLoading, error } = useIsFollowingBatch({
+  network: 'lukso-mainnet',
+  pairs,
+});
 // Keys are lowercased — any address casing is accepted as input:
 // results.get('0xfollower1:0xfollowed1') → true | false
 ```
@@ -214,6 +231,7 @@ const tuples = [
 ];
 
 const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
+  network: 'lukso-mainnet',
   tuples,
   include: { encryption: true },
 });
@@ -249,13 +267,14 @@ The hook API is identical to `@lsp-indexer/react` — swap the import:
 import { useMutualFollows } from '@lsp-indexer/next';
 import type { ProfileInclude } from '@lsp-indexer/types';
 
-const include: ProfileInclude = { ownedAssets: true };
+const include: ProfileInclude = { name: true, profileImage: true };
 
 function MutualFollows({ addressA, addressB }: { addressA: string; addressB: string }) {
   const { profiles, totalCount, isLoading } = useMutualFollows({
+    network: 'lukso-mainnet',
     addressA,
     addressB,
-    sort: { field: 'name', direction: 'asc' },
+    sort: { field: 'newest', direction: 'desc' },
     limit: 10,
     include,
   });
@@ -275,8 +294,14 @@ function MutualFollows({ addressA, addressB }: { addressA: string; addressB: str
 import { getMutualFollows, getFollowedByMyFollows } from '@lsp-indexer/next/actions';
 
 export default async function Page() {
-  const { profiles } = await getMutualFollows({ addressA: '0x...', addressB: '0x...', limit: 10 });
+  const { profiles } = await getMutualFollows({
+    network: 'lukso-mainnet',
+    addressA: '0x...',
+    addressB: '0x...',
+    limit: 10,
+  });
   const { profiles: suggested } = await getFollowedByMyFollows({
+    network: 'lukso-mainnet',
     myAddress: '0x...',
     targetAddress: '0x...',
     limit: 5,
@@ -305,6 +330,7 @@ import { useCollectionAttributes } from '@lsp-indexer/next';
 
 function TraitFilter({ collectionAddress }: { collectionAddress: string }) {
   const { attributes, totalCount, isLoading, error } = useCollectionAttributes({
+    network: 'lukso-mainnet',
     collectionAddress,
   });
 
@@ -332,7 +358,10 @@ function TraitFilter({ collectionAddress }: { collectionAddress: string }) {
 import { getCollectionAttributes } from '@lsp-indexer/next/actions';
 
 export default async function CollectionPage({ address }: { address: string }) {
-  const { attributes, totalCount } = await getCollectionAttributes(address);
+  const { attributes, totalCount } = await getCollectionAttributes({
+    network: 'lukso-mainnet',
+    collectionAddress: address,
+  });
 
   return (
     <div>
@@ -374,7 +403,11 @@ const include: NftInclude = {
   faction: true,
 };
 
-const { nfts } = useNfts({ filter: { collectionAddress: '0x...' }, include });
+const { nfts } = useNfts({
+  network: 'lukso-mainnet',
+  filter: { collectionAddress: '0x...' },
+  include,
+});
 ```
 
 All NFT include fields: `formattedTokenId`, `name`, `description`, `category`, `icons`, `images`,
@@ -404,10 +437,11 @@ Filter fields: `collectionAddress`, `tokenId`, `formattedTokenId`, `name`, `hold
 ```tsx
 import type { NftSort } from '@lsp-indexer/types';
 
-const sort: NftSort = { field: 'score', direction: 'desc', nulls: 'last' };
+const sort: NftSort = { field: 'tokenId', direction: 'asc', nulls: 'last' };
 ```
 
-Sort fields: `newest`, `oldest`, `tokenId`, `formattedTokenId`, `score`.
+Supported v3 sort fields are `newest`, `oldest`, `tokenId`, and `formattedTokenId`. The legacy
+`score` input is rejected with a field-level `VALIDATION_FAILED` error instead of being ignored.
 `newest`/`oldest` use deterministic block-order; `direction`/`nulls` are ignored for those values.
 
 ---
@@ -457,11 +491,13 @@ server.listen(4000, () => {
 
 ### Environment Variables
 
-| Variable                  | Required            | Description                        |
-| ------------------------- | ------------------- | ---------------------------------- |
-| `INDEXER_WS_URL`          | If no `INDEXER_URL` | WebSocket endpoint for Hasura      |
-| `INDEXER_URL`             | Fallback            | HTTP URL, auto-derived to `wss://` |
-| `INDEXER_ALLOWED_ORIGINS` | Dev + Production    | Comma-separated allowed origins    |
+| Variable                      | Required            | Description                        |
+| ----------------------------- | ------------------- | ---------------------------------- |
+| `INDEXER_WS_URL`              | If no `INDEXER_URL` | WebSocket endpoint for Hasura      |
+| `INDEXER_URL`                 | Fallback            | HTTP URL, auto-derived to `wss://` |
+| `INDEXER_NETWORK`             | V3 helpers          | Exact server-side network slug     |
+| `NEXT_PUBLIC_INDEXER_NETWORK` | Browser hooks       | Exact browser-visible network slug |
+| `INDEXER_ALLOWED_ORIGINS`     | Dev + Production    | Comma-separated allowed origins    |
 
 ---
 
@@ -499,6 +535,8 @@ services:
     ports: ['3000:3000']
     environment:
       INDEXER_URL: http://hasura:8080/v1/graphql
+      INDEXER_NETWORK: lukso-mainnet
+      NEXT_PUBLIC_INDEXER_NETWORK: lukso-mainnet
       # Browser connects to the WS proxy — use the publicly accessible URL
       NEXT_PUBLIC_INDEXER_WS_URL: ws://localhost:4000
   ws-proxy:
@@ -507,6 +545,7 @@ services:
     ports: ['4000:4000']
     environment:
       INDEXER_URL: http://hasura:8080/v1/graphql
+      INDEXER_NETWORK: lukso-mainnet
       INDEXER_ALLOWED_ORIGINS: http://localhost:3000
 ```
 

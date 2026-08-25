@@ -19,7 +19,7 @@ export function createUseDigitalAssetSubscription(useSubscription: UseSubscripti
     },
   ): UseSubscriptionReturn<DigitalAssetResult<I>>;
   function useDigitalAssetSubscription(
-    params?: Omit<UseDigitalAssetSubscriptionParams, 'include'> & {
+    params: Omit<UseDigitalAssetSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: DigitalAsset[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseDigitalAssetSubscription(useSubscription: UseSubscripti
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useDigitalAssetSubscription(
-    params: UseDigitalAssetSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseDigitalAssetSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialDigitalAsset> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseDigitalAssetSubscription(useSubscription: UseSubscripti
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildDigitalAssetSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildDigitalAssetSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [digitalAssetKeys.all] : undefined,
+      invalidateKeys: invalidate ? [digitalAssetKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

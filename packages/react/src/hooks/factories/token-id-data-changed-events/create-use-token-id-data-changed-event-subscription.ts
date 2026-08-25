@@ -22,7 +22,7 @@ export function createUseTokenIdDataChangedEventSubscription(useSubscription: Us
     },
   ): UseSubscriptionReturn<TokenIdDataChangedEventResult<I>>;
   function useTokenIdDataChangedEventSubscription(
-    params?: Omit<UseTokenIdDataChangedEventSubscriptionParams, 'include'> & {
+    params: Omit<UseTokenIdDataChangedEventSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: TokenIdDataChangedEvent[]) => void;
     },
@@ -39,9 +39,10 @@ export function createUseTokenIdDataChangedEventSubscription(useSubscription: Us
   function useTokenIdDataChangedEventSubscription(
     params: UseTokenIdDataChangedEventSubscriptionParams & {
       onData?: (data: any[]) => void;
-    } = {},
+    },
   ): UseSubscriptionReturn<PartialTokenIdDataChangedEvent> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -54,6 +55,7 @@ export function createUseTokenIdDataChangedEventSubscription(useSubscription: Us
 
     const queryClient = useQueryClient();
     const config = buildTokenIdDataChangedEventSubscriptionConfig({
+      network,
       filter,
       sort,
       limit,
@@ -63,7 +65,7 @@ export function createUseTokenIdDataChangedEventSubscription(useSubscription: Us
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [tokenIdDataChangedEventKeys.all] : undefined,
+      invalidateKeys: invalidate ? [tokenIdDataChangedEventKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

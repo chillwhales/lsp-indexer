@@ -24,7 +24,7 @@ export {
   useSubInclude,
 } from './include-toggles';
 export type { IncludeToggleConfig, SubIncludeState } from './include-toggles';
-export { PlaygroundPageLayout } from './page-layout';
+export { PlaygroundPageLayout, useIndexerNetwork } from './page-layout';
 export type { HookMode, TabConfig } from './page-layout';
 export { CardSkeleton, ResultsHeader, ResultsList } from './results-list';
 export { ErrorAlert, PresetButtons, RawJsonToggle } from './shared';

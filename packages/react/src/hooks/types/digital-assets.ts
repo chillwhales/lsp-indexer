@@ -35,6 +35,8 @@ export type UseInfiniteDigitalAssetsReturn<F> = {
  * - Widest   → `onData(data: PartialDigitalAsset[])`
  */
 export interface UseDigitalAssetSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all digital assets) */
   filter?: DigitalAssetFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

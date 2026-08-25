@@ -20,7 +20,8 @@ export function createUseIssuedAssets(
     PartialIssuedAsset,
     FetchIssuedAssetsResult<PartialIssuedAsset>
   >({
-    queryKey: (p) => issuedAssetKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) =>
+      issuedAssetKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.issuedAssets,
   });
@@ -29,13 +30,13 @@ export function createUseIssuedAssets(
     params: UseIssuedAssetsParams & { include: I },
   ): UseIssuedAssetsReturn<IssuedAssetResult<I>>;
   function useIssuedAssets(
-    params?: Omit<UseIssuedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseIssuedAssetsParams, 'include'> & { include?: never },
   ): UseIssuedAssetsReturn<IssuedAsset>;
   function useIssuedAssets(
     params: UseIssuedAssetsParams & { include?: IssuedAssetInclude },
   ): UseIssuedAssetsReturn<PartialIssuedAsset>;
   function useIssuedAssets(
-    params: UseIssuedAssetsParams & { include?: IssuedAssetInclude } = {},
+    params: UseIssuedAssetsParams & { include?: IssuedAssetInclude },
   ): UseIssuedAssetsReturn<PartialIssuedAsset> {
     const { items, ...rest } = impl(params);
     return { issuedAssets: items, ...rest };

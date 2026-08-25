@@ -35,6 +35,8 @@ export type UseInfiniteProfilesReturn<F> = {
  * - Widest   → `onData(data: PartialProfile[])`
  */
 export interface UseProfileSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all profiles) */
   filter?: ProfileFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

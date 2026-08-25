@@ -8,7 +8,7 @@ type NftDetailParams = UseNftParams & { include?: NftInclude };
 
 export function createUseNft(queryFn: (params: NftDetailParams) => Promise<PartialNft | null>) {
   const impl = createUseDetail<NftDetailParams, PartialNft>({
-    queryKey: (p) => nftKeys.detail(p.address, p.tokenId, p.formattedTokenId, p.include),
+    queryKey: (p) => nftKeys.detail(p.network, p.address, p.tokenId, p.formattedTokenId, p.include),
     queryFn,
     enabled: (p) => Boolean(p.address && (p.tokenId || p.formattedTokenId)),
   });

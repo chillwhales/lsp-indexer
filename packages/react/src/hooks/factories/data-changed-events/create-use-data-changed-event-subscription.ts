@@ -19,7 +19,7 @@ export function createUseDataChangedEventSubscription(useSubscription: UseSubscr
     },
   ): UseSubscriptionReturn<DataChangedEventResult<I>>;
   function useDataChangedEventSubscription(
-    params?: Omit<UseDataChangedEventSubscriptionParams, 'include'> & {
+    params: Omit<UseDataChangedEventSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: DataChangedEvent[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseDataChangedEventSubscription(useSubscription: UseSubscr
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useDataChangedEventSubscription(
-    params: UseDataChangedEventSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseDataChangedEventSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialDataChangedEvent> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,18 @@ export function createUseDataChangedEventSubscription(useSubscription: UseSubscr
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildDataChangedEventSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildDataChangedEventSubscriptionConfig({
+      network,
+      filter,
+      sort,
+      limit,
+      include,
+    });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [dataChangedEventKeys.all] : undefined,
+      invalidateKeys: invalidate ? [dataChangedEventKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

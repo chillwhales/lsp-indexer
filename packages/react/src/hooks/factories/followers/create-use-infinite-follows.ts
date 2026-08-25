@@ -24,7 +24,7 @@ export function createUseInfiniteFollows(
     PartialFollower,
     FetchFollowsResult<PartialFollower>
   >({
-    queryKey: (p) => followerKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => followerKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.follows,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteFollows(
     params: UseInfiniteFollowsParams & { include: I },
   ): UseInfiniteFollowsReturn<FollowerResult<I>>;
   function useInfiniteFollows(
-    params?: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
   ): UseInfiniteFollowsReturn<Follower>;
   function useInfiniteFollows(
     params: UseInfiniteFollowsParams & { include?: FollowerInclude },
   ): UseInfiniteFollowsReturn<PartialFollower>;
   function useInfiniteFollows(
-    params: UseInfiniteFollowsParams & { include?: FollowerInclude } = {},
+    params: UseInfiniteFollowsParams & { include?: FollowerInclude },
   ): UseInfiniteFollowsReturn<PartialFollower> {
     const { items, ...rest } = impl(params);
     return { follows: items, ...rest };

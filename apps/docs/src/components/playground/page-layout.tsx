@@ -18,6 +18,16 @@ export interface TabConfig {
   render: (mode: HookMode) => React.ReactNode;
 }
 
+/** Return the explicit network paired with the selected playground transport. */
+export function useIndexerNetwork(mode: HookMode): string {
+  const { clientNetwork, serverNetwork } = useEnvAvailability();
+  const network = mode === 'server' ? serverNetwork : clientNetwork;
+  if (network == null) {
+    throw new Error(`No ${mode} indexer network is configured`);
+  }
+  return network;
+}
+
 interface PlaygroundPageLayoutProps {
   title: string;
   description: React.ReactNode;
@@ -66,11 +76,16 @@ export function PlaygroundPageLayout({
         <div className="flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4 text-sm text-yellow-700 dark:text-yellow-400">
           <AlertCircle className="size-4 shrink-0" />
           <span>
-            No environment variables configured. Set{' '}
+            No complete v3 environment is configured. Set{' '}
             <code className="rounded bg-muted px-1 font-mono text-xs">NEXT_PUBLIC_INDEXER_URL</code>{' '}
-            for client mode or{' '}
+            with{' '}
+            <code className="rounded bg-muted px-1 font-mono text-xs">
+              NEXT_PUBLIC_INDEXER_NETWORK
+            </code>{' '}
+            for client mode, or{' '}
             <code className="rounded bg-muted px-1 font-mono text-xs">INDEXER_URL</code> for server
-            mode.
+            mode together with{' '}
+            <code className="rounded bg-muted px-1 font-mono text-xs">INDEXER_NETWORK</code>.
           </span>
         </div>
       </div>

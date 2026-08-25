@@ -1,7 +1,7 @@
 # @lsp-indexer
 
-Type-safe React hooks and Next.js server actions for querying LUKSO blockchain data.
-Powered by a Subsquid indexer, PostgreSQL, and Hasura GraphQL.
+Type-safe Node, React, and Next.js packages for querying multi-chain LSP data.
+V3 is powered by SQD Pipes, PostgreSQL, and Hasura GraphQL.
 
 [Get started →](/docs/quickstart)
 
@@ -11,8 +11,8 @@ Powered by a Subsquid indexer, PostgreSQL, and Hasura GraphQL.
 
 ```mermaid
 graph LR
-  A[LUKSO L1] --> B[Subsquid Gateway]
-  B --> C[Indexer]
+  A[Configured EVM chains] --> B[SQD Portal]
+  B --> C[Pipes indexer]
   C --> D[PostgreSQL]
   D --> E[Hasura GraphQL]
   E --> F["@lsp-indexer/*"]
@@ -21,9 +21,9 @@ graph LR
   H -.-> C
 ```
 
-The indexer processes LUKSO blockchain events (LSP0, LSP7, LSP8, LSP26, etc.) into normalized
-PostgreSQL tables. Hasura exposes them as a GraphQL API. The consumer packages give you type-safe
-hooks to query that API from React or Next.js.
+The v3 indexer processes supported EVM/LSP events into chain-isolated PostgreSQL schemas. Hasura
+exposes unified, read-only multi-chain views. The consumer packages validate that API at runtime
+and expose explicit network-scoped Node services, React hooks, and Next.js server actions.
 
 ---
 
@@ -33,7 +33,8 @@ hooks to query that API from React or Next.js.
 
 Shared TypeScript types, Zod schemas, and filter/sort/include definitions used by all other packages.
 
-- Domain types: `Profile`, `DigitalAsset`, `NFT`, `OwnedAsset`, `Creator`, `Follow`, ...
+- Familiar domain types plus runtime v3 schemas for all 15 public API roots
+- Required `NetworkRef`, `BlockRef`, `EventRef`, and projection provenance
 - Filter & sort schemas per domain
 - Include field types for partial selects
 
@@ -42,8 +43,8 @@ Shared TypeScript types, Zod schemas, and filter/sort/include definitions used b
 Low-level GraphQL client, fetch functions, parsers, and query key factories.
 The foundation that `react` and `next` packages build on.
 
-- Fetch functions for every domain (`fetchProfile`, `fetchDigitalAssets`, ...)
-- Env-aware URL helpers (`getClientUrl`, `getServerUrl`)
+- Familiar fetch functions plus `createIndexerClient` and uniform methods for all 15 v3 domains
+- Validated URL and required network helpers
 - React Query key factories (`profileKeys`, `digitalAssetKeys`, ...)
 - Subscription client for real-time WebSocket data
 
@@ -88,26 +89,27 @@ graph LR
 
 ## Supported Domains
 
-| Domain                | Single | List | Infinite | Subscription |
-| --------------------- | ------ | ---- | -------- | ------------ |
-| Profiles              | ✓      | ✓    | ✓        | ✓            |
-| Digital Assets        | ✓      | ✓    | ✓        | ✓            |
-| NFTs                  | ✓      | ✓    | ✓        | ✓            |
-| Owned Assets          | ✓      | ✓    | ✓        | ✓            |
-| Owned Tokens          | ✓      | ✓    | ✓        | ✓            |
-| Creators              | —      | ✓    | ✓        | ✓            |
-| Issued Assets         | —      | ✓    | ✓        | ✓            |
-| Follows               | —      | ✓    | ✓        | ✓            |
-| Encrypted Assets      | —      | ✓    | ✓        | ✓            |
-| Data Changed Events   | ✓      | ✓    | ✓        | ✓            |
-| Token ID Data Changed | ✓      | ✓    | ✓        | ✓            |
-| Universal Receiver    | —      | ✓    | ✓        | ✓            |
-| Collection Attributes | —      | ✓    | —        | —            |
-| Chillwhales NFTs (v3) | —      | —    | —        | —            |
+| Domain             | Node v3 query + subscription | Familiar React/Next API     |
+| ------------------ | ---------------------------- | --------------------------- |
+| Blocks             | ✓                            | —                           |
+| Event facts        | ✓                            | via familiar event hooks    |
+| Profiles           | ✓                            | ✓                           |
+| Digital assets     | ✓                            | ✓                           |
+| NFTs               | ✓                            | ✓                           |
+| Owned assets       | ✓                            | ✓                           |
+| Owned tokens       | ✓                            | ✓                           |
+| Followers          | ✓                            | ✓                           |
+| Creators           | ✓                            | ✓                           |
+| Issued assets      | ✓                            | ✓                           |
+| LSP6 controllers   | ✓                            | —                           |
+| Chillwhales NFTs   | ✓                            | —                           |
+| Data values        | ✓                            | via familiar data hooks     |
+| Metadata revisions | ✓                            | via familiar metadata hooks |
+| Indexed heads      | ✓                            | —                           |
 
-`chillwhales_nfts` is a LUKSO Mainnet-only v3 alpha projection for CHILL/ORBS claims and Orb game
-state. It is persisted by the v3 indexer, but the Node, React, and Next.js consumer APIs are not
-available until the package-contract goal lands.
+The Node v3 client covers every public Hasura root now. Dedicated hooks/actions for the v3-only
+domains and indexed-head/network ergonomics land in the React/Next v3 goal. `chillwhales_nfts` is
+populated only on LUKSO Mainnet, where its source contracts are configured.
 
 ---
 
@@ -117,7 +119,7 @@ available until the package-contract goal lands.
 import { useProfile } from '@lsp-indexer/react';
 
 function ProfileCard({ address }: { address: string }) {
-  const { profile, isLoading } = useProfile({ address });
+  const { profile, isLoading } = useProfile({ network: 'lukso-mainnet', address });
 
   if (isLoading) return <div>Loading...</div>;
 

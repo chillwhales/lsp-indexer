@@ -38,6 +38,7 @@ import {
   UNIVERSAL_RECEIVER_EVENT_INCLUDE_FIELDS,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
@@ -278,11 +279,13 @@ function UreIncludeSections({
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useUniversalReceiverEvents } = useUniversalReceiverEventHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { universalReceiverEvents, totalCount, isLoading, error, isFetching } =
     useUniversalReceiverEvents({
+      network,
       filter: state.filter,
       sort: state.sort,
       limit,
@@ -328,6 +331,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteUniversalReceiverEvents } = useUniversalReceiverEventHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const {
@@ -339,6 +343,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteUniversalReceiverEvents({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -382,11 +387,13 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useUniversalReceiverEventSubscription } = useUniversalReceiverEventHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useUniversalReceiverEventSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

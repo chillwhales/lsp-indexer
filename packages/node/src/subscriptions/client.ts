@@ -98,14 +98,14 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
       next: (parsed: TParsed[]) => void;
       error: (error: unknown) => void;
       complete: () => void;
-    }) =>
+    }): (() => void) =>
       this.executeSubscription(
         { query: config.document, variables: config.variables },
         {
           next: (result) => {
             if (!result.data) return;
             const rawData = config.extract(result.data);
-            if (!Array.isArray(rawData) || rawData.length === 0) return;
+            if (!Array.isArray(rawData)) return;
 
             try {
               const parsed = config.parser(rawData);

@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-import { ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  AddressSchema,
+  HashSchema,
+  ImageSchema,
+  NetworkInputSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
@@ -78,57 +86,67 @@ export const EncryptedAssetImagesSchema = z.array(z.array(ImageSchema));
 // ---------------------------------------------------------------------------
 
 /** LSP29 encrypted asset with nested relations. */
-export const EncryptedAssetSchema = z.object({
-  /** Universal Profile address that owns this encrypted asset (always present) */
-  address: z.string(),
-  /** Content identifier (always present, nullable — may not be set) */
-  contentId: z.string().nullable(),
-  /** Revision number (always present, nullable — may not be set) */
-  revision: z.number().nullable(),
-  /** Position in array (null = not included or not set) */
-  arrayIndex: z.number().nullable(),
-  /** Timestamp when indexed — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Block number where the encrypted asset event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Title text, flattened from title.value wrapper (null = not included or not set) */
-  title: z.string().nullable(),
-  /** Description text, flattened from description.value wrapper (null = not included or not set) */
-  description: z.string().nullable(),
-  /** Encryption details with provider, method, and optional params (null = not included) */
-  encryption: EncryptedAssetEncryptionSchema.nullable(),
-  /** File metadata (null = not included) */
-  file: EncryptedAssetFileSchema.nullable(),
-  /** Chunk information (null = not included) */
-  chunks: EncryptedAssetChunksSchema.nullable(),
-  /** Images matrix grouped by image_index (null = not included, [] = included but empty) */
-  images: EncryptedAssetImagesSchema.nullable(),
-  /** Universal Profile of the owner (null = not included in query) */
-  universalProfile: ProfileSchema.nullable(),
-});
+export const EncryptedAssetSchema = z
+  .object({
+    id: z.string(),
+    /** Universal Profile address that owns this encrypted asset (always present) */
+    address: AddressSchema,
+    /** Content identifier (always present, nullable — may not be set) */
+    contentId: z.string().nullable(),
+    /** Revision number (always present, nullable — may not be set) */
+    revision: z.number().nullable(),
+    /** Reserved v2 array position; v3.0 returns `null` */
+    arrayIndex: z.number().nullable(),
+    /** Timestamp when indexed — ISO string (null when excluded via include) */
+    timestamp: z.string().nullable(),
+    /** Block number where the encrypted asset event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Title text, flattened from title.value wrapper (null = not included or not set) */
+    title: z.string().nullable(),
+    /** Description text, flattened from description.value wrapper (null = not included or not set) */
+    description: z.string().nullable(),
+    /** Encryption details with provider, method, and optional params (null = not included) */
+    encryption: EncryptedAssetEncryptionSchema.nullable(),
+    /** File metadata (null = not included) */
+    file: EncryptedAssetFileSchema.nullable(),
+    /** Chunk information (null = not included) */
+    chunks: EncryptedAssetChunksSchema.nullable(),
+    /** Images matrix grouped by image_index (null = not included, [] = included but empty) */
+    images: EncryptedAssetImagesSchema.nullable(),
+    /** Universal Profile of the owner (null = not included in query) */
+    universalProfile: ProfileSchema.nullable(),
+    dataKey: HashSchema,
+    sourceRevision: HashSchema,
+    contentUri: z.string(),
+    contentHash: HashSchema.nullable(),
+    contentType: z.string().nullable(),
+    contentLength: z.number().nullable(),
+    fetchedAt: z.string(),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const EncryptedAssetFilterSchema = z.object({
-  /** Case-insensitive match on UP address (uses _ilike) */
+  /** Exact Universal Profile address; hexadecimal input is normalized to lowercase */
   address: z.string().optional(),
-  /** Case-insensitive search on profile name (nested universalProfile → lsp3Profile → name) */
+  /** Exact, case-sensitive match on the profile's current metadata name */
   universalProfileName: z.string().optional(),
-  /** Case-insensitive match on content ID */
+  /** Exact, case-sensitive content ID */
   contentId: z.string().optional(),
   /** Exact match on revision number */
   revision: z.number().optional(),
-  /** Case-insensitive match on encryption method (nested encryption.method) */
+  /** Exact, case-sensitive encryption method */
   encryptionMethod: z.string().optional(),
-  /** Case-insensitive match on file type (nested file.type) */
+  /** Exact, case-sensitive file type */
   fileType: z.string().optional(),
-  /** Numeric filter on file size (nested file.size) — entries with file.size >= this value */
+  /** Reserved compatibility field; v3 rejects this unsupported range filter */
   fileSize: z.number().optional(),
   /** ISO timestamp or unix seconds — entries with timestamp >= this value */
   timestamp: z.union([z.string(), z.number()]).optional(),
@@ -220,27 +238,33 @@ export const EncryptedAssetBatchTupleSchema = z.object({
 });
 
 /** Params for useEncryptedAssetsBatch — fetch multiple encrypted assets by tuple. */
-export const UseEncryptedAssetsBatchParamsSchema = z.object({
-  tuples: z.array(EncryptedAssetBatchTupleSchema),
-  include: EncryptedAssetIncludeSchema.optional(),
-});
+export const UseEncryptedAssetsBatchParamsSchema = z
+  .object({
+    tuples: z.array(EncryptedAssetBatchTupleSchema).max(100),
+    include: EncryptedAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useEncryptedAssets — paginated list of encrypted assets */
-export const UseEncryptedAssetsParamsSchema = z.object({
-  filter: EncryptedAssetFilterSchema.optional(),
-  sort: EncryptedAssetSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: EncryptedAssetIncludeSchema.optional(),
-});
+export const UseEncryptedAssetsParamsSchema = z
+  .object({
+    filter: EncryptedAssetFilterSchema.optional(),
+    sort: EncryptedAssetSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: EncryptedAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteEncryptedAssets — infinite scroll variant */
-export const UseInfiniteEncryptedAssetsParamsSchema = z.object({
-  filter: EncryptedAssetFilterSchema.optional(),
-  sort: EncryptedAssetSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: EncryptedAssetIncludeSchema.optional(),
-});
+export const UseInfiniteEncryptedAssetsParamsSchema = z
+  .object({
+    filter: EncryptedAssetFilterSchema.optional(),
+    sort: EncryptedAssetSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: EncryptedAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -416,7 +440,24 @@ export type EncryptedAssetResult<I extends EncryptedAssetInclude | undefined = u
     ? EncryptedAsset
     : IncludeResult<
         EncryptedAsset,
-        'address' | 'contentId' | 'revision',
+        | 'id'
+        | 'network'
+        | 'chainId'
+        | 'address'
+        | 'contentId'
+        | 'revision'
+        | 'dataKey'
+        | 'sourceRevision'
+        | 'contentUri'
+        | 'contentHash'
+        | 'contentType'
+        | 'contentLength'
+        | 'fetchedAt'
+        | 'lastBlockNumber'
+        | 'lastBlockHash'
+        | 'lastTransactionHash'
+        | 'lastTransactionIndex'
+        | 'lastLogIndex',
         EncryptedAssetScalarIncludeFieldMap,
         I
       > &
@@ -431,5 +472,22 @@ export type EncryptedAssetResult<I extends EncryptedAssetInclude | undefined = u
  */
 export type PartialEncryptedAsset = PartialExcept<
   EncryptedAsset,
-  'address' | 'contentId' | 'revision'
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'contentId'
+  | 'revision'
+  | 'dataKey'
+  | 'sourceRevision'
+  | 'contentUri'
+  | 'contentHash'
+  | 'contentType'
+  | 'contentLength'
+  | 'fetchedAt'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
 >;

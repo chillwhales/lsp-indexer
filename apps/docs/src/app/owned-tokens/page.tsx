@@ -53,6 +53,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 
@@ -217,6 +218,7 @@ function IncludeSections({
 }
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useOwnedTokens } = useHooks(mode);
   const [ownerInput, setOwnerInput] = useState('');
   const [addressInput, setAddressInput] = useState('');
@@ -246,6 +248,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
     : undefined;
 
   const { ownedTokens, isLoading, error, isFetching } = useOwnedTokens({
+    network,
     filter,
     limit: hasQuery ? 1 : 0,
     include,
@@ -369,11 +372,13 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useOwnedTokens } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { ownedTokens, totalCount, isLoading, error, isFetching } = useOwnedTokens({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -422,6 +427,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useInfiniteOwnedTokens } = useHooks(mode);
   const state = useListState();
 
@@ -434,6 +440,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteOwnedTokens({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -480,12 +487,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useOwnedTokenSubscription } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useOwnedTokenSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

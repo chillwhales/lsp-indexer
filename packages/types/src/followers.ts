@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  NetworkInputSchema,
+  NetworkRefSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
@@ -16,47 +22,56 @@ import {
 // ---------------------------------------------------------------------------
 
 /** Active follow relationship — one per unique follower↔followed pair. */
-export const FollowerSchema = z.object({
-  /** Address that is doing the following */
-  followerAddress: z.string(),
-  /** Address that is being followed */
-  followedAddress: z.string(),
-  /** Timestamp when the follow relationship was created — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Contract address of the follow relationship (null when excluded via include) */
-  address: z.string().nullable(),
-  /** Block number where follow event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Universal Profile of the follower (null = not included in query or no UP) */
-  followerProfile: ProfileSchema.nullable(),
-  /** Universal Profile of the followed (null = not included in query or no UP) */
-  followedProfile: ProfileSchema.nullable(),
-});
+export const FollowerSchema = z
+  .object({
+    id: z.string(),
+    /** Address that is doing the following */
+    followerAddress: z.string(),
+    /** Address that is being followed */
+    followedAddress: z.string(),
+    /** Timestamp when the follow relationship was created — ISO string (null when excluded via include) */
+    timestamp: z.string().nullable(),
+    /** Contract address of the follow relationship (null when excluded via include) */
+    /** Reserved v2 event-emitter field; v3.0 relationship projections return `null` */
+    address: z.string().nullable(),
+    /** Block number where follow event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Universal Profile of the follower (null = not included in query or no UP) */
+    followerProfile: ProfileSchema.nullable(),
+    /** Universal Profile of the followed (null = not included in query or no UP) */
+    followedProfile: ProfileSchema.nullable(),
+    isFollowing: z.boolean(),
+    followedAt: z.string().nullable(),
+    unfollowedAt: z.string().nullable(),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 /** Follower + following counts for an address. */
-export const FollowCountSchema = z.object({
-  /** Number of profiles following this address */
-  followerCount: z.number(),
-  /** Number of profiles this address follows */
-  followingCount: z.number(),
-});
+export const FollowCountSchema = z
+  .object({
+    /** Number of profiles following this address */
+    followerCount: z.number(),
+    /** Number of profiles this address follows */
+    followingCount: z.number(),
+  })
+  .extend(NetworkRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const FollowerFilterSchema = z.object({
-  /** Case-insensitive match on follower address */
+  /** Exact follower address; hexadecimal input is normalized to lowercase */
   followerAddress: z.string().optional(),
-  /** Case-insensitive match on followed address */
+  /** Exact followed address; hexadecimal input is normalized to lowercase */
   followedAddress: z.string().optional(),
-  /** Case-insensitive match on follower's profile name (nested via followerUniversalProfile.lsp3Profile.name) */
+  /** Exact, case-sensitive match on the follower's current profile metadata name */
   followerName: z.string().optional(),
-  /** Case-insensitive match on followed's profile name (nested via followedUniversalProfile.lsp3Profile.name) */
+  /** Exact, case-sensitive match on the followed profile's current metadata name */
   followedName: z.string().optional(),
   /** Timestamp lower bound (inclusive) — ISO string or unix seconds. Maps to `timestamp: { _gte }` */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
@@ -119,95 +134,115 @@ export const FollowerIncludeSchema = z.object({
  * - "who does X follow?" → `filter: { followerAddress: X }`
  * - "all follows" → omit both (or add name/timestamp filters)
  */
-export const UseFollowsParamsSchema = z.object({
-  filter: FollowerFilterSchema.optional(),
-  sort: FollowerSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: FollowerIncludeSchema.optional(),
-});
+export const UseFollowsParamsSchema = z
+  .object({
+    filter: FollowerFilterSchema.optional(),
+    sort: FollowerSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: FollowerIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteFollows — infinite scroll variant of useFollows */
-export const UseInfiniteFollowsParamsSchema = z.object({
-  filter: FollowerFilterSchema.optional(),
-  sort: FollowerSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: FollowerIncludeSchema.optional(),
-});
+export const UseInfiniteFollowsParamsSchema = z
+  .object({
+    filter: FollowerFilterSchema.optional(),
+    sort: FollowerSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: FollowerIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useFollowCount — follower + following counts for an address */
-export const UseFollowCountParamsSchema = z.object({
-  address: z.string(),
-});
+export const UseFollowCountParamsSchema = z
+  .object({
+    address: z.string(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Mutual follow hook parameter schemas — 6 hooks (3 base + 3 infinite)
 // ---------------------------------------------------------------------------
 
 /** Params for useMutualFollows — profiles that both addressA and addressB follow */
-export const UseMutualFollowsParamsSchema = z.object({
-  addressA: z.string(),
-  addressB: z.string(),
-  sort: ProfileSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseMutualFollowsParamsSchema = z
+  .object({
+    addressA: z.string(),
+    addressB: z.string(),
+    sort: ProfileSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteMutualFollows — infinite scroll variant */
-export const UseInfiniteMutualFollowsParamsSchema = z.object({
-  addressA: z.string(),
-  addressB: z.string(),
-  sort: ProfileSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseInfiniteMutualFollowsParamsSchema = z
+  .object({
+    addressA: z.string(),
+    addressB: z.string(),
+    sort: ProfileSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useMutualFollowers — profiles that follow both addressA and addressB */
-export const UseMutualFollowersParamsSchema = z.object({
-  addressA: z.string(),
-  addressB: z.string(),
-  sort: ProfileSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseMutualFollowersParamsSchema = z
+  .object({
+    addressA: z.string(),
+    addressB: z.string(),
+    sort: ProfileSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteMutualFollowers — infinite scroll variant */
-export const UseInfiniteMutualFollowersParamsSchema = z.object({
-  addressA: z.string(),
-  addressB: z.string(),
-  sort: ProfileSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseInfiniteMutualFollowersParamsSchema = z
+  .object({
+    addressA: z.string(),
+    addressB: z.string(),
+    sort: ProfileSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useFollowedByMyFollows — profiles followed by target that my follows also follow */
-export const UseFollowedByMyFollowsParamsSchema = z.object({
-  myAddress: z.string(),
-  targetAddress: z.string(),
-  sort: ProfileSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseFollowedByMyFollowsParamsSchema = z
+  .object({
+    myAddress: z.string(),
+    targetAddress: z.string(),
+    sort: ProfileSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteFollowedByMyFollows — infinite scroll variant */
-export const UseInfiniteFollowedByMyFollowsParamsSchema = z.object({
-  myAddress: z.string(),
-  targetAddress: z.string(),
-  sort: ProfileSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseInfiniteFollowedByMyFollowsParamsSchema = z
+  .object({
+    myAddress: z.string(),
+    targetAddress: z.string(),
+    sort: ProfileSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useIsFollowing — check if one address follows another */
-export const UseIsFollowingParamsSchema = z.object({
-  /** The address that might be following */
-  followerAddress: z.string(),
-  /** The address that might be followed */
-  followedAddress: z.string(),
-});
+export const UseIsFollowingParamsSchema = z
+  .object({
+    /** The address that might be following */
+    followerAddress: z.string(),
+    /** The address that might be followed */
+    followedAddress: z.string(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Schema for a single follower→followed pair */
 export const IsFollowingBatchPairSchema = z.object({
@@ -218,10 +253,12 @@ export const IsFollowingBatchPairSchema = z.object({
 });
 
 /** Params for useIsFollowingBatch — check multiple follower→followed pairs at once */
-export const UseIsFollowingBatchParamsSchema = z.object({
-  /** Array of follower→followed pairs to check */
-  pairs: z.array(IsFollowingBatchPairSchema),
-});
+export const UseIsFollowingBatchParamsSchema = z
+  .object({
+    /** Array of follower→followed pairs to check */
+    pairs: z.array(IsFollowingBatchPairSchema).max(100),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -320,7 +357,19 @@ export type FollowerResult<I extends FollowerInclude | undefined = undefined> = 
   ? Follower
   : IncludeResult<
       Follower,
-      'followerAddress' | 'followedAddress',
+      | 'id'
+      | 'network'
+      | 'chainId'
+      | 'followerAddress'
+      | 'followedAddress'
+      | 'isFollowing'
+      | 'followedAt'
+      | 'unfollowedAt'
+      | 'lastBlockNumber'
+      | 'lastBlockHash'
+      | 'lastTransactionHash'
+      | 'lastTransactionIndex'
+      | 'lastLogIndex',
       FollowerScalarIncludeFieldMap,
       I
     > &
@@ -331,4 +380,19 @@ export type FollowerResult<I extends FollowerInclude | undefined = undefined> = 
  * Follower with only base fields guaranteed — used for components that accept
  * any include-narrowed Follower.
  */
-export type PartialFollower = PartialExcept<Follower, 'followerAddress' | 'followedAddress'>;
+export type PartialFollower = PartialExcept<
+  Follower,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'followerAddress'
+  | 'followedAddress'
+  | 'isFollowing'
+  | 'followedAt'
+  | 'unfollowedAt'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

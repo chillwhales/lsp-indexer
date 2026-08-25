@@ -39,6 +39,8 @@ export type UseInfiniteDataChangedEventsReturn<F> = {
  * - Widest   → `onData(data: PartialDataChangedEvent[])`
  */
 export interface UseDataChangedEventSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all events) */
   filter?: DataChangedEventFilter;
   /** Sort order (optional — defaults to block-order desc) */

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { DataKeyNameSchema } from '@chillwhales/erc725';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import { EventRefSchema, NetworkInputSchema, SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -19,43 +19,49 @@ import { OwnedTokenNftIncludeSchema, type OwnedTokenNftInclude } from './owned-t
 // ---------------------------------------------------------------------------
 
 /** Like DataChangedEvent but per-token — has `tokenId` and `nft` relation instead of UP. */
-export const TokenIdDataChangedEventSchema = z.object({
-  /** Emitting contract address (always present) */
-  address: z.string(),
-  /** Raw hex ERC725Y data key (always present) */
-  dataKey: z.string(),
-  /** Raw hex data value (always present, no decoding) */
-  dataValue: z.string(),
-  /** Token ID the data change applies to (always present) */
-  tokenId: z.string(),
-  /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
-  dataKeyName: z.string().nullable(),
-  /** Block number where event was emitted (null = not included) */
-  blockNumber: z.number().nullable(),
-  /** Timestamp when event was indexed (null = not included) */
-  timestamp: z.string().nullable(),
-  /** Log index within the transaction (null = not included) */
-  logIndex: z.number().nullable(),
-  /** Transaction index within the block (null = not included) */
-  transactionIndex: z.number().nullable(),
-  /** Digital Asset of the emitting address (null = not included) */
-  digitalAsset: DigitalAssetSchema.nullable(),
-  /** Full NFT details for the token (null = not included or no NFT record) */
-  nft: NftSchema.nullable(),
-});
+export const TokenIdDataChangedEventSchema = z
+  .object({
+    id: z.string(),
+    /** Emitting contract address (always present) */
+    address: z.string(),
+    /** Raw hex ERC725Y data key (always present) */
+    dataKey: z.string(),
+    /** Raw hex data value (always present, no decoding) */
+    dataValue: z.string(),
+    /** Token ID the data change applies to (always present) */
+    tokenId: z.string(),
+    /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
+    dataKeyName: z.string().nullable(),
+    /** Block number where event was emitted (null = not included) */
+    blockNumber: z.number().nullable(),
+    /** Timestamp when event was indexed (null = not included) */
+    timestamp: z.string().nullable(),
+    /** Log index within the transaction (null = not included) */
+    logIndex: z.number().nullable(),
+    /** Transaction index within the block (null = not included) */
+    transactionIndex: z.number().nullable(),
+    /** Digital Asset of the emitting address (null = not included) */
+    digitalAsset: DigitalAssetSchema.nullable(),
+    /** Reserved v2 relation; v3.0 returns `null` */
+    nft: NftSchema.nullable(),
+    topic0: z.string(),
+    topics: z.array(z.string()),
+    data: z.string(),
+  })
+  .extend(EventRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const TokenIdDataChangedEventFilterSchema = z.object({
-  /** Case-insensitive match on emitting contract address (uses _ilike) */
+  /** Exact emitting contract address; hexadecimal input is normalized to lowercase */
   address: z.string().optional(),
-  /** Case-insensitive match on data key hex (uses _ilike) */
+  /** Exact canonical 32-byte data key */
   dataKey: z.string().optional(),
   /** Known ERC725Y key name (e.g., 'LSP4Metadata') — resolved to hex at service layer */
   dataKeyName: DataKeyNameSchema.optional(),
-  /** Case-insensitive match on token ID (uses _ilike) */
+  /** Exact canonical 32-byte token ID */
   tokenId: z.string().optional(),
   /** Timestamp lower bound (inclusive, _gte) */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
@@ -65,9 +71,9 @@ export const TokenIdDataChangedEventFilterSchema = z.object({
   blockNumberFrom: z.number().optional(),
   /** Block number upper bound (inclusive, _lte) */
   blockNumberTo: z.number().optional(),
-  /** Case-insensitive search on DA name (nested: digitalAsset.lsp4TokenName.value._ilike) */
+  /** Exact, case-sensitive match on the digital asset name */
   digitalAssetName: z.string().optional(),
-  /** Case-insensitive NFT name filter (nested through nft relation) */
+  /** Reserved compatibility field; v3 rejects this unsupported filter */
   nftName: z.string().optional(),
 });
 
@@ -124,27 +130,33 @@ export const TokenIdDataChangedEventIncludeSchema = z.object({
  * can be used with a human-readable name (e.g., 'LSP4Metadata') — the service
  * layer resolves it to hex automatically.
  */
-export const UseLatestTokenIdDataChangedEventParamsSchema = z.object({
-  filter: TokenIdDataChangedEventFilterSchema.optional(),
-  include: TokenIdDataChangedEventIncludeSchema.optional(),
-});
+export const UseLatestTokenIdDataChangedEventParamsSchema = z
+  .object({
+    filter: TokenIdDataChangedEventFilterSchema.optional(),
+    include: TokenIdDataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useTokenIdDataChangedEvents — paginated list of token ID data changed events */
-export const UseTokenIdDataChangedEventsParamsSchema = z.object({
-  filter: TokenIdDataChangedEventFilterSchema.optional(),
-  sort: TokenIdDataChangedEventSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: TokenIdDataChangedEventIncludeSchema.optional(),
-});
+export const UseTokenIdDataChangedEventsParamsSchema = z
+  .object({
+    filter: TokenIdDataChangedEventFilterSchema.optional(),
+    sort: TokenIdDataChangedEventSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: TokenIdDataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteTokenIdDataChangedEvents — infinite scroll variant */
-export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z.object({
-  filter: TokenIdDataChangedEventFilterSchema.optional(),
-  sort: TokenIdDataChangedEventSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: TokenIdDataChangedEventIncludeSchema.optional(),
-});
+export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z
+  .object({
+    filter: TokenIdDataChangedEventFilterSchema.optional(),
+    sort: TokenIdDataChangedEventSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: TokenIdDataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -237,7 +249,22 @@ export type TokenIdDataChangedEventResult<
   ? TokenIdDataChangedEvent
   : IncludeResult<
       TokenIdDataChangedEvent,
-      'address' | 'dataKey' | 'dataValue' | 'tokenId',
+      | 'id'
+      | 'network'
+      | 'chainId'
+      | 'address'
+      | 'dataKey'
+      | 'dataValue'
+      | 'tokenId'
+      | 'blockNumber'
+      | 'blockHash'
+      | 'timestamp'
+      | 'transactionHash'
+      | 'transactionIndex'
+      | 'logIndex'
+      | 'topic0'
+      | 'topics'
+      | 'data',
       TokenIdDataChangedEventScalarIncludeFieldMap,
       I
     > &
@@ -250,5 +277,20 @@ export type TokenIdDataChangedEventResult<
  */
 export type PartialTokenIdDataChangedEvent = PartialExcept<
   TokenIdDataChangedEvent,
-  'address' | 'dataKey' | 'dataValue' | 'tokenId'
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'dataKey'
+  | 'dataValue'
+  | 'tokenId'
+  | 'blockNumber'
+  | 'blockHash'
+  | 'timestamp'
+  | 'transactionHash'
+  | 'transactionIndex'
+  | 'logIndex'
+  | 'topic0'
+  | 'topics'
+  | 'data'
 >;

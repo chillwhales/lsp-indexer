@@ -42,6 +42,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 
@@ -213,10 +214,12 @@ function IncludeSections({
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useCreators } = useCreatorHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { creators, totalCount, isLoading, error, isFetching } = useCreators({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -273,10 +276,12 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteCreators } = useCreatorHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const { creators, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteCreators({
+      network,
       filter: state.filter,
       sort: state.sort,
       pageSize: 10,
@@ -331,11 +336,13 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useCreatorSubscription } = useCreatorHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useCreatorSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

@@ -18,7 +18,7 @@ export function createUseLatestDataChangedEvent(
   queryFn: (params: LatestDataChangedEventParams) => Promise<PartialDataChangedEvent | null>,
 ) {
   const impl = createUseDetail<LatestDataChangedEventParams, PartialDataChangedEvent>({
-    queryKey: (p) => dataChangedEventKeys.latest(p.filter, p.include),
+    queryKey: (p) => dataChangedEventKeys.latest(p.network, p.filter, p.include),
     queryFn,
     enabled: () => true,
   });
@@ -27,13 +27,13 @@ export function createUseLatestDataChangedEvent(
     params: UseLatestDataChangedEventParams & { include: I },
   ): UseLatestDataChangedEventReturn<DataChangedEventResult<I>>;
   function useLatestDataChangedEvent(
-    params?: Omit<UseLatestDataChangedEventParams, 'include'> & { include?: never },
+    params: Omit<UseLatestDataChangedEventParams, 'include'> & { include?: never },
   ): UseLatestDataChangedEventReturn<DataChangedEvent>;
   function useLatestDataChangedEvent(
     params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude },
   ): UseLatestDataChangedEventReturn<PartialDataChangedEvent>;
   function useLatestDataChangedEvent(
-    params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude } = {},
+    params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude },
   ): UseLatestDataChangedEventReturn<PartialDataChangedEvent> {
     const { data, ...rest } = impl(params);
     return { dataChangedEvent: data, ...rest };

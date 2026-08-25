@@ -4,6 +4,8 @@ import {
   ImageSchema,
   LinkSchema,
   Lsp4AttributeSchema,
+  NetworkInputSchema,
+  ProjectionRefSchema,
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
@@ -14,7 +16,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 // ---------------------------------------------------------------------------
 
 /** Derived from presence of `decimals` field at parse time. */
-export const StandardSchema = z.enum(['LSP7', 'LSP8']);
+export const StandardSchema = z.enum(['LSP7', 'LSP8', 'UNKNOWN']);
 
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
 
@@ -23,63 +25,69 @@ export const DigitalAssetOwnerSchema = z.object({
   timestamp: z.string(),
 });
 
-export const DigitalAssetSchema = z.object({
-  address: z.string(),
-  /** Derived from `decimals` — LSP7 when present, LSP8 when null. */
-  standard: StandardSchema.nullable(),
-  name: z.string().nullable(),
-  symbol: z.string().nullable(),
-  /** TOKEN, NFT, or COLLECTION classification. */
-  tokenType: TokenTypeSchema.nullable(),
-  /** LSP7 only — null for LSP8. */
-  decimals: z.number().nullable(),
-  /** bigint for uint256 precision. */
-  totalSupply: z.bigint().nullable(),
-  description: z.string().nullable(),
-  /** Free-form tag from LSP4 metadata (e.g. "DeFi", "Collectible"). */
-  category: z.string().nullable(),
-  /** Icon images from LSP4 metadata. */
-  icons: z.array(ImageSchema).nullable(),
-  /** Grouped by image_index. */
-  images: z.array(z.array(ImageSchema)).nullable(),
-  /** External links from LSP4 metadata. */
-  links: z.array(LinkSchema).nullable(),
-  /** Key-value attributes from LSP4 metadata. */
-  attributes: z.array(Lsp4AttributeSchema).nullable(),
-  /** Current owner address and timestamp of last ownership transfer. */
-  owner: DigitalAssetOwnerSchema.nullable(),
-  /** Number of unique addresses holding this token. */
-  holderCount: z.number().nullable(),
-  /** Number of addresses listed as creators. */
-  creatorCount: z.number().nullable(),
-  /** LSP8-only. */
-  referenceContract: z.string().nullable(),
-  /** LSP8-only. */
-  tokenIdFormat: z.string().nullable(),
-  /** LSP8-only. */
-  baseUri: z.string().nullable(),
-  /** Timestamp when the digital asset was indexed — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Block number where the digital asset event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-});
+export const DigitalAssetSchema = z
+  .object({
+    /** Deterministic projection ID. */
+    id: z.string(),
+    address: z.string(),
+    /** Derived from `decimals` — LSP7 when present, LSP8 when null. */
+    standard: StandardSchema.nullable(),
+    name: z.string().nullable(),
+    symbol: z.string().nullable(),
+    /** TOKEN, NFT, or COLLECTION classification. */
+    tokenType: TokenTypeSchema.nullable(),
+    /** LSP7 only — null for LSP8. */
+    decimals: z.number().nullable(),
+    /** bigint for uint256 precision. */
+    totalSupply: z.bigint().nullable(),
+    description: z.string().nullable(),
+    /** Free-form tag from LSP4 metadata (e.g. "DeFi", "Collectible"). */
+    category: z.string().nullable(),
+    /** Icon images from LSP4 metadata. */
+    icons: z.array(ImageSchema).nullable(),
+    /** Grouped by image_index. */
+    images: z.array(z.array(ImageSchema)).nullable(),
+    /** External links from LSP4 metadata. */
+    links: z.array(LinkSchema).nullable(),
+    /** Key-value attributes from LSP4 metadata. */
+    attributes: z.array(Lsp4AttributeSchema).nullable(),
+    /** Reserved v2 relation; v3.0 returns `null` (use `ownerAddress`) */
+    owner: DigitalAssetOwnerSchema.nullable(),
+    /** Number of unique addresses holding this token. */
+    holderCount: z.number().nullable(),
+    /** Number of addresses listed as creators. */
+    creatorCount: z.number().nullable(),
+    /** LSP8-only. */
+    referenceContract: z.string().nullable(),
+    /** LSP8-only. */
+    tokenIdFormat: z.string().nullable(),
+    /** LSP8-only. */
+    baseUri: z.string().nullable(),
+    /** Reserved v2 compatibility field; v3.0 returns `null` (use last-block provenance) */
+    timestamp: z.string().nullable(),
+    /** Block number where the digital asset event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    ownerAddress: z.string().nullable(),
+    verification: z.enum(['unknown', 'verified', 'invalid']),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
 export const DigitalAssetFilterSchema = z.object({
-  /** Case-insensitive partial match on token name */
+  /** Exact, case-sensitive match on token name */
   name: z.string().optional(),
-  /** Case-insensitive partial match on token symbol */
+  /** Exact, case-sensitive match on token symbol */
   symbol: z.string().optional(),
   /** Filter by token type (TOKEN, NFT, or COLLECTION) */
   tokenType: TokenTypeSchema.optional(),
-  /** Filter by LSP4 metadata category */
+  /** Exact, case-sensitive match on the current LSP4 metadata category */
   category: z.string().optional(),
   /** Return tokens held by the given address */
   holderAddress: z.string().optional(),
@@ -155,25 +163,31 @@ export const DigitalAssetIncludeSchema = z.object({
 // Hook parameter schemas
 // ---------------------------------------------------------------------------
 
-export const UseDigitalAssetParamsSchema = z.object({
-  address: z.string(),
-  include: DigitalAssetIncludeSchema.optional(),
-});
+export const UseDigitalAssetParamsSchema = z
+  .object({
+    address: z.string(),
+    include: DigitalAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
-export const UseDigitalAssetsParamsSchema = z.object({
-  filter: DigitalAssetFilterSchema.optional(),
-  sort: DigitalAssetSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: DigitalAssetIncludeSchema.optional(),
-});
+export const UseDigitalAssetsParamsSchema = z
+  .object({
+    filter: DigitalAssetFilterSchema.optional(),
+    sort: DigitalAssetSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: DigitalAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
-export const UseInfiniteDigitalAssetsParamsSchema = z.object({
-  filter: DigitalAssetFilterSchema.optional(),
-  sort: DigitalAssetSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: DigitalAssetIncludeSchema.optional(),
-});
+export const UseInfiniteDigitalAssetsParamsSchema = z
+  .object({
+    filter: DigitalAssetFilterSchema.optional(),
+    sort: DigitalAssetSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: DigitalAssetIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -255,7 +269,22 @@ type ResolveStandard<I> = I extends { decimals: true } ? { standard: Standard | 
 export type DigitalAssetResult<I extends DigitalAssetInclude | undefined = undefined> =
   I extends undefined
     ? DigitalAsset
-    : IncludeResult<DigitalAsset, 'address', DigitalAssetIncludeFieldMap, I> &
+    : IncludeResult<
+        DigitalAsset,
+        | 'id'
+        | 'network'
+        | 'chainId'
+        | 'address'
+        | 'ownerAddress'
+        | 'verification'
+        | 'lastBlockNumber'
+        | 'lastBlockHash'
+        | 'lastTransactionHash'
+        | 'lastTransactionIndex'
+        | 'lastLogIndex',
+        DigitalAssetIncludeFieldMap,
+        I
+      > &
         ResolveStandard<NonNullable<I>>;
 
 /**
@@ -264,4 +293,17 @@ export type DigitalAssetResult<I extends DigitalAssetInclude | undefined = undef
  *
  * Equivalent to `PartialExcept<DigitalAsset, 'address'>`.
  */
-export type PartialDigitalAsset = PartialExcept<DigitalAsset, 'address'>;
+export type PartialDigitalAsset = PartialExcept<
+  DigitalAsset,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'ownerAddress'
+  | 'verification'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

@@ -1,6 +1,7 @@
 # LSP Indexer v3 compatibility contract
 
-Status: proposed for review in [#380](https://github.com/chillwhales/lsp-indexer/issues/380)
+Status: implemented through the Node/types package contract in
+[#387](https://github.com/chillwhales/lsp-indexer/issues/387)
 
 V3 is a major release with a new multi-chain data structure. It preserves familiar domain behavior
 and package roles, not accidental coupling to the v2 TypeORM schema.
@@ -21,7 +22,7 @@ and package roles, not accidental coupling to the v2 TypeORM schema.
 
 ## Cross-cutting v3 types
 
-`@lsp-indexer/types` will introduce shared schemas before domain packages are ported:
+`@lsp-indexer/types` provides the shared schemas used by every domain package:
 
 ```typescript
 type NetworkId = 'lukso-mainnet' | 'ethereum-mainnet' | 'ethereum-sepolia' | (string & {});
@@ -56,11 +57,11 @@ Standalone functions make network explicit:
 fetchProfile(url, { network: 'lukso-mainnet', address });
 ```
 
-V3 may also add an ergonomic client with a default network:
+V3 also provides an ergonomic client with a required default network:
 
 ```typescript
 const indexer = createIndexerClient({ url, network: 'lukso-mainnet' });
-await indexer.fetchProfile({ address });
+await indexer.profiles({ filter: { address: { eq: address } }, limit: 1 });
 ```
 
 The client default never changes database identity. It only fills a required request field.
@@ -127,15 +128,15 @@ V3 is allowed to break the following behavior:
 
 - Address-only lookups without a network
 - Random UUID event IDs
-- Case-insensitive `_ilike` address comparisons
+- Substring `_ilike` text searches; familiar v3 text filters are exact and case-sensitive
 - Direct reliance on TypeORM table or relationship names
 - Stale v2 generated GraphQL types
 - Environment defaults that silently select LUKSO
 - Cross-chain cache collisions
 - Treating an indexer endpoint as current without checking its indexed head
 
-The migration guide will list every removed export and provide a direct replacement or state that no
-replacement exists.
+The [package migration guide](./V3_PACKAGE_MIGRATION.md) lists every removed export and provides a
+direct replacement or states that no replacement exists.
 
 ## Compatibility evidence
 

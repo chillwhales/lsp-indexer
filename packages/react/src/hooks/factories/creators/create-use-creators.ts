@@ -20,7 +20,7 @@ export function createUseCreators(
     PartialCreator,
     FetchCreatorsResult<PartialCreator>
   >({
-    queryKey: (p) => creatorKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) => creatorKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.creators,
   });
@@ -29,13 +29,13 @@ export function createUseCreators(
     params: UseCreatorsParams & { include: I },
   ): UseCreatorsReturn<CreatorResult<I>>;
   function useCreators(
-    params?: Omit<UseCreatorsParams, 'include'> & { include?: never },
+    params: Omit<UseCreatorsParams, 'include'> & { include?: never },
   ): UseCreatorsReturn<Creator>;
   function useCreators(
     params: UseCreatorsParams & { include?: CreatorInclude },
   ): UseCreatorsReturn<PartialCreator>;
   function useCreators(
-    params: UseCreatorsParams & { include?: CreatorInclude } = {},
+    params: UseCreatorsParams & { include?: CreatorInclude },
   ): UseCreatorsReturn<PartialCreator> {
     const { items, ...rest } = impl(params);
     return { creators: items, ...rest };

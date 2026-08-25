@@ -25,7 +25,13 @@ export function createUseInfiniteFollowedByMyFollows(
     FetchProfilesResult<PartialProfile>
   >({
     queryKey: (p) =>
-      followerKeys.infiniteFollowedByMyFollows(p.myAddress, p.targetAddress, p.sort, p.include),
+      followerKeys.infiniteFollowedByMyFollows(
+        p.network,
+        p.myAddress,
+        p.targetAddress,
+        p.sort,
+        p.include,
+      ),
     queryFn,
     extractItems: (r) => r.profiles,
     enabled: (p) => Boolean(p.myAddress) && Boolean(p.targetAddress),

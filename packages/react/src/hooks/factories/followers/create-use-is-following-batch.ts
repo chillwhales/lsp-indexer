@@ -7,14 +7,14 @@ import type { UseIsFollowingBatchReturn } from '../../types';
 const EMPTY_RESULTS: Map<string, boolean> = new Map();
 
 export function createUseIsFollowingBatch(
-  queryFn: (pairs: UseIsFollowingBatchParams['pairs']) => Promise<Map<string, boolean>>,
+  queryFn: (params: UseIsFollowingBatchParams) => Promise<Map<string, boolean>>,
 ) {
   function useIsFollowingBatch(params: UseIsFollowingBatchParams): UseIsFollowingBatchReturn {
-    const { pairs } = params;
+    const { network, pairs } = params;
 
     const { data, ...rest } = useQuery({
-      queryKey: followerKeys.isFollowingBatch(pairs),
-      queryFn: () => queryFn(pairs),
+      queryKey: followerKeys.isFollowingBatch(network, pairs),
+      queryFn: () => queryFn(params),
       enabled: pairs.length > 0,
     });
 

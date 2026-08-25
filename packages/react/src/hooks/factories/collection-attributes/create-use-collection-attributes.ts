@@ -10,16 +10,16 @@ import type { UseCollectionAttributesReturn } from '../../types';
 const EMPTY: CollectionAttribute[] = [];
 
 export function createUseCollectionAttributes(
-  queryFn: (collectionAddress: string) => Promise<CollectionAttributesResult>,
+  queryFn: (params: UseCollectionAttributesParams) => Promise<CollectionAttributesResult>,
 ) {
   function useCollectionAttributes(
     params: UseCollectionAttributesParams,
   ): UseCollectionAttributesReturn {
-    const { collectionAddress } = params;
+    const { collectionAddress, network } = params;
 
     const { data, ...rest } = useQuery({
-      queryKey: collectionAttributeKeys.list(collectionAddress),
-      queryFn: () => queryFn(collectionAddress),
+      queryKey: collectionAttributeKeys.list(network, collectionAddress),
+      queryFn: () => queryFn(params),
       enabled: Boolean(collectionAddress),
     });
 

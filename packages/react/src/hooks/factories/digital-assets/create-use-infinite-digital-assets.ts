@@ -24,7 +24,7 @@ export function createUseInfiniteDigitalAssets(
     PartialDigitalAsset,
     FetchDigitalAssetsResult<PartialDigitalAsset>
   >({
-    queryKey: (p) => digitalAssetKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => digitalAssetKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.digitalAssets,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteDigitalAssets(
     params: UseInfiniteDigitalAssetsParams & { include: I },
   ): UseInfiniteDigitalAssetsReturn<DigitalAssetResult<I>>;
   function useInfiniteDigitalAssets(
-    params?: Omit<UseInfiniteDigitalAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteDigitalAssetsParams, 'include'> & { include?: never },
   ): UseInfiniteDigitalAssetsReturn<DigitalAsset>;
   function useInfiniteDigitalAssets(
     params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude },
   ): UseInfiniteDigitalAssetsReturn<PartialDigitalAsset>;
   function useInfiniteDigitalAssets(
-    params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
+    params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude },
   ): UseInfiniteDigitalAssetsReturn<PartialDigitalAsset> {
     const { items, ...rest } = impl(params);
     return { digitalAssets: items, ...rest };
