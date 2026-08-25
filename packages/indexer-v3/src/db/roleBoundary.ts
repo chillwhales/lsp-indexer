@@ -1,13 +1,21 @@
 import { getTableName, sql, type SQL } from 'drizzle-orm';
 import {
   API_OWNER_ROLE,
+  API_SCHEMA,
   MIGRATIONS_SEQUENCE,
   MIGRATIONS_TABLE,
   SHARED_ENUMS,
   SHARED_SCHEMA,
   assertPostgresIdentifier,
 } from './names.js';
-import { metadataJobs, networkConfig, publicTables, rollbackTables, sqdCursor } from './schema.js';
+import {
+  metadataJobs,
+  metadataRevisions,
+  networkConfig,
+  publicTables,
+  rollbackTables,
+  sqdCursor,
+} from './schema.js';
 
 const EXPECTED_CHAIN_OBJECTS = [
   { name: MIGRATIONS_TABLE, type: 'table', requiredBeforeLatest: true },
@@ -22,7 +30,11 @@ const PUBLIC_CHAIN_TABLE_NAMES = publicTables.map(getTableName);
 
 /** Least-privilege chain columns required to build the cross-network API views. */
 export const API_VIEW_DEPENDENCY_COLUMNS = [
-  { table: getTableName(metadataJobs), columns: ['id', 'status'] },
+  {
+    view: getTableName(metadataRevisions),
+    table: getTableName(metadataJobs),
+    columns: ['id', 'status'],
+  },
 ];
 
 /** A missing or incorrectly owned object from a chain schema's storage inventory. */
@@ -201,11 +213,29 @@ export function createChainAclBoundaryQuery(role: string, networkSchema: string)
           AND (
             ${sql.join(
               API_VIEW_DEPENDENCY_COLUMNS.map(
-                ({ columns, table }) =>
-                  sql`(relation.relname = ${table} AND attribute.attname IN (${sql.join(
+                ({ columns, table, view }) => sql`(
+                  attribute.attname IN (${sql.join(
                     columns.map((column) => sql`${column}`),
                     sql`, `,
-                  )}))`,
+                  )})
+                  AND (
+                    relation.relname = ${table}
+                    OR EXISTS (
+                      SELECT 1
+                      FROM pg_depend dependency
+                      JOIN pg_rewrite rewrite ON rewrite.oid = dependency.objid
+                      JOIN pg_class api_view ON api_view.oid = rewrite.ev_class
+                      JOIN pg_namespace api_namespace ON api_namespace.oid = api_view.relnamespace
+                      WHERE dependency.classid = 'pg_rewrite'::regclass
+                        AND dependency.refclassid = 'pg_class'::regclass
+                        AND dependency.refobjid = relation.oid
+                        AND api_namespace.nspname = ${API_SCHEMA}
+                        AND api_view.relname = ${view}
+                        AND api_view.relkind = 'v'
+                        AND api_view.relowner = api_owner_role.oid
+                    )
+                  )
+                )`,
               ),
               sql` OR `,
             )}

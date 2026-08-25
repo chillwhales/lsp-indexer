@@ -2063,6 +2063,27 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     }
   });
 
+  it('rejects broader private-column access for the API view owner', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const qualifiedJobs = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
+
+    await testAdminPool.query(
+      `GRANT SELECT (content_uri) ON ${qualifiedJobs} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `${ethereumNetwork.schema}.metadata_jobs.content_uri (column SELECT via ${API_OWNER_ROLE})`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE SELECT (content_uri) ON ${qualifiedJobs} FROM ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+      );
+    }
+  });
+
   it('requires the writer to own every expected chain object', async () => {
     const ethereumNetwork = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
