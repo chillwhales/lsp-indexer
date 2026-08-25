@@ -61,6 +61,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
 The subscription provider is optional — only needed if you use `use*Subscription` hooks.
 It creates a single shared WebSocket connection to Hasura.
 
+For the uniform v3 hooks, `IndexerProvider` creates one shared Node client for HTTP and WebSocket
+transport and also satisfies every familiar subscription hook. Requests still contain an explicit
+`network`; the provider does not add hidden request identity.
+
+```tsx
+import { IndexerProvider } from '@lsp-indexer/react';
+
+<QueryClientProvider client={queryClient}>
+  <IndexerProvider
+    url={process.env.NEXT_PUBLIC_INDEXER_URL!}
+    wsUrl={process.env.NEXT_PUBLIC_INDEXER_WS_URL}
+    network="lukso-mainnet"
+  >
+    {children}
+  </IndexerProvider>
+</QueryClientProvider>;
+```
+
+`useIndexerClient()` exposes the scoped Node client and `useIndexerNetwork()` exposes its configured
+default so an application can pass that value explicitly to hooks. Changing `url`, `wsUrl`, or
+`network` creates the replacement client and disposes the old connection on cleanup.
+
 ---
 
 ## Hook Patterns
@@ -159,8 +181,7 @@ function LiveProfiles() {
 
 ## Available Domains
 
-The familiar consumer domains follow the same pattern. `chillwhales_nfts` is also shown so its
-v3-only status is explicit, but it does not have a public hook until the dedicated React v3 work.
+The familiar consumer domains retain their domain-shaped hooks:
 
 | Domain                | Hooks                                                                                                                                                                                                                                                                                    |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -177,7 +198,53 @@ v3-only status is explicit, but it does not have a public hook until the dedicat
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
 | Collection Attributes | `useCollectionAttributes`                                                                                                                                                                                                                                                                |
-| Chillwhales NFTs (v3) | — (LUKSO Mainnet v3 alpha projection only)                                                                                                                                                                                                                                               |
+| Chillwhales NFTs (v3) | `useChillwhalesNfts`, `useInfiniteChillwhalesNfts`, `useChillwhalesNftSubscription`                                                                                                                                                                                                      |
+
+### Uniform v3 hooks
+
+`useV3List`, `useV3Infinite`, and `useV3Subscription` expose the same typed interface for all 15
+public v3 roots. They delegate filters, sorts, parsing, and subscriptions to `@lsp-indexer/node`.
+Infinite keys include network, domain, filter, sort, and page size; the next offset advances by the
+rows actually returned and stops when `totalCount` is loaded.
+
+```tsx
+import { useV3Infinite, useV3Subscription } from '@lsp-indexer/react';
+
+const controllers = useV3Infinite('controllers', {
+  network: 'lukso-mainnet',
+  filter: { profileAddress: { eq: profileAddress } },
+  sort: [{ field: 'arrayIndex', direction: 'asc', nulls: 'last' }],
+  pageSize: 25,
+});
+
+const liveHeads = useV3Subscription(
+  'indexedHeads',
+  { network: 'lukso-mainnet', limit: 1 },
+  { invalidate: true },
+);
+```
+
+| Domain argument     | Named convenience hooks                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `blocks`            | `useBlocks`, `useInfiniteBlocks`, `useBlockSubscription`                |
+| `events`            | `useEvents`, `useInfiniteEvents`, `useEventSubscription`                |
+| `profiles`          | Use the uniform hooks or familiar profile hooks above                   |
+| `digitalAssets`     | Use the uniform hooks or familiar digital-asset hooks above             |
+| `nfts`              | Use the uniform hooks or familiar NFT hooks above                       |
+| `ownedAssets`       | Use the uniform hooks or familiar owned-asset hooks above               |
+| `ownedTokens`       | Use the uniform hooks or familiar owned-token hooks above               |
+| `followers`         | Use the uniform hooks or familiar follower hooks above                  |
+| `creators`          | Use the uniform hooks or familiar creator hooks above                   |
+| `issuedAssets`      | Use the uniform hooks or familiar issued-asset hooks above              |
+| `controllers`       | `useControllers`, `useInfiniteControllers`, `useControllerSubscription` |
+| `chillwhalesNfts`   | `useChillwhalesNfts`, infinite, and subscription variants               |
+| `dataValues`        | `useDataValues`, `useInfiniteDataValues`, `useDataValueSubscription`    |
+| `metadataRevisions` | `useMetadataRevisions`, infinite, and subscription variants             |
+| `indexedHeads`      | `useIndexedHead(s)`, `useIndexedHeadSubscription`                       |
+
+The generic return type is selected by the domain argument, so `items` and subscription `data`
+never become a union of all domain records. When `invalidate: true`, live data and reconnect events
+invalidate that exact network/domain cache by default; `invalidateKeys` can override the target.
 
 ---
 

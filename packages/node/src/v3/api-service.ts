@@ -12,6 +12,7 @@ import {
   type V3DataValue,
   type V3DigitalAsset,
   type V3Domain,
+  type V3DomainResultMap,
   type V3EventFact,
   type V3Follower,
   type V3IndexedHead,
@@ -859,7 +860,26 @@ export const v3Api = {
   dataValues: fetchV3DataValues,
   metadataRevisions: fetchV3MetadataRevisions,
   indexedHeads: fetchV3IndexedHeads,
-} as const;
+} as const satisfies Record<V3Domain, (...args: never[]) => unknown>;
+
+/**
+ * Fetch any public v3 domain through one exhaustively typed entry point.
+ *
+ * This is the shared transport boundary used by framework adapters. Domain-specific
+ * filter fields and result records remain correlated through `Domain`.
+ */
+export function fetchV3Domain<Domain extends V3Domain>(
+  url: string,
+  domain: Domain,
+  params: V3DomainListParams<Domain>,
+): Promise<V3ListResult<V3DomainResultMap[Domain]>> {
+  // `v3Api` is exhaustive, but TypeScript loses the correlation between a generic
+  // indexed key and that function's parameter/result types. Reflect.apply keeps the
+  // runtime dispatch centralized; this cast restores the proven public correlation.
+  return Reflect.apply(v3Api[domain], undefined, [url, params]) as Promise<
+    V3ListResult<V3DomainResultMap[Domain]>
+  >;
+}
 
 /** Short names for v3 domains that did not exist in the v2 package surface. */
 export function fetchBlocks(

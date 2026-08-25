@@ -53,6 +53,12 @@ Next.js server actions now receive the same network-bearing parameter object as 
 Node service. React and Next hooks likewise require `network`; update calls such as
 `useProfile({ address })` to `useProfile({ network, address })`.
 
+For uniform v3 consumers, React adds `useV3List`, `useV3Infinite`, `useV3Subscription`, and the
+shared `IndexerProvider`. Next adds matching list/infinite hooks plus `getV3Domain` and typed
+`getV3*` server actions. All 15 roots are available without framework packages copying query or
+parser logic. Named conveniences cover blocks, event facts, controllers, Chillwhales NFTs, data
+values, metadata revisions, and indexed heads.
+
 ## Result and input changes
 
 All top-level results add `network` and `chainId`. Projection records add their deterministic ID,
@@ -216,7 +222,8 @@ provide its replacement.
 - `fetchV3*` query functions and uniform `fetchBlocks`, `fetchEvents`,
   `fetchUniversalProfiles`, `fetchControllers`, `fetchChillwhalesNfts`, `fetchDataValues`,
   `fetchMetadataRevisions`, and `fetchIndexedHead(s)` aliases
-- `buildV3DomainVariables`, `buildV3SubscriptionConfig`, `v3Api`, `v3Keys`, and `v3Parsers`
+- `fetchV3Domain`, `buildV3DomainVariables`, `buildV3SubscriptionConfig`, `v3Api`, `v3Keys`, and
+  `v3Parsers`
 - Runtime `parseV3*` parsers and strict raw scalar helpers
 - `getClientNetwork` and `getServerNetwork`
 - Zod schemas and inferred TypeScript types for all 15 domains plus `NetworkRef`, `BlockRef`,

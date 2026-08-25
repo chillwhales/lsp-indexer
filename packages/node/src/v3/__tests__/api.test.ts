@@ -15,6 +15,7 @@ import {
   fetchV3Creators,
   fetchV3DataValues,
   fetchV3DigitalAssets,
+  fetchV3Domain,
   fetchV3Events,
   fetchV3Followers,
   fetchV3IndexedHeads,
@@ -208,6 +209,17 @@ describe('v3 API services', () => {
     expect(Object.keys(v3Api)).toEqual(domains);
   });
 
+  it.each(fetchCases)(
+    'dispatches %s through the uniform framework adapter',
+    async (domain, _, row) => {
+      executeMock.mockResolvedValue({ items: [row], total: { aggregate: { count: 1 } } });
+      await expect(fetchV3Domain(URL, domain, { network: NETWORK })).resolves.toMatchObject({
+        items: [{ network: NETWORK }],
+        totalCount: 1,
+      });
+    },
+  );
+
   it('returns one indexed head or null', async () => {
     executeMock
       .mockResolvedValueOnce({
@@ -250,6 +262,20 @@ describe('v3 clients, keys, and subscriptions', () => {
     expect(() => JSON.stringify(bigintKey)).not.toThrow();
     expect(bigintKey).toEqual(
       expect.arrayContaining([expect.objectContaining({ filter: { balance: { gte: '10' } } })]),
+    );
+    expect(
+      v3Keys.infinite('profiles', {
+        network: NETWORK,
+        filter: { address: { eq: ADDRESS } },
+        pageSize: 25,
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        NETWORK,
+        'profiles',
+        'infinite',
+        expect.objectContaining({ pageSize: 25 }),
+      ]),
     );
   });
 
