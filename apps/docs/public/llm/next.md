@@ -138,6 +138,31 @@ function MyComponent() {
 }
 ```
 
+### Uniform v3 hooks
+
+`useV3List(domain, params)` and `useV3Infinite(domain, params)` cover all 15 public v3 roots through
+one typed server-action transport. They have the same result and pagination behavior as the React
+uniform hooks, but the browser never receives the Hasura URL.
+
+```tsx
+import { useControllers, useV3Infinite } from '@lsp-indexer/next';
+
+const { items: controllers } = useControllers({
+  network: 'lukso-mainnet',
+  filter: { profileAddress: { eq: profileAddress } },
+});
+
+const revisions = useV3Infinite('metadataRevisions', {
+  network: 'lukso-mainnet',
+  filter: { address: { eq: assetAddress }, isCurrent: { eq: true } },
+  pageSize: 20,
+});
+```
+
+Named list/infinite conveniences are available for blocks, normalized events, controllers,
+Chillwhales NFTs, data values, metadata revisions, and indexed heads. `useIndexedHead` returns one
+network's current head or `null`.
+
 ---
 
 ## Server Actions
@@ -190,10 +215,16 @@ Every domain has server actions matching the fetch functions:
 | Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`                                                                           |
 | Universal Receiver    | `getUniversalReceiverEvents`                                                                                                                |
 | Collection Attributes | `getCollectionAttributes`                                                                                                                   |
-| Chillwhales NFTs (v3) | — (LUKSO Mainnet v3 alpha projection only)                                                                                                  |
+| Uniform v3 API        | `getV3Domain` plus `getV3*` actions for all 15 roots                                                                                        |
+| Blocks / event facts  | `getBlocks`, `getEvents`                                                                                                                    |
+| Controllers           | `getControllers`                                                                                                                            |
+| Chillwhales NFTs (v3) | `getChillwhalesNfts` (LUKSO Mainnet alpha projection)                                                                                       |
+| Data / metadata       | `getDataValues`, `getMetadataRevisions`                                                                                                     |
+| Indexed heads         | `getIndexedHead`, `getIndexedHeads`                                                                                                         |
 
-The v3 indexer persists `chillwhales_nfts`, but no familiar Next.js action is exposed until the
-dedicated React/Next v3 goal lands. The Node v3 client already exposes this domain.
+The uniform action validates the domain and common controls at the server boundary, then delegates
+field validation, query construction, and parsing to the Node service. Domain-specific `getV3*`
+actions keep the domain/result correlation when a named server action is more convenient.
 
 ---
 
@@ -491,6 +522,7 @@ server.listen(4000, () => {
 - **Payload limits** — configurable max WebSocket frame size
 - **Auto-reconnect** — reconnects to upstream Hasura on connection loss
 - **Per-client isolation** — each browser client gets its own upstream connection
+- **Network-safe forwarding** — explicit v3 subscription variables pass through unchanged
 
 ### Environment Variables
 

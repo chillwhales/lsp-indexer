@@ -1,7 +1,7 @@
 # LSP Indexer v3 compatibility contract
 
-Status: implemented through the Node/types package contract in
-[#387](https://github.com/chillwhales/lsp-indexer/issues/387)
+Status: implemented through the React/Next package contract in
+[#388](https://github.com/chillwhales/lsp-indexer/issues/388)
 
 V3 is a major release with a new multi-chain data structure. It preserves familiar domain behavior
 and package roles, not accidental coupling to the v2 TypeORM schema.
@@ -72,11 +72,15 @@ The client default never changes database identity. It only fills a required req
 | -------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `@lsp-indexer/types` | Zod-first domain models, filters, includes, sorts, hook params, errors, subscription interfaces             | Network schemas, block/event provenance, chain-aware params, v3 migration aliases where useful                     |
 | `@lsp-indexer/node`  | `fetch*` service names, typed results, parsers, query keys, `IndexerError`, GraphQL WebSocket subscriptions | `createIndexerClient`, network-aware documents and keys, indexed-head/network discovery, regenerated GraphQL types |
-| `@lsp-indexer/react` | Existing detail/list/infinite/subscription hook names and TanStack Query behavior                           | Network-scoped params and cache keys, optional client/provider default, network/head hooks                         |
+| `@lsp-indexer/react` | Existing detail/list/infinite/subscription hook names and TanStack Query behavior                           | Network-scoped params and cache keys, shared client/provider transport, uniform domain and indexed-head hooks      |
 | `@lsp-indexer/next`  | Existing query hooks, `actions` entry point, and `server` WebSocket proxy                                   | Network-scoped actions, v3 environment configuration, network-aware proxy behavior                                 |
 
 React and Next do not implement their own query semantics. They call the v3 Node services so fixes
 remain centralized.
+
+The uniform framework adapters cover all 15 public roots. React exposes list, infinite, and live
+subscription hooks; Next exposes list/infinite hooks and server actions. Named conveniences cover
+the v3-only domain families, while the generic domain argument remains exhaustively typed.
 
 ## Domain matrix
 

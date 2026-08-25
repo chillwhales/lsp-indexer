@@ -30,13 +30,13 @@ production validation are complete. The current alpha foundation includes:
 - Generated Hasura metadata, public schema snapshot, chain-scoped relationships, and live queries
 - A local-only multi-network runner for source development
 
-The v3 runtime schemas and Node package contract now cover all 15 public API roots. Dedicated React
-and Next.js additions plus production acceptance land in subsequent v3 goals; the v2 implementation
-remains the production path meanwhile.
+The v3 runtime schemas and Node, React, and Next.js package contracts now cover all 15 public API
+roots. Production acceptance lands in the final implementation goal; the v2 implementation remains
+the production path meanwhile.
 
 The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 projection. It stores
-CHILL/ORBS claim flags and Orb level, cooldown, and faction state. The Node v3 client exposes it;
-dedicated React and Next.js hooks/actions are part of the next package goal.
+CHILL/ORBS claim flags and Orb level, cooldown, and faction state. Node services, React hooks and
+subscriptions, and Next.js actions/hooks expose the projection with the same explicit network scope.
 
 ### Multi-chain process model
 

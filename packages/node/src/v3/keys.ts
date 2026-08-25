@@ -1,5 +1,9 @@
 import type { V3Domain, V3ListParams } from '@lsp-indexer/types';
 
+type V3InfiniteKeyParams<Field extends string> = Omit<V3ListParams<Field>, 'limit' | 'offset'> & {
+  pageSize?: number;
+};
+
 function normalizeKeyValue(value: unknown): unknown {
   if (typeof value === 'bigint') return value.toString();
   if (Array.isArray(value)) return value.map(normalizeKeyValue);
@@ -27,6 +31,17 @@ export const v3Keys = {
         sort: normalizeKeyValue(params.sort),
         limit: params.limit,
         offset: params.offset,
+      },
+    ] as const,
+  infinites: (network: string, domain: V3Domain) =>
+    [...v3Keys.domain(network, domain), 'infinite'] as const,
+  infinite: <Field extends string>(domain: V3Domain, params: V3InfiniteKeyParams<Field>) =>
+    [
+      ...v3Keys.infinites(params.network, domain),
+      {
+        filter: normalizeKeyValue(params.filter),
+        sort: normalizeKeyValue(params.sort),
+        pageSize: params.pageSize,
       },
     ] as const,
   details: (network: string, domain: V3Domain) =>

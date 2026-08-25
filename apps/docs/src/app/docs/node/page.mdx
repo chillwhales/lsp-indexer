@@ -83,6 +83,8 @@ The scoped client and `fetchV3*` functions cover every public Hasura root:
 
 Standalone functions receive `(url, { network, ...params })`. Every list returns
 `{ items, totalCount }`; `indexedHead()` returns the current scoped head or `null`.
+Framework adapters can call `fetchV3Domain(url, domain, params)` to retain the exact domain-specific
+field and result types without copying the `v3Api` dispatch table.
 
 ### Filters, sorting, and pagination
 
@@ -230,8 +232,9 @@ matching message text.
 
 ## Cache keys and low-level exports
 
-`v3Keys` and every familiar key factory include `v3` plus the exact network. The same address on two
-chains therefore produces different keys. Generated GraphQL documents and the old public
+`v3Keys` and every familiar key factory include `v3` plus the exact network. Uniform infinite keys
+also include domain, filter, sort, and page size. The same address on two chains therefore produces
+different keys. Generated GraphQL documents and the old public
 `build*Where`, `build*IncludeVars`, `build*OrderBy`, and `stripExcluded` helpers were removed. They
 coupled callers to the deleted v2 schema; use the typed services, `buildV3DomainVariables`, or the
 network-scoped key factories instead.

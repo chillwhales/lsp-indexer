@@ -130,8 +130,9 @@ with their chain projections and drained only after finality, with durable retri
 protection. The v3 alpha also persists the LUKSO Mainnet-only `chillwhales_nfts` domain for
 CHILL/ORBS claims and Orb state. The v3 Hasura API exposes multi-chain queries, aggregates,
 relationships, and live subscriptions without mutations. A query without `chain_id` spans all
-enabled networks. The v3 Node/types contract is implemented; React and Next.js use its explicit
-network-scoped services while their dedicated v3 API additions are completed. See
+enabled networks. The v3 Node, types, React, and Next.js packages now expose explicit
+network-scoped services, hooks, actions, subscriptions, and indexed-head status for every public
+domain. See
 [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
 checks, and environment variables.
 
