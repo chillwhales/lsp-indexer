@@ -367,6 +367,15 @@ function baseVariables(
   });
 }
 
+function projectionRecencySort(field: 'newest' | 'oldest'): PackageSort[] {
+  const direction = field === 'newest' ? 'desc' : 'asc';
+  return [
+    { field: 'lastBlockNumber', direction },
+    { field: 'lastTransactionIndex', direction, nulls: 'last' },
+    { field: 'lastLogIndex', direction, nulls: 'last' },
+  ];
+}
+
 function currentMetadataFilter(
   kind: 'lsp3_profile' | 'lsp4_asset',
   content: Record<string, unknown>,
@@ -475,17 +484,14 @@ function profileVariables(params: UseProfilesParams): Record<string, unknown> {
           },
     );
   }
-  if (params.sort && params.sort.field !== 'newest' && params.sort.field !== 'oldest') {
-    unsupportedFeature('profiles', 'sort.field', `Sort field ${params.sort.field}`);
+  let sort: PackageSort[] | undefined;
+  if (params.sort) {
+    const field = params.sort.field;
+    if (field !== 'newest' && field !== 'oldest') {
+      unsupportedFeature('profiles', 'sort.field', `Sort field ${field}`);
+    }
+    sort = projectionRecencySort(field);
   }
-  const sort: PackageSort[] | undefined = params.sort
-    ? [
-        {
-          field: 'lastBlockNumber',
-          direction: params.sort.field === 'newest' ? 'desc' : 'asc',
-        },
-      ]
-    : undefined;
   return addConditions(baseVariables('profiles', params, filter, sort), conditions);
 }
 
@@ -558,12 +564,12 @@ function digitalAssetVariables(params: UseDigitalAssetsParams): Record<string, u
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
+    if (params.sort.field === 'newest' || params.sort.field === 'oldest') {
+      sort = projectionRecencySort(params.sort.field);
+      return addConditions(baseVariables('digitalAssets', params, filter, sort), conditions);
+    }
     let field: PackageField;
     switch (params.sort.field) {
-      case 'newest':
-      case 'oldest':
-        field = 'lastBlockNumber';
-        break;
       case 'name':
       case 'symbol':
       case 'totalSupply':
@@ -575,12 +581,7 @@ function digitalAssetVariables(params: UseDigitalAssetsParams): Record<string, u
     sort = [
       {
         field,
-        direction:
-          params.sort.field === 'newest'
-            ? 'desc'
-            : params.sort.field === 'oldest'
-              ? 'asc'
-              : params.sort.direction,
+        direction: params.sort.direction,
         nulls: params.sort.nulls,
       },
     ];
@@ -662,27 +663,19 @@ function nftVariables(params: UseNftsParams): Record<string, unknown> {
   if (params.sort?.field === 'score') {
     unsupportedFeature('NFTs', 'sort.field', 'Chillwhales score sorting');
   }
-  const sort: PackageSort[] | undefined = params.sort
-    ? [
-        {
-          field:
-            params.sort.field === 'newest' || params.sort.field === 'oldest'
-              ? 'lastBlockNumber'
-              : params.sort.field === 'tokenId'
-                ? 'tokenId'
-                : params.sort.field === 'formattedTokenId'
-                  ? 'formattedTokenId'
-                  : 'lastBlockNumber',
-          direction:
-            params.sort.field === 'newest'
-              ? 'desc'
-              : params.sort.field === 'oldest'
-                ? 'asc'
-                : params.sort.direction,
-          nulls: params.sort.nulls,
-        },
-      ]
-    : undefined;
+  let sort: PackageSort[] | undefined;
+  if (params.sort) {
+    sort =
+      params.sort.field === 'newest' || params.sort.field === 'oldest'
+        ? projectionRecencySort(params.sort.field)
+        : [
+            {
+              field: params.sort.field,
+              direction: params.sort.direction,
+              nulls: params.sort.nulls,
+            },
+          ];
+  }
   return addConditions(baseVariables('nfts', params, filter, sort), conditions);
 }
 
@@ -730,12 +723,11 @@ function ownershipSort(
   sort: OwnedAssetSort | OwnedTokenSort | undefined,
 ): PackageSort[] | undefined {
   if (!sort) return undefined;
+  if (sort.field === 'newest' || sort.field === 'oldest') {
+    return projectionRecencySort(sort.field);
+  }
   let field: PackageField;
   switch (sort.field) {
-    case 'newest':
-    case 'oldest':
-      field = 'lastBlockNumber';
-      break;
     case 'digitalAssetAddress':
       field = 'assetAddress';
       break;
@@ -752,8 +744,7 @@ function ownershipSort(
   return [
     {
       field,
-      direction:
-        sort.field === 'newest' ? 'desc' : sort.field === 'oldest' ? 'asc' : sort.direction,
+      direction: sort.direction,
       nulls: sort.nulls,
     },
   ];
@@ -930,12 +921,12 @@ function followerVariables(params: UseFollowsParams): Record<string, unknown> {
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
+    if (params.sort.field === 'newest' || params.sort.field === 'oldest') {
+      sort = projectionRecencySort(params.sort.field);
+      return addConditions(baseVariables('followers', params, filter, sort), conditions);
+    }
     let field: PackageField;
     switch (params.sort.field) {
-      case 'newest':
-      case 'oldest':
-        field = 'lastBlockNumber';
-        break;
       case 'followerAddress':
       case 'followedAddress':
         field = params.sort.field;
@@ -946,12 +937,7 @@ function followerVariables(params: UseFollowsParams): Record<string, unknown> {
     sort = [
       {
         field,
-        direction:
-          params.sort.field === 'newest'
-            ? 'desc'
-            : params.sort.field === 'oldest'
-              ? 'asc'
-              : params.sort.direction,
+        direction: params.sort.direction,
         nulls: params.sort.nulls,
       },
     ];
@@ -1093,12 +1079,12 @@ function creatorVariables(params: UseCreatorsParams): Record<string, unknown> {
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
+    if (params.sort.field === 'newest' || params.sort.field === 'oldest') {
+      sort = projectionRecencySort(params.sort.field);
+      return addConditions(baseVariables('creators', params, filter, sort), conditions);
+    }
     let field: PackageField;
     switch (params.sort.field) {
-      case 'newest':
-      case 'oldest':
-        field = 'lastBlockNumber';
-        break;
       case 'digitalAssetAddress':
         field = 'assetAddress';
         break;
@@ -1112,12 +1098,7 @@ function creatorVariables(params: UseCreatorsParams): Record<string, unknown> {
     sort = [
       {
         field,
-        direction:
-          params.sort.field === 'newest'
-            ? 'desc'
-            : params.sort.field === 'oldest'
-              ? 'asc'
-              : params.sort.direction,
+        direction: params.sort.direction,
         nulls: params.sort.nulls,
       },
     ];
@@ -1170,12 +1151,12 @@ function issuedAssetVariables(params: UseIssuedAssetsParams): Record<string, unk
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
+    if (params.sort.field === 'newest' || params.sort.field === 'oldest') {
+      sort = projectionRecencySort(params.sort.field);
+      return addConditions(baseVariables('issuedAssets', params, filter, sort), conditions);
+    }
     let field: PackageField;
     switch (params.sort.field) {
-      case 'newest':
-      case 'oldest':
-        field = 'lastBlockNumber';
-        break;
       case 'issuerAddress':
       case 'assetAddress':
       case 'arrayIndex':
@@ -1187,12 +1168,7 @@ function issuedAssetVariables(params: UseIssuedAssetsParams): Record<string, unk
     sort = [
       {
         field,
-        direction:
-          params.sort.field === 'newest'
-            ? 'desc'
-            : params.sort.field === 'oldest'
-              ? 'asc'
-              : params.sort.direction,
+        direction: params.sort.direction,
         nulls: params.sort.nulls,
       },
     ];
@@ -1479,25 +1455,19 @@ function encryptedAssetVariables(params: UseEncryptedAssetsParams): Record<strin
   ) {
     unsupportedFeature('encrypted assets', 'sort.field', `Sort field ${params.sort.field}`);
   }
-  const sort: PackageSort[] | undefined = params.sort
-    ? [
-        {
-          field:
-            params.sort.field === 'newest' || params.sort.field === 'oldest'
-              ? 'lastBlockNumber'
-              : params.sort.field === 'address'
-                ? 'address'
-                : 'lastBlockNumber',
-          direction:
-            params.sort.field === 'newest'
-              ? 'desc'
-              : params.sort.field === 'oldest'
-                ? 'asc'
-                : params.sort.direction,
-          nulls: params.sort.nulls,
-        },
-      ]
-    : undefined;
+  let sort: PackageSort[] | undefined;
+  if (params.sort) {
+    sort =
+      params.sort.field === 'newest' || params.sort.field === 'oldest'
+        ? projectionRecencySort(params.sort.field)
+        : [
+            {
+              field: 'address',
+              direction: params.sort.direction,
+              nulls: params.sort.nulls,
+            },
+          ];
+  }
   return addConditions(baseVariables('metadataRevisions', params, filter, sort), conditions);
 }
 
@@ -1523,6 +1493,10 @@ export interface FetchEncryptedAssetsBatchResult<P = EncryptedAsset> {
   encryptedAssets: P[];
 }
 
+function encryptedAssetTupleKey(addressValue: string, contentId: string, revision: number): string {
+  return JSON.stringify([addressValue, contentId, revision]);
+}
+
 export async function fetchEncryptedAssetsBatch<
   const I extends EncryptedAssetInclude | undefined = undefined,
 >(
@@ -1536,9 +1510,18 @@ export async function fetchEncryptedAssetsBatch<
       'fetchEncryptedAssetsBatch',
     );
   }
-  const conditions = params.tuples.map((tuple) => ({
+  const tuplesByKey = new Map<string, { address: string; contentId: string; revision: number }>();
+  for (const tuple of params.tuples) {
+    const normalized = { ...tuple, address: address(tuple.address) };
+    tuplesByKey.set(
+      encryptedAssetTupleKey(normalized.address, normalized.contentId, normalized.revision),
+      normalized,
+    );
+  }
+  const tuples = [...tuplesByKey.values()];
+  const conditions = tuples.map((tuple) => ({
     _and: [
-      { address: { _eq: address(tuple.address) } },
+      { address: { _eq: tuple.address } },
       {
         content: {
           _contains: {
@@ -1548,18 +1531,40 @@ export async function fetchEncryptedAssetsBatch<
       },
     ],
   }));
-  const variables = addConditions(
-    baseVariables(
-      'metadataRevisions',
-      { network: params.network, limit: Math.min(params.tuples.length, 100) },
-      { kind: { eq: 'lsp29_encrypted_asset' } },
-    ),
-    [{ _or: conditions }],
-  ) as V3MetadataRevisionsQueryVariables;
-  const result = await queryRows(url, V3MetadataRevisionsDocument, variables, (raw) =>
-    selectedEncryptedAsset<I>(raw, params.include),
-  );
-  return { encryptedAssets: result.rows };
+  const matches = new Map<string, EncryptedAssetResult<I>>();
+  const pageSize = 100;
+  let offset = 0;
+  let totalCount = Number.POSITIVE_INFINITY;
+  while (matches.size < tuples.length && offset < totalCount) {
+    const variables = addConditions(
+      baseVariables(
+        'metadataRevisions',
+        { network: params.network, limit: pageSize, offset },
+        { kind: { eq: 'lsp29_encrypted_asset' } },
+        projectionRecencySort('newest'),
+      ),
+      [{ _or: conditions }],
+    ) as V3MetadataRevisionsQueryVariables;
+    const result = await queryRows(url, V3MetadataRevisionsDocument, variables, (raw) =>
+      selectedEncryptedAsset<I>(raw, params.include),
+    );
+    totalCount = result.totalCount;
+    for (const asset of result.rows) {
+      if (asset.contentId == null || asset.revision == null) continue;
+      const key = encryptedAssetTupleKey(asset.address, asset.contentId, asset.revision);
+      if (tuplesByKey.has(key) && !matches.has(key)) matches.set(key, asset);
+    }
+    if (result.rows.length === 0) break;
+    offset += pageSize;
+  }
+  return {
+    encryptedAssets: tuples.flatMap((tuple) => {
+      const match = matches.get(
+        encryptedAssetTupleKey(tuple.address, tuple.contentId, tuple.revision),
+      );
+      return match == null ? [] : [match];
+    }),
+  };
 }
 
 function collectMetadataAttributes(content: unknown): CollectionAttribute[] {

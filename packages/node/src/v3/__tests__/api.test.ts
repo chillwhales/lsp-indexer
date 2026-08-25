@@ -87,6 +87,16 @@ describe('v3 API variables', () => {
     }
   });
 
+  it('uses complete EVM positions for default projection recency', () => {
+    expect(buildV3DomainVariables('profiles', { network: NETWORK }).orderBy).toEqual([
+      { last_block_number: 'desc' },
+      { last_transaction_index: 'desc_nulls_last' },
+      { last_log_index: 'desc_nulls_last' },
+      { chain_id: 'asc' },
+      { id: 'asc' },
+    ]);
+  });
+
   it('maps neutral filters, bigint values, addresses, null ordering, and logical operators', () => {
     expect(
       buildV3DomainVariables('ownedAssets', {

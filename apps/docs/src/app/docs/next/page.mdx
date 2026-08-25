@@ -220,7 +220,7 @@ The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<stri
 
 ## Batch Encrypted Asset Fetch
 
-`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single query via the `getEncryptedAssetsBatch` server action.
+`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples via the `getEncryptedAssetsBatch` server action. The action transparently pages Hasura when duplicate immutable revisions require another batch.
 
 ```tsx
 import { useEncryptedAssetsBatch } from '@lsp-indexer/next';
@@ -241,7 +241,7 @@ const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
 The server action (`getEncryptedAssetsBatch`) validates input via Zod and fetches from Hasura server-side. The Hasura URL stays hidden from the browser.
 Empty `tuples` short-circuits — no query is fired.
 If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
-Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
+Address matching is case-insensitive. Duplicate tuples are coalesced, and each unique tuple returns at most its newest canonical revision in input order.
 
 ---
 

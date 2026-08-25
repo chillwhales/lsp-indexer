@@ -6776,7 +6776,7 @@ export const V3ProfileFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -6817,7 +6817,7 @@ export const V3DigitalAssetFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -6874,7 +6874,7 @@ export const V3EventFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -6913,7 +6913,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -6949,7 +6949,7 @@ export const V3NftFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -6987,7 +6987,7 @@ export const V3NftFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7026,7 +7026,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7081,7 +7081,7 @@ export const V3OwnedAssetFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7120,7 +7120,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7177,7 +7177,7 @@ export const V3OwnedTokenFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7216,7 +7216,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7251,7 +7251,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -7335,7 +7335,7 @@ export const V3FollowerFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7387,7 +7387,7 @@ export const V3CreatorFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7426,7 +7426,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7477,7 +7477,7 @@ export const V3IssuedAssetFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7516,7 +7516,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7569,7 +7569,7 @@ export const V3ControllerFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7624,7 +7624,7 @@ export const V3ChillwhalesNftFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7663,7 +7663,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7698,7 +7698,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -7760,7 +7760,7 @@ export const V3DataValueFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7799,7 +7799,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7834,7 +7834,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -7904,7 +7904,7 @@ export const V3MetadataRevisionFieldsFragmentDoc = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7943,7 +7943,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -7978,7 +7978,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -8104,7 +8104,7 @@ fragment V3ProfileFields on universal_profile {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8143,7 +8143,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8209,7 +8209,7 @@ fragment V3ProfileFields on universal_profile {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8248,7 +8248,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8294,7 +8294,7 @@ export const V3UniversalProfilesDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8335,7 +8335,7 @@ export const V3UniversalProfilesSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8390,7 +8390,7 @@ export const V3DigitalAssetsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8440,7 +8440,7 @@ export const V3DigitalAssetsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8481,7 +8481,7 @@ export const V3NftsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8520,7 +8520,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8555,7 +8555,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -8599,7 +8599,7 @@ export const V3NftsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8638,7 +8638,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8673,7 +8673,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -8727,7 +8727,7 @@ export const V3OwnedAssetsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8766,7 +8766,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8831,7 +8831,7 @@ export const V3OwnedAssetsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8870,7 +8870,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8940,7 +8940,7 @@ export const V3OwnedTokensDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -8979,7 +8979,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9014,7 +9014,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -9113,7 +9113,7 @@ export const V3OwnedTokensSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9152,7 +9152,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9187,7 +9187,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -9291,7 +9291,7 @@ export const V3FollowersDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9353,7 +9353,7 @@ export const V3FollowersSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9420,7 +9420,7 @@ export const V3CreatorsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9459,7 +9459,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9521,7 +9521,7 @@ export const V3CreatorsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9560,7 +9560,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9627,7 +9627,7 @@ export const V3IssuedAssetsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9666,7 +9666,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9727,7 +9727,7 @@ export const V3IssuedAssetsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9766,7 +9766,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9832,7 +9832,7 @@ export const V3ControllersDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9895,7 +9895,7 @@ export const V3ControllersSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -9963,7 +9963,7 @@ export const V3ChillwhalesNftsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10002,7 +10002,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10037,7 +10037,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -10110,7 +10110,7 @@ export const V3ChillwhalesNftsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10149,7 +10149,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10184,7 +10184,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -10262,7 +10262,7 @@ export const V3DataValuesDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10301,7 +10301,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10336,7 +10336,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -10408,7 +10408,7 @@ export const V3DataValuesSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10447,7 +10447,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10482,7 +10482,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -10559,7 +10559,7 @@ export const V3MetadataRevisionsDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10598,7 +10598,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10633,7 +10633,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key
@@ -10713,7 +10713,7 @@ export const V3MetadataRevisionsSubscriptionDocument = new TypedDocumentString(`
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp3_profile}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10752,7 +10752,7 @@ fragment V3DigitalAssetFields on digital_asset {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_asset}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 1
   ) {
     content
@@ -10787,7 +10787,7 @@ fragment V3NftFields on nft {
   lastLogIndex: last_log_index
   metadataRevisions(
     where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
-    order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
+    order_by: [{last_block_number: desc}, {last_transaction_index: desc_nulls_last}, {last_log_index: desc_nulls_last}, {chain_id: asc}, {id: asc}]
     limit: 2
   ) {
     dataKey: data_key

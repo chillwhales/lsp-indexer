@@ -256,6 +256,12 @@ const METADATA_REVISION_FIELDS = {
   isCurrent: 'is_current',
 } as const;
 
+const PROJECTION_RECENCY_ORDER: Record<string, string>[] = [
+  { last_block_number: 'desc' },
+  { last_transaction_index: 'desc_nulls_last' },
+  { last_log_index: 'desc_nulls_last' },
+];
+
 const INDEXED_HEAD_FIELDS = {
   network: 'network',
   chainId: 'chain_id',
@@ -625,29 +631,29 @@ export function buildV3DomainVariables<Domain extends V3Domain>(
         { log_index: 'desc' },
       ]);
     case 'profiles':
-      return buildVariables(params, PROFILE_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, PROFILE_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'digitalAssets':
-      return buildVariables(params, DIGITAL_ASSET_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, DIGITAL_ASSET_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'nfts':
-      return buildVariables(params, NFT_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, NFT_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'ownedAssets':
-      return buildVariables(params, OWNED_ASSET_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, OWNED_ASSET_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'ownedTokens':
-      return buildVariables(params, OWNED_TOKEN_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, OWNED_TOKEN_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'followers':
-      return buildVariables(params, FOLLOWER_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, FOLLOWER_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'creators':
-      return buildVariables(params, CREATOR_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, CREATOR_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'issuedAssets':
-      return buildVariables(params, ISSUED_ASSET_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, ISSUED_ASSET_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'controllers':
-      return buildVariables(params, CONTROLLER_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, CONTROLLER_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'chillwhalesNfts':
-      return buildVariables(params, CHILLWHALES_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, CHILLWHALES_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'dataValues':
-      return buildVariables(params, DATA_VALUE_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, DATA_VALUE_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'metadataRevisions':
-      return buildVariables(params, METADATA_REVISION_FIELDS, [{ last_block_number: 'desc' }]);
+      return buildVariables(params, METADATA_REVISION_FIELDS, PROJECTION_RECENCY_ORDER);
     case 'indexedHeads':
       return buildVariables(
         params,
@@ -684,9 +690,11 @@ export async function fetchV3UniversalProfiles(
   url: string,
   params: V3ListParams<V3UniversalProfileField>,
 ): Promise<V3ListResult<V3UniversalProfile>> {
-  const variables = buildVariables(params, PROFILE_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3UniversalProfilesQueryVariables;
+  const variables = buildVariables(
+    params,
+    PROFILE_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3UniversalProfilesQueryVariables;
   return fetchQuery(url, V3UniversalProfilesDocument, variables, parseV3UniversalProfile);
 }
 
@@ -694,9 +702,11 @@ export async function fetchV3DigitalAssets(
   url: string,
   params: V3ListParams<V3DigitalAssetField>,
 ): Promise<V3ListResult<V3DigitalAsset>> {
-  const variables = buildVariables(params, DIGITAL_ASSET_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3DigitalAssetsQueryVariables;
+  const variables = buildVariables(
+    params,
+    DIGITAL_ASSET_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3DigitalAssetsQueryVariables;
   return fetchQuery(url, V3DigitalAssetsDocument, variables, parseV3DigitalAsset);
 }
 
@@ -704,9 +714,11 @@ export async function fetchV3Nfts(
   url: string,
   params: V3ListParams<V3NftField>,
 ): Promise<V3ListResult<V3Nft>> {
-  const variables = buildVariables(params, NFT_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3NftsQueryVariables;
+  const variables = buildVariables(
+    params,
+    NFT_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3NftsQueryVariables;
   return fetchQuery(url, V3NftsDocument, variables, parseV3Nft);
 }
 
@@ -714,9 +726,11 @@ export async function fetchV3OwnedAssets(
   url: string,
   params: V3ListParams<V3OwnedAssetField>,
 ): Promise<V3ListResult<V3OwnedAsset>> {
-  const variables = buildVariables(params, OWNED_ASSET_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3OwnedAssetsQueryVariables;
+  const variables = buildVariables(
+    params,
+    OWNED_ASSET_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3OwnedAssetsQueryVariables;
   return fetchQuery(url, V3OwnedAssetsDocument, variables, parseV3OwnedAsset);
 }
 
@@ -724,9 +738,11 @@ export async function fetchV3OwnedTokens(
   url: string,
   params: V3ListParams<V3OwnedTokenField>,
 ): Promise<V3ListResult<V3OwnedToken>> {
-  const variables = buildVariables(params, OWNED_TOKEN_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3OwnedTokensQueryVariables;
+  const variables = buildVariables(
+    params,
+    OWNED_TOKEN_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3OwnedTokensQueryVariables;
   return fetchQuery(url, V3OwnedTokensDocument, variables, parseV3OwnedToken);
 }
 
@@ -734,9 +750,11 @@ export async function fetchV3Followers(
   url: string,
   params: V3ListParams<V3FollowerField>,
 ): Promise<V3ListResult<V3Follower>> {
-  const variables = buildVariables(params, FOLLOWER_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3FollowersQueryVariables;
+  const variables = buildVariables(
+    params,
+    FOLLOWER_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3FollowersQueryVariables;
   return fetchQuery(url, V3FollowersDocument, variables, parseV3Follower);
 }
 
@@ -744,9 +762,11 @@ export async function fetchV3Creators(
   url: string,
   params: V3ListParams<V3CreatorField>,
 ): Promise<V3ListResult<V3Creator>> {
-  const variables = buildVariables(params, CREATOR_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3CreatorsQueryVariables;
+  const variables = buildVariables(
+    params,
+    CREATOR_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3CreatorsQueryVariables;
   return fetchQuery(url, V3CreatorsDocument, variables, parseV3Creator);
 }
 
@@ -754,9 +774,11 @@ export async function fetchV3IssuedAssets(
   url: string,
   params: V3ListParams<V3IssuedAssetField>,
 ): Promise<V3ListResult<V3IssuedAsset>> {
-  const variables = buildVariables(params, ISSUED_ASSET_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3IssuedAssetsQueryVariables;
+  const variables = buildVariables(
+    params,
+    ISSUED_ASSET_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3IssuedAssetsQueryVariables;
   return fetchQuery(url, V3IssuedAssetsDocument, variables, parseV3IssuedAsset);
 }
 
@@ -764,9 +786,11 @@ export async function fetchV3Controllers(
   url: string,
   params: V3ListParams<V3ControllerField>,
 ): Promise<V3ListResult<V3Controller>> {
-  const variables = buildVariables(params, CONTROLLER_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3ControllersQueryVariables;
+  const variables = buildVariables(
+    params,
+    CONTROLLER_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3ControllersQueryVariables;
   return fetchQuery(url, V3ControllersDocument, variables, parseV3Controller);
 }
 
@@ -774,9 +798,11 @@ export async function fetchV3ChillwhalesNfts(
   url: string,
   params: V3ListParams<V3ChillwhalesNftField>,
 ): Promise<V3ListResult<V3ChillwhalesNft>> {
-  const variables = buildVariables(params, CHILLWHALES_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3ChillwhalesNftsQueryVariables;
+  const variables = buildVariables(
+    params,
+    CHILLWHALES_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3ChillwhalesNftsQueryVariables;
   return fetchQuery(url, V3ChillwhalesNftsDocument, variables, parseV3ChillwhalesNft);
 }
 
@@ -784,9 +810,11 @@ export async function fetchV3DataValues(
   url: string,
   params: V3ListParams<V3DataValueField>,
 ): Promise<V3ListResult<V3DataValue>> {
-  const variables = buildVariables(params, DATA_VALUE_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3DataValuesQueryVariables;
+  const variables = buildVariables(
+    params,
+    DATA_VALUE_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3DataValuesQueryVariables;
   return fetchQuery(url, V3DataValuesDocument, variables, parseV3DataValue);
 }
 
@@ -794,9 +822,11 @@ export async function fetchV3MetadataRevisions(
   url: string,
   params: V3ListParams<V3MetadataRevisionField>,
 ): Promise<V3ListResult<V3MetadataRevision>> {
-  const variables = buildVariables(params, METADATA_REVISION_FIELDS, [
-    { last_block_number: 'desc' },
-  ]) as V3MetadataRevisionsQueryVariables;
+  const variables = buildVariables(
+    params,
+    METADATA_REVISION_FIELDS,
+    PROJECTION_RECENCY_ORDER,
+  ) as V3MetadataRevisionsQueryVariables;
   return fetchQuery(url, V3MetadataRevisionsDocument, variables, parseV3MetadataRevision);
 }
 

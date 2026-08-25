@@ -106,7 +106,9 @@ const result = await fetchV3OwnedAssets('https://indexer.example.com/v1/graphql'
 Scalar operators are `eq`, `neq`, `in`, `notIn`, `gt`, `gte`, `lt`, `lte`, and `isNull`.
 Filters also support `and`, `or`, and `not`. Unknown fields/operators and invalid values fail before
 the request. `limit` is 1–100, `offset` is non-negative, addresses are normalized, bigints stay
-lossless, and deterministic chain/id suffixes are appended to every sort.
+lossless, and deterministic chain/id suffixes are appended to every sort. Default projection
+recency and familiar `newest`/`oldest` sorts compare block number, transaction index, and log index
+before those suffixes, so pagination preserves the complete EVM position within a block.
 
 ## Familiar high-level services
 
@@ -159,9 +161,15 @@ type-ID inputs are validated and normalized before querying. This replaces v2's 
 behavior and prevents malformed or empty hexadecimal input from silently broadening a request.
 Digital-asset name and symbol filters match the projection value first, then current LSP4 metadata
 only when the projection field is null—the same precedence used in returned records. Familiar name
-and category filters also require the related metadata revision's `isCurrent` marker, so an immutable
-superseded revision cannot match current profile, asset, NFT, holder, issuer, creator, or event
-results.
+and symbol sorts use that same displayed value. The unified API view supplies the current-metadata
+fallback before Hasura filters, sorts, or paginates the rows. Familiar name and category filters also
+require the related metadata revision's `isCurrent` marker, so an immutable superseded revision
+cannot match current profile, asset, NFT, holder, issuer, creator, or event results.
+
+`fetchEncryptedAssetsBatch` returns at most one newest canonical revision for each unique
+`(address, contentId, revision)` tuple, in input order. It transparently pages matching immutable
+history when duplicate revisions would otherwise consume a query limit, and duplicate input tuples
+are coalesced.
 
 NFT results, name filters, and collection attribute facets use only current token metadata. When
 both direct LSP4 metadata and base-URI-derived metadata are available, direct metadata takes

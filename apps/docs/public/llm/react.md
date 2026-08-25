@@ -217,7 +217,7 @@ The hook is disabled when `pairs` is empty — no query is fired and `results` d
 
 ## Batch Encrypted Asset Fetch
 
-`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single Hasura query.
+`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples. It transparently pages Hasura when duplicate immutable revisions require another batch.
 
 ### Parameters
 
@@ -247,7 +247,7 @@ const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
 
 The hook is disabled when `tuples` is empty — no query is fired and `encryptedAssets` defaults to `[]`.
 If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
-Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
+Address matching is case-insensitive. Duplicate tuples are coalesced, and each unique tuple returns at most its newest canonical revision in input order.
 `EncryptedAssetInclude` narrows the return type. The return shape has no `totalCount`.
 
 ---

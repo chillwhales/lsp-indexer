@@ -432,6 +432,9 @@ the canonical non-cancelled job for its scope. Superseded immutable revisions re
 `is_current = false`, so history is preserved without allowing current-state relationship filters
 to match stale names or categories. The API view owner receives column-level read access only to the
 job ID and status needed to derive this marker; metadata jobs remain outside the public API.
+The unified digital-asset view also exposes projection-first `name` and `symbol` values: a direct
+projection value wins, otherwise the newest current LSP4 metadata string is used. Filtering,
+sorting, pagination, and returned package records therefore observe the same display value.
 
 Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker

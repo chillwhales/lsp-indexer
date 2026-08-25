@@ -175,6 +175,75 @@ beforeEach(() => {
 });
 
 describe('familiar v3 detail and list services', () => {
+  it('orders every projection recency sort by the complete EVM position', async () => {
+    await fetchProfiles(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchDigitalAssets(URL, {
+      network: NETWORK,
+      sort: { field: 'oldest', direction: 'desc' },
+    });
+    await fetchNfts(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchOwnedAssets(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchOwnedTokens(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchFollows(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchCreators(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchIssuedAssets(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+    await fetchEncryptedAssets(URL, {
+      network: NETWORK,
+      sort: { field: 'newest', direction: 'asc' },
+    });
+
+    const newestOrder = [
+      { last_block_number: 'desc' },
+      { last_transaction_index: 'desc_nulls_last' },
+      { last_log_index: 'desc_nulls_last' },
+      { chain_id: 'asc' },
+      { id: 'asc' },
+    ];
+    const oldestOrder = [
+      { last_block_number: 'asc' },
+      { last_transaction_index: 'asc_nulls_last' },
+      { last_log_index: 'asc_nulls_last' },
+      { chain_id: 'asc' },
+      { id: 'asc' },
+    ];
+    const orders = executeMock.mock.calls.map((call) => {
+      const variables = call[2];
+      return isUnknownRecord(variables) ? variables.orderBy : undefined;
+    });
+    expect(orders).toEqual([
+      newestOrder,
+      oldestOrder,
+      newestOrder,
+      newestOrder,
+      newestOrder,
+      newestOrder,
+      newestOrder,
+      newestOrder,
+      newestOrder,
+    ]);
+  });
+
   it('restricts every metadata-backed relationship filter to the current revision', async () => {
     await fetchProfiles(URL, { network: NETWORK, filter: { name: 'Alice' } });
     await fetchDigitalAssets(URL, { network: NETWORK, filter: { category: 'Collectible' } });
@@ -638,6 +707,57 @@ describe('familiar v3 event and metadata services', () => {
       ],
       totalCount: 13,
     });
+  });
+
+  it('pages past duplicate encrypted-asset revisions and returns one canonical tuple match', async () => {
+    const secondRevision = {
+      ...metadataRevisionRow,
+      id: '42:metadata-second',
+      address: OTHER_ADDRESS,
+      content: {
+        LSP29EncryptedAsset: {
+          ...metadataRevisionRow.content.LSP29EncryptedAsset,
+          id: 'second-content',
+          revision: 2,
+        },
+      },
+    };
+    executeMock.mockImplementation((_url, document, variables) => {
+      if (!String(document).includes('V3MetadataRevisions')) {
+        return Promise.reject(new Error('Expected only metadata revision queries'));
+      }
+      const offset = isUnknownRecord(variables) ? variables.offset : undefined;
+      return Promise.resolve(
+        offset === 100
+          ? envelope(secondRevision, 101)
+          : {
+              items: Array.from({ length: 100 }, (_, index) => ({
+                ...metadataRevisionRow,
+                id: `42:metadata-duplicate-${index}`,
+              })),
+              total: { aggregate: { count: 101 } },
+            },
+      );
+    });
+
+    await expect(
+      fetchEncryptedAssetsBatch(URL, {
+        network: NETWORK,
+        tuples: [
+          { address: ADDRESS, contentId: 'content', revision: 1 },
+          { address: OTHER_ADDRESS, contentId: 'second-content', revision: 2 },
+        ],
+      }),
+    ).resolves.toMatchObject({
+      encryptedAssets: [
+        { address: ADDRESS, contentId: 'content', revision: 1 },
+        { address: OTHER_ADDRESS, contentId: 'second-content', revision: 2 },
+      ],
+    });
+    expect(executeMock).toHaveBeenCalledTimes(2);
+    expect(executeMock.mock.calls[1]?.[2]).toEqual(
+      expect.objectContaining({ offset: 100, limit: 100 }),
+    );
   });
 
   it('derives collection facets from current metadata with direct-source precedence', async () => {

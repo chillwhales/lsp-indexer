@@ -1,6 +1,7 @@
 import { getTableName, sql } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { getTableConfig } from 'drizzle-orm/pg-core';
 import { fileURLToPath } from 'node:url';
 import { escapeIdentifier, Pool, type PoolClient } from 'pg';
 import { createNetworkSchema, getNetworkConfig } from '../config/index.js';
@@ -1322,6 +1323,44 @@ async function dropApiViews(client: PoolClient): Promise<void> {
 function createApiViewSelection(network: DatabaseMigrationNetwork, viewName: string): string {
   const schemaName = quotePostgresIdentifier(network.schema);
   const tableName = quotePostgresIdentifier(viewName);
+  if (viewName === getTableName(schema.digitalAssets)) {
+    const assetAlias = quotePostgresIdentifier('asset');
+    const metadataAlias = quotePostgresIdentifier('current_metadata');
+    const selections = getTableConfig(schema.digitalAssets).columns.map(({ name }) => {
+      const column = quotePostgresIdentifier(name);
+      if (name !== 'name' && name !== 'symbol') return `${assetAlias}.${column}`;
+      const metadataPath = `{LSP4Metadata,${name}}`;
+      return `COALESCE(
+                 ${assetAlias}.${column},
+                 CASE
+                   WHEN jsonb_typeof(${metadataAlias}.content #> '${metadataPath}') = 'string'
+                     THEN ${metadataAlias}.content #>> '${metadataPath}'
+                   ELSE NULL
+                 END
+               ) AS ${column}`;
+    });
+    return `SELECT ${selections.join(',\n                 ')}
+            FROM ${schemaName}.${tableName} ${assetAlias}
+            LEFT JOIN LATERAL (
+              SELECT revision.content
+              FROM ${schemaName}.${quotePostgresIdentifier('metadata_revisions')} revision
+              WHERE revision.chain_id = ${assetAlias}.chain_id
+                AND revision.address = ${assetAlias}.address
+                AND revision.token_id IS NULL
+                AND revision.kind = 'lsp4_asset'
+                AND EXISTS (
+                  SELECT 1
+                  FROM ${schemaName}.${quotePostgresIdentifier('metadata_jobs')} current_job
+                  WHERE current_job.id = revision.id
+                    AND current_job.status <> 'cancelled'
+                )
+              ORDER BY revision.last_block_number DESC,
+                       revision.last_transaction_index DESC NULLS LAST,
+                       revision.last_log_index DESC NULLS LAST,
+                       revision.id ASC
+              LIMIT 1
+            ) ${metadataAlias} ON TRUE`;
+  }
   if (viewName !== 'metadata_revisions') {
     return `SELECT * FROM ${schemaName}.${tableName}`;
   }
