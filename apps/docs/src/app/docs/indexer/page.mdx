@@ -1,23 +1,23 @@
 # @lsp-indexer/indexer
 
-The indexer is a [Subsquid](https://subsquid.io/)-based blockchain processor that listens to
-LUKSO L1 events, decodes them according to LSP standards, and writes normalized data to PostgreSQL.
-Hasura then exposes that database as a GraphQL API.
+The indexer is a multi-chain [SQD Pipes](https://subsquid.io/)-based processor. One isolated process
+per network decodes LSP events and commits rollback-safe projections to PostgreSQL; Hasura exposes
+reviewed cross-chain API views to the Node.js, React, and Next.js packages.
 
 ---
 
-## Indexer v3 alpha development
+## Indexer v3 release candidate
 
-V3 is being built from scratch in `packages/indexer-v3` on the SQD Pipes SDK. It runs beside the
-deployable v2 indexer until domain parity, reorg correctness, package v3 releases, and shadow
-production validation are complete. The current alpha foundation includes:
+V3 was built from scratch in `packages/indexer-v3` on SQD Pipes `1.0.0-alpha.22`. It runs beside the
+owner-controlled v2 endpoint until parity, recovery, soak, and shadow-production evidence is
+complete. The v3 candidate includes:
 
 - A typed catalog for LUKSO Mainnet, Ethereum Mainnet, and Ethereum Sepolia
 - One validated production network per process with stable EIP-155 Pipes identity
-- Portal dataset, coverage, and real-time capability checks
+- Portal dataset checks plus official Portal/RPC source fallback and health metrics
 - RPC chain-ID and configured-contract bytecode validation plus block-pinned Multicall reads
 - Pipes EVM field selection and a bounded raw-log source probe
-- Narrow Pipes-native queries and ABI decoding for all 11 v2 event-plugin signatures
+- Narrow Pipes-native queries and ABI decoding for all 11 legacy-compatible event signatures
 - Current and legacy LSP0/LSP7/LSP8 verification with deterministic domain reducers
 - UP, digital-asset, NFT, ownership, follower, registry, supply, and product-extension projections
 - Drizzle tables and repeatable migrations for isolated PostgreSQL schemas per network
@@ -25,11 +25,13 @@ production validation are complete. The current alpha foundation includes:
 - Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
 - Finalized durable metadata jobs and independently scalable LSP3/LSP4/LSP8/LSP29 workers
 - Generated Hasura metadata, public schema snapshot, chain-scoped relationships, and live queries
+- A v3-only container and multi-network Helm deployment with backups, alerts, and dashboard
+- Same-height mapped shared-field parity and multi-network soak evidence commands
 - A local-only multi-network runner for source development
 
-The v3 runtime schemas and Node, React, and Next.js package contracts now cover all 15 public API
-roots. Production acceptance lands in the final implementation goal; the v2 implementation remains
-the production path meanwhile.
+The v3 runtime schemas and Node, React, and Next.js package contracts cover all 15 public API roots.
+The v3 container and deployment definitions contain only the new runtime. V2 remains an external
+rollback endpoint until the repository owner completes the documented cutover gates.
 
 The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 projection. It stores
 CHILL/ORBS claim flags and Orb level, cooldown, and faction state. Node services, React hooks and
@@ -83,6 +85,12 @@ through event modules.
 | `RPC_URL_LUKSO_MAINNET`                 | No       | Network override; takes priority over `RPC_URL`             |
 | `RPC_URL_ETHEREUM_MAINNET`              | No       | Network override; takes priority over `RPC_URL`             |
 | `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Network override; takes priority over `RPC_URL`             |
+| `INDEXER_SOURCE_MODE`                   | No       | `portal`, `rpc`, or `fallback`; LUKSO defaults to fallback  |
+| `INDEXER_RPC_RATE_LIMIT`                | No       | Official RPC source rate limit; network default is `10`     |
+| `INDEXER_SOURCE_RETRIES`                | No       | `2` retries per source before fallback                      |
+| `INDEXER_SOURCE_STALL_TIMEOUT_MS`       | No       | `30000` before an unproductive source is replaced           |
+| `INDEXER_SOURCE_MAX_LAG_BLOCKS`         | No       | `10` blocks                                                 |
+| `INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS`    | No       | `300000` before an all-source failure                       |
 | `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | `false`; explicit opt-in for an unbounded historical source |
 | `INDEXER_METRICS_PORT`                  | No       | `9090` for the local development runner                     |
 | `DATABASE_URL`                          | Runtime  | Generic runtime PostgreSQL URL                              |
@@ -296,7 +304,7 @@ parsers—not Hasura-generated names—form the public package boundary.
 
 ### V3 raw event ingestion
 
-The production event query selects only the signatures handled by the 11 v2 plugins. Global events
+The production event query selects only the signatures handled by the 11 v3 decoders. Global events
 are topic-filtered; LSP23 and LSP26 events additionally use the selected network's configured
 singleton address and deployment block. The query also requests and persists every block header,
 including blocks without a matching event, so canonical parent links and the exact indexed-head
@@ -318,8 +326,8 @@ persisted directly.
 
 Every event fact includes network and chain identity; block number, hash, parent hash, and
 timestamp; transaction hash and index; log index; and the lossless raw address, topics, and data.
-The ID is deterministic from chain ID and log position. Decoded fields retain their familiar v2
-names, while unsigned integers are JSON decimal strings and LSP8 transfers retain `amount: "1"`.
+The ID is deterministic from chain ID and log position. Decoded fields retain their familiar public
+API names, while unsigned integers are JSON decimal strings and LSP8 transfers retain `amount: "1"`.
 
 A known topic with malformed ABI data is still stored with its event name and domain and
 `decoded = null`. Unknown topics and LSP23/LSP26 logs outside their configured address or deployment
@@ -384,7 +392,9 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 Use `INDEXER_TO_BLOCK` to bound an initial replay. A custom `INDEXER_FROM_BLOCK` is accepted only as
 a contiguous continuation from an existing cursor; a fresh or reset projection database must begin
 at the configured network start. Production still uses one isolated process per network; this
-command does not turn the local development runner into a supervisor.
+command does not turn the local development runner into a supervisor. The runtime binds its health
+and metrics listener only after Portal/RPC and contract readiness pass, so an orchestrator cannot
+route to a process still in source preflight.
 
 ### V3 metadata workers
 
@@ -480,40 +490,65 @@ count, and first and last blocks, without writing data. It fails unless the sour
 block exactly once in ascending order across the inclusive range, so a partial response is not
 reported as a successful diagnostic.
 
-### LUKSO live-source gate
+### LUKSO live source and acceptance gate
 
-The current LUKSO Mainnet Portal metadata reports `real_time: false`. Bounded historical reads are
-supported. Setting `INDEXER_ALLOW_HISTORICAL_SOURCE=true` only acknowledges an unbounded historical
-source; it does not provide head-following behavior. V3 cannot replace production until an official
-real-time Portal or Pipes RPC source passes the restart, finality, and reorg acceptance suite.
+The LUKSO Mainnet Portal metadata still reports `real_time: false`. Pipes alpha.22 now provides an
+official live EVM RPC source and fallback facade: v3 reads the finalized historical Portal first and
+continues through RPC when the Portal becomes stale. Direct LUKSO RPC and the Portal-to-RPC boundary
+have both passed bounded live probes. Explicit `portal` and `rpc` modes remain available for
+diagnostics.
+
+Production cutover still requires a same-height mapped shared-field v2/v3 report plus the dedicated
+v3-only invariant evidence, a two-network 24-hour soak with per-network throughput, lag,
+metadata-age, memory, and p95 CPU budgets, failure isolation, backup restore,
+restart/subscription recovery, and owner approval. The repository runbooks and
+`V3_VALIDATION_REPORT.md` define the required evidence; a successful source probe alone is not
+acceptance.
+
+Run the mapped shared-field comparator and soak observer from the repository root:
+
+```bash
+pnpm --filter @chillwhales/indexer-v3 acceptance:parity
+pnpm --filter @chillwhales/indexer-v3 acceptance:soak
+```
+
+The acceptance-only variables are:
+
+| Variable                              | Purpose and default                                                          |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `V2_GRAPHQL_ENDPOINT`                 | Frozen v2 shadow GraphQL endpoint required by parity                         |
+| `V2_GRAPHQL_ADMIN_SECRET`             | Optional v2 operator secret                                                  |
+| `V3_GRAPHQL_ENDPOINT`                 | Frozen v3 shadow GraphQL endpoint required by parity                         |
+| `V3_GRAPHQL_ADMIN_SECRET`             | Optional v3 operator secret                                                  |
+| `ACCEPTANCE_NETWORK`                  | Network compared by parity; required                                         |
+| `ACCEPTANCE_FINALIZED_BLOCK`          | Exact finalized height shared by both snapshots; required                    |
+| `ACCEPTANCE_PAGE_SIZE`                | Rows requested per page; defaults to `1000`                                  |
+| `ACCEPTANCE_MAX_ROWS_PER_DOMAIN`      | Hard ceiling per domain; defaults to `1000000` and fails instead of sampling |
+| `ACCEPTANCE_METRICS_TARGETS`          | JSON array of at least two network targets and their approved budgets        |
+| `ACCEPTANCE_OBSERVATION_SECONDS`      | Observation duration; defaults to `86400`                                    |
+| `ACCEPTANCE_MINIMUM_EVIDENCE_SECONDS` | Minimum duration for acceptance; defaults to `86400`                         |
+| `ACCEPTANCE_SCRAPE_INTERVAL_SECONDS`  | Metrics interval; defaults to `30`                                           |
+| `ACCEPTANCE_MAXIMUM_SCRAPE_FAILURES`  | Allowed failures per network; defaults to `0`                                |
+| `ACCEPTANCE_REQUEST_TIMEOUT_MS`       | Timeout for each GraphQL or metrics request; defaults to `10000`             |
+
+Each metrics target sets `network`, indexer `metricsUrl`, optional `metadataMetricsUrl`, minimum
+committed blocks per second, maximum committed/source lag, maximum metadata age, resident-memory
+and p95 CPU budgets, and whether fallback evidence is required. A configured metadata endpoint
+must expose its oldest-age and process-resource metrics; its memory and CPU are added to the
+indexer's per-network totals. The full JSON example and evidence checklist live in the
+shadow-production acceptance runbook. A run shorter than the minimum is labeled `probe` and cannot
+satisfy the cutover gate.
+
+The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
+statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by
+straddling two database snapshots.
 
 The implementation decisions and remaining gates are tracked in the repository's
 `V3_ARCHITECTURE.md`, `V3_ROADMAP.md`, and `V3_ACCEPTANCE_GATES.md` documents.
 
 ---
 
-## Current v2 architecture
-
-```mermaid
-graph LR
-  A[LUKSO L1] --> B[Subsquid Gateway]
-  B --> C[Indexer]
-  C --> D[PostgreSQL]
-  D --> E[Hasura GraphQL]
-  C -.-> F[IPFS / HTTP]
-  F -.-> C
-```
-
-### Pipeline (6 steps)
-
-1. **Extract** — EventPlugins decode blockchain events into entities
-2. **Persist Raw** — Batch-insert all raw event entities
-3. **Handle** — EntityHandlers create derived entities (token names, tallies, NFT metadata)
-4. **Persist Derived** — Batch-insert handler output
-5. **Verify** — Batch `supportsInterface()` via Multicall3 to validate addresses
-6. **Enrich** — Batch-update FK references on already-persisted entities
-
-### Supported LSP Standards
+## Supported LSP standards
 
 | Standard | What it indexes                                           |
 | -------- | --------------------------------------------------------- |
@@ -534,8 +569,8 @@ graph LR
 
 ### Prerequisites
 
-- Docker 24+ and Docker Compose v2
-- 8GB RAM minimum (PostgreSQL + Indexer + Hasura + Grafana)
+- Docker 24+ and Docker Compose v2.24.4+
+- Capacity for PostgreSQL, two isolated network runtimes, Hasura, and monitoring
 
 ### Quick Start
 
@@ -543,114 +578,90 @@ graph LR
 git clone https://github.com/chillwhales/lsp-indexer.git
 cd lsp-indexer
 
-# Configure environment
+# Configure a bounded local run
 cp .env.example .env
-# Edit .env — at minimum set:
-#   HASURA_GRAPHQL_ADMIN_SECRET=your-secret-here
+# Edit .env and set INDEXER_TO_BLOCK_LUKSO_MAINNET and
+# INDEXER_TO_BLOCK_ETHEREUM_MAINNET for a short validation.
 
-# Start everything
 cd docker
-docker compose --env-file ../.env up -d
+./manage.sh config
+./manage.sh start
+./manage.sh health
 ```
 
 ### Services
 
-| Service    | Port | Purpose               |
-| ---------- | ---- | --------------------- |
-| PostgreSQL | 5432 | Database storage      |
-| Hasura     | 8080 | GraphQL API + Console |
-| Indexer    | —    | Blockchain processor  |
-| Grafana    | 3000 | Monitoring dashboards |
-| Loki       | —    | Log aggregation       |
-| Prometheus | —    | Metrics storage       |
+| Service group                         | Port | Purpose                                    |
+| ------------------------------------- | ---- | ------------------------------------------ |
+| PostgreSQL                            | 5432 | Loopback-only v3 state and Hasura metadata |
+| LUKSO indexer + metadata worker       | —    | Isolated LUKSO ingestion and metadata      |
+| Ethereum indexer + metadata worker    | —    | Isolated Ethereum ingestion and metadata   |
+| Hasura                                | 8080 | Read-only multi-chain GraphQL API          |
+| Grafana                               | 3000 | Shared v3 dashboard                        |
+| Alloy, Loki, Prometheus, and cAdvisor | —    | Logs, metrics, rules, and host telemetry   |
 
-### Environment Variables
-
-```env
-# Database
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=postgres
-
-# Blockchain sources
-SQD_GATEWAY=https://v2.archive.subsquid.io/network/lukso-mainnet
-RPC_URL=https://rpc.lukso.sigmacore.io
-RPC_RATE_LIMIT=10
-FINALITY_CONFIRMATION=75
-
-# IPFS & Metadata
-IPFS_GATEWAY=https://api.universalprofile.cloud/ipfs/
-METADATA_WORKER_POOL_SIZE=4
-
-# Hasura
-HASURA_GRAPHQL_ADMIN_SECRET=your-secret-here
-HASURA_GRAPHQL_ENABLE_CONSOLE=true
-```
+Login provisioning, database migration, and Hasura metadata apply are one-shot services. A bounded
+local indexer also exits zero at its final block and stays complete; production restarts its
+unbounded indexers unless explicitly stopped. The production override requires distinct database
+passwords, private RPC URLs, an immutable image tag, and production UI secrets. The repository's
+`docs/docker/REFERENCE.md` and root `.env.example` define the complete interface and backup
+constraints.
 
 ### Logs and Monitoring
 
 ```bash
-# Follow indexer logs
-docker compose --env-file ../.env logs -f indexer
+# Follow one isolated process
+./manage.sh logs indexer-lukso
 
-# Open Hasura Console
-open http://localhost:8080/console
+# Inspect one-shot and long-running service state
+./manage.sh status
 
-# Open Grafana dashboards
-open http://localhost:3000
+# Production uses the base file plus the small production override
+./manage.sh --production config
 ```
 
 ---
 
 ## Running from Source
 
-For development on the indexer itself:
+For development on the v3 indexer itself:
 
 ```bash
 # Install dependencies
 pnpm install
 
-# Build the indexer (runs codegen + tsc)
-pnpm --filter=@chillwhales/indexer build
+# Build and test the Pipes runtime
+pnpm --filter @chillwhales/indexer-v3 build
+pnpm --filter @chillwhales/indexer-v3 test
 
-# Run (requires PostgreSQL and Hasura running)
-cd packages/indexer
-node lib/app/index.js
+# Run one network after migration
+INDEXER_NETWORK=lukso-mainnet \
+DATABASE_URL=postgresql://lsp_v3_lukso_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 index:events
 ```
 
 ---
 
 ## Hasura Configuration
 
-On first startup, the indexer's entrypoint script automatically configures Hasura:
+The one-shot `hasura-apply` command deterministically configures Hasura:
 
-- Tracks all tables as GraphQL types
-- Creates relationships between entities
-- Sets up public read access (no auth required for queries)
-- Configures subscriptions via WebSocket
+- replaces only the generated `v3` source while preserving unrelated metadata
+- tracks only the 15 reviewed API views and their chain-scoped relationships
+- grants the public role read/query/subscription access without mutations
+- rejects resource-version races and inconsistent metadata
 
-After initial setup, the Hasura Console at `http://localhost:8080/console` lets you browse
-the schema, run queries, and inspect relationships.
+The source URL must use the generated API reader login. Never give Hasura's v3 data source a writer
+or migration-admin URL.
 
 ---
 
 ## Data Model
 
-The indexer produces these main entity types:
-
-| Entity         | Table             | Description                           |
-| -------------- | ----------------- | ------------------------------------- |
-| Profile        | `profile`         | Universal Profiles with LSP3 metadata |
-| DigitalAsset   | `digital_asset`   | LSP7/LSP8 tokens with LSP4 metadata   |
-| NFT            | `nft`             | Individual LSP8 token instances       |
-| OwnedAsset     | `owned_asset`     | Profile → asset ownership             |
-| OwnedToken     | `owned_token`     | Profile → NFT token ownership         |
-| Creator        | `creator`         | Profile → asset creator relationship  |
-| IssuedAsset    | `issued_asset`    | Assets issued by a profile            |
-| Follow         | `follow`          | LSP26 follower relationships          |
-| Transfer       | `transfer`        | LSP7 and LSP8 transfer events         |
-| DataChanged    | `data_changed`    | ERC725Y data key change events        |
-| EncryptedAsset | `encrypted_asset` | LSP29 encrypted asset metadata        |
+Every public row carries `network` and `chain_id`. The API exposes profiles, digital assets, NFTs,
+asset/token ownership, follower state, creators, issued assets, controllers, raw events, metadata
+revisions, indexed heads, and the LUKSO-only Chillwhales extension. Physical chain schemas, Pipes
+cursors and snapshots, migration history, and metadata jobs are not public.
 
 ---
 

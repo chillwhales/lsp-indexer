@@ -1,608 +1,167 @@
-# Docker Setup for Indexer
-
-Fully unattended Docker deployment for the LUKSO blockchain indexer with persistent logging and health monitoring.
-
-## Quick Start
-
-```bash
-# 1. Copy environment template
-cp .env.example .env
-
-# 2. Configure environment variables
-nano .env  # Edit DB_URL, RPC_URL, etc.
-
-# 3. Build and start services
-docker compose -f docker-compose.yml --env-file ../.env up -d
-
-# 4. View logs (follow mode)
-docker compose -f docker-compose.yml --env-file ../.env logs -f indexer
-
-# 5. Check status
-docker compose -f docker-compose.yml --env-file ../.env ps
-```
+# Docker reference for LSP Indexer v3
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      docker-compose.yml                   │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐         ┌──────────────────┐         │
-│  │   indexer        │────────▶│    postgres      │         │
-│  │                  │  5432   │                  │         │
-│  │  - Plugin arch   │         │  - PostgreSQL 17 │         │
-│  │  - Event extract │         │  - Persistent    │         │
-│  │  - Entity handle │         │    volume        │         │
-│  │  - Verification  │         │                  │         │
-│  │  - Enrichment    │         │                  │         │
-│  └──────────────────┘         └──────────────────┘         │
-│         │                                                    │
-│         ├─▶ Docker logs (stdout/stderr)                     │
-│         │   max-size: 100MB × 10 files                      │
-│         │                                                    │
-│         └─▶ File logs (mounted volume)                      │
-│             /app/packages/indexer/logs/                      │
-│             - indexer-YYYY-MM-DD.log (JSON, pino)            │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+The Compose topology has one failure boundary per network:
+
+```text
+PostgreSQL
+  ├─ login provisioning → one-shot schema migration
+  ├─ LUKSO indexer      + LUKSO metadata worker
+  ├─ Ethereum indexer   + Ethereum metadata worker
+  └─ Hasura metadata DB + read-only v3 API source → metadata apply
+
+Alloy → Prometheus/Loki → Grafana
 ```
 
-## Files
+Both indexers use the Pipes `portal`, `rpc`, or ordered `fallback` source mode. Each network writes to
+its own PostgreSQL schema using a distinct login. Metadata workers share only their network's writer
+boundary. Hasura queries generated API views through a separate read-only login.
 
-| File                 | Purpose                                |
-| -------------------- | -------------------------------------- |
-| `Dockerfile`         | Multi-stage build for indexer          |
-| `docker-compose.yml` | Orchestration with postgres + indexer  |
-| `.env`               | Environment configuration (not in git) |
-| `.env.example`       | Template with all variables documented |
+## Compose files
 
-## Build Process
-
-### Multi-Stage Build (Dockerfile)
-
-1. **Stage 1: Dependencies**
-
-   - Installs pnpm dependencies
-   - Caches node_modules separately
-
-2. **Stage 2: Builder**
-
-   - Compiles TypeScript (`pnpm build`)
-   - Generates typeorm entities from `schema.graphql`
-   - Builds the indexer (runs codegen + tsc in one step)
-
-3. **Stage 3: Runner**
-   - Minimal production image
-   - Only runtime dependencies (`pnpm install --prod`)
-   - Non-root user (node:node)
-   - Health check enabled
-
-**Image size:** ~400MB (optimized with layer caching)
-
-## Environment Configuration
-
-### Required Variables
+`docker-compose.yml` owns the entire topology and local defaults. `docker-compose.prod.yml` is an
+override and is not standalone:
 
 ```bash
-# Database (auto-configured for docker-compose)
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=postgres
-DB_URL=postgresql://postgres:postgres@postgres:5432/postgres
-
-# Blockchain RPC (REQUIRED — update with your endpoint)
-RPC_URL=https://rpc.lukso.sigmacore.io
-
-# SQD legacy gateway API key (REQUIRED for self-hosted v2 archive access)
-SQD_API_KEY=your-sqd-api-key
+docker compose \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.prod.yml \
+  --env-file .env.prod \
+  config
 ```
 
-### Optional Variables (with defaults)
+The production render fails unless these are present:
+
+- immutable `INDEXER_VERSION`
+- PostgreSQL, runtime, API, Hasura, and Grafana passwords
+- LUKSO and Ethereum RPC URLs
+- Grafana admin user
+
+Generate hexadecimal passwords so they remain safe inside PostgreSQL URLs:
 
 ```bash
-# Archive node
-SQD_GATEWAY=https://v2.archive.subsquid.io/network/lukso-mainnet
-
-# Rate limiting
-RPC_RATE_LIMIT=10
-FINALITY_CONFIRMATION=75
-
-# Metadata fetching
-IPFS_GATEWAY=https://api.universalprofile.cloud/ipfs/
-FETCH_LIMIT=10000
-FETCH_BATCH_SIZE=1000
-FETCH_RETRY_COUNT=5
-METADATA_WORKER_POOL_SIZE=4
-
-# Logging
-NODE_ENV=production
-LOG_LEVEL=info
-INDEXER_ENABLE_FILE_LOGGER=true
+openssl rand -hex 32
 ```
 
-See `.env.example` for full documentation.
+## Service lifecycle
 
-## Logging
+| Service                                              | Lifecycle    | Purpose                                         |
+| ---------------------------------------------------- | ------------ | ----------------------------------------------- |
+| `postgres`                                           | long-running | v3 state and Hasura metadata                    |
+| `database-logins`                                    | one-shot     | create/update unprivileged login roles          |
+| `migration`                                          | one-shot     | validate boundaries and migrate enabled schemas |
+| `indexer-lukso`                                      | long-running | LUKSO event ingestion                           |
+| `metadata-lukso`                                     | long-running | LUKSO metadata queue                            |
+| `indexer-ethereum`                                   | long-running | Ethereum event ingestion                        |
+| `metadata-ethereum`                                  | long-running | Ethereum metadata queue                         |
+| `hasura`                                             | long-running | v3 GraphQL API                                  |
+| `hasura-apply`                                       | one-shot     | deterministic metadata apply/consistency check  |
+| `alloy`, `prometheus`, `loki`, `grafana`, `cadvisor` | long-running | observability                                   |
 
-### Dual Logging Strategy
+`service_completed_successfully` dependencies prevent a runtime from starting against an unmigrated
+schema. Re-running login provisioning and migrations is idempotent; unexpected privileges,
+memberships, ownership, migration history, or schema fingerprints fail closed.
 
-The indexer writes logs to **two destinations simultaneously**:
+Local indexers use `on-failure`, so a bounded backfill exits zero and stays complete. The production
+override removes both `INDEXER_TO_BLOCK` values and changes the unbounded indexers to
+`unless-stopped`. `manage.sh health` accepts either a live health endpoint or a bounded local
+indexer container that exited successfully.
 
-1. **Docker stdout/stderr** (captured by Docker daemon)
-
-   - Accessible via `docker compose logs`
-   - Rotated automatically (100MB × 10 files, compressed)
-   - Includes console output + errors
-
-2. **File logs** (mounted volume)
-   - JSON format via pino logger
-   - Daily rotation with timestamps
-   - Located in `indexer-logs` volume
-   - Format: `indexer-YYYY-MM-DD.log`
-
-### Accessing Logs
+## Commands
 
 ```bash
-# Real-time logs (all services)
-docker compose -f docker-compose.yml --env-file ../.env logs -f
-
-# Real-time logs (indexer only)
-docker compose -f docker-compose.yml --env-file ../.env logs -f indexer
-
-# Last 100 lines
-docker compose -f docker-compose.yml --env-file ../.env logs --tail=100 indexer
-
-# Specific time range
-docker compose -f docker-compose.yml --env-file ../.env logs --since="2026-02-10T10:00" indexer
-
-# Copy log files from container
-docker cp lsp-indexer:/app/packages/indexer/logs ./local-logs
-
-# Access logs volume directly
-docker volume inspect lsp-indexer_indexer-logs
-# Shows mount point: /var/lib/docker/volumes/lsp-indexer_indexer-logs/_data
+cd docker
+./manage.sh help
+./manage.sh start
+./manage.sh status
+./manage.sh logs indexer-lukso
+./manage.sh migrate
+./manage.sh hasura-apply
+./manage.sh db
+./manage.sh db-dump ./backup.dump
+./manage.sh down
 ```
 
-### Log Volume Management
+Add `--production` immediately after `manage.sh` to use `.env.prod` and the production override:
 
 ```bash
-# Inspect volume
-docker volume inspect lsp-indexer_indexer-logs
-
-# Backup logs
-docker run --rm -v lsp-indexer_indexer-logs:/logs -v $(pwd):/backup alpine \
-  tar czf /backup/logs-backup-$(date +%Y%m%d).tar.gz -C /logs .
-
-# Cleanup old logs (inside container)
-docker exec lsp-indexer find /app/packages/indexer/logs -name "*.log" -mtime +30 -delete
+./manage.sh --production config
+./manage.sh --production start
+./manage.sh --production health
 ```
 
-## Service Management
+The production override requires Compose v2.24.4 or newer. It explicitly removes every local build
+context, so the stack can run only the immutable registry image selected by `INDEXER_VERSION`.
 
-### Starting Services
+Set `LSP_INDEXER_ENV_FILE` to select a different environment file without copying or sourcing it.
+
+## Network configuration
+
+The default enabled migration set is `lukso-mainnet,ethereum-mainnet`. Runtime configuration is
+network-specific:
+
+- `INDEXER_SOURCE_MODE_<NETWORK>`
+- `INDEXER_FROM_BLOCK_<NETWORK>` / `INDEXER_TO_BLOCK_<NETWORK>`
+- `INDEXER_RPC_RATE_LIMIT_<NETWORK>`
+- `RPC_URL_<NETWORK>`
+- `SQD_PORTAL_URL_<NETWORK>`
+- `METADATA_IPFS_GATEWAYS_<NETWORK>`
+
+The shared fallback thresholds apply to both indexers. Keep an explicit RPC available when using
+fallback, especially for LUKSO while its Portal dataset is historical.
+
+Ethereum Sepolia is supported by the v3 runtime and Helm values. The fixed local Compose topology
+runs two networks to keep the acceptance boundary small; use the chart or an explicit additional
+service pair when a third simultaneous process is required.
+
+## Security boundary
+
+The PostgreSQL admin URL exists only in `migration` and Hasura's metadata connection. Indexer and
+metadata containers receive one network login each. Hasura's v3 data source receives the API reader
+login. Runtime containers never receive the admin URL.
+
+`HASURA_GRAPHQL_ENABLE_CONSOLE`, `HASURA_GRAPHQL_DEV_MODE`, and
+`HASURA_GRAPHQL_ENABLED_LOG_TYPES` control the local API process. The production override always
+disables the console and development mode; keep log types free of query variables or secrets.
+
+PostgreSQL binds to loopback only. Production disables the Hasura console and development errors.
+Use an external secret manager or Compose secrets in a real deployment; an env file is a local
+operator interface, not a secret-management system.
+
+## Metrics, alerts, and logs
+
+Pipes exposes `/health` and `/metrics` from every runtime. Alloy attaches `component` and
+`deployment_network` labels, scrapes the four endpoints, and forwards samples to Prometheus. The
+shared dashboard shows:
+
+- committed head, finality, cursor, and wall-clock lag
+- database availability and cursor drift
+- active/failing fallback source and source switches
+- committed and diagnostic block throughput
+- resident memory and CPU for every indexer and metadata worker
+- metadata job counts and oldest backlog age
+
+Prometheus evaluates availability, source-stall, lag, cursor-drift, source-flapping, and metadata-age
+rules. The Compose stack does not bundle notification credentials; connect Prometheus to the target
+Alertmanager. Alloy sends Docker logs to Loki. Grafana provides both datasources.
+
+## Backup and recovery
+
+Manual backup:
 
 ```bash
-# Start in detached mode
-docker compose -f docker-compose.yml --env-file ../.env up -d
-
-# Start with rebuild (after code changes)
-docker compose -f docker-compose.yml --env-file ../.env up -d --build
-
-# Start specific service
-docker compose -f docker-compose.yml --env-file ../.env up -d indexer
+./manage.sh --production db-dump ./v3-$(date -u +%Y%m%d).dump
 ```
 
-### Stopping Services
-
-```bash
-# Stop all services
-docker compose -f docker-compose.yml --env-file ../.env stop
-
-# Stop specific service
-docker compose -f docker-compose.yml --env-file ../.env stop indexer
-
-# Stop and remove containers (keeps volumes)
-docker compose -f docker-compose.yml --env-file ../.env down
-
-# Stop and remove everything (including volumes)
-docker compose -f docker-compose.yml --env-file ../.env down -v
-```
-
-### Restarting Services
-
-```bash
-# Restart all
-docker compose -f docker-compose.yml --env-file ../.env restart
-
-# Restart specific service
-docker compose -f docker-compose.yml --env-file ../.env restart indexer
-
-# Restart with rebuild
-docker compose -f docker-compose.yml --env-file ../.env up -d --build --force-recreate
-```
-
-## Health Checks
-
-### Service Status
-
-```bash
-# All services
-docker compose -f docker-compose.yml --env-file ../.env ps
-
-# Example output:
-# NAME                 STATUS              PORTS
-# lsp-indexer          Up 2 hours (healthy)
-# lsp-indexer-postgres Up 2 hours (healthy)
-```
-
-### Manual Health Checks
-
-```bash
-# Check indexer process
-docker exec lsp-indexer pgrep -f "ts-node.*lib/app/index.js"
-
-# Check database connectivity
-docker exec lsp-indexer-postgres pg_isready -U postgres -d postgres
-
-# View container health status
-docker inspect lsp-indexer --format='{{.State.Health.Status}}'
-```
-
-### Health Check Failures
-
-If health checks fail:
-
-```bash
-# 1. Check logs
-docker compose -f docker-compose.yml --env-file ../.env logs --tail=50 indexer
-
-# 2. Check container status
-docker compose -f docker-compose.yml --env-file ../.env ps
-
-# 3. Inspect container
-docker inspect lsp-indexer
-
-# 4. Enter container for debugging
-docker exec -it lsp-indexer sh
-
-# 5. Restart service
-docker compose -f docker-compose.yml --env-file ../.env restart indexer
-```
-
-## Database Management
-
-### PostgreSQL Access
-
-```bash
-# Connect via psql
-docker exec -it lsp-indexer-postgres psql -U postgres -d postgres
-
-# Run SQL query
-docker exec lsp-indexer-postgres psql -U postgres -d postgres -c "SELECT count(*) FROM transfer;"
-
-# Dump database
-docker exec lsp-indexer-postgres pg_dump -U postgres postgres > backup.sql
-
-# Restore database
-docker exec -i lsp-indexer-postgres psql -U postgres -d postgres < backup.sql
-```
-
-### Database Migrations
-
-Migrations run automatically on container startup via TypeORM.
-
-```bash
-# View migration status (from host)
-docker exec lsp-indexer pnpm --filter=@chillwhales/indexer migration:show
-
-# Manual migration (if needed)
-docker exec lsp-indexer pnpm --filter=@chillwhales/indexer migration:apply
-```
-
-### Database Reset
-
-```bash
-# WARNING: Deletes all data!
-
-# 1. Stop indexer
-docker compose -f docker-compose.yml --env-file ../.env stop indexer
-
-# 2. Drop and recreate database
-docker exec lsp-indexer-postgres psql -U postgres -c "DROP DATABASE postgres;"
-docker exec lsp-indexer-postgres psql -U postgres -c "CREATE DATABASE postgres;"
-
-# 3. Restart indexer (migrations run automatically)
-docker compose -f docker-compose.yml --env-file ../.env start indexer
-```
-
-## Volumes
-
-### Persistent Data
-
-- **postgres-data**: Database files (survives container restarts)
-- **indexer-logs**: Log files (accessible from host)
-
-```bash
-# List volumes
-docker volume ls | grep lsp-indexer
-
-# Inspect volume
-docker volume inspect lsp-indexer_postgres-data
-docker volume inspect lsp-indexer_indexer-logs
-
-# Cleanup unused volumes
-docker volume prune
-```
-
-### Volume Backup
-
-```bash
-# Backup postgres
-docker run --rm -v lsp-indexer_postgres-data:/data -v $(pwd):/backup alpine \
-  tar czf /backup/postgres-backup-$(date +%Y%m%d).tar.gz -C /data .
-
-# Backup logs
-docker run --rm -v lsp-indexer_indexer-logs:/logs -v $(pwd):/backup alpine \
-  tar czf /backup/logs-backup-$(date +%Y%m%d).tar.gz -C /logs .
-```
-
-### Volume Restore
-
-```bash
-# Restore postgres (CAUTION: overwrites existing data)
-docker run --rm -v lsp-indexer_postgres-data:/data -v $(pwd):/backup alpine \
-  tar xzf /backup/postgres-backup-YYYYMMDD.tar.gz -C /data
-```
-
-## Resource Management
-
-### Resource Limits
-
-Configured in `docker-compose.yml`:
-
-- **indexer**: 4GB limit, 1GB reservation
-- **postgres**: 2GB limit, 512MB reservation
-
-### Monitoring Resources
-
-```bash
-# Real-time stats
-docker stats lsp-indexer lsp-indexer-postgres
-
-# Example output:
-# NAME                 CPU %   MEM USAGE / LIMIT   MEM %   NET I/O
-# lsp-indexer          15.3%   1.2GB / 4GB         30%     1.2GB / 850MB
-# lsp-indexer-postgres 2.1%    450MB / 2GB         22%     850MB / 1.2GB
-```
-
-### Adjusting Limits
-
-Edit `docker-compose.yml`:
-
-```yaml
-deploy:
-  resources:
-    limits:
-      memory: 8G # Increase for large datasets
-    reservations:
-      memory: 2G
-```
-
-Then restart:
-
-```bash
-docker compose -f docker-compose.yml --env-file ../.env up -d --force-recreate
-```
-
-## Troubleshooting
-
-### Indexer Not Starting
-
-```bash
-# 1. Check logs
-docker compose -f docker-compose.yml --env-file ../.env logs indexer
-
-# 2. Verify environment
-docker exec lsp-indexer env | grep -E "(DB_URL|RPC_URL|LOG_)"
-
-# 3. Check database connectivity
-docker exec lsp-indexer nc -zv postgres 5432
-
-# 4. Rebuild from scratch
-docker compose -f docker-compose.yml --env-file ../.env down -v
-docker compose -f docker-compose.yml --env-file ../.env build --no-cache
-docker compose -f docker-compose.yml --env-file ../.env up -d
-```
-
-### Database Connection Issues
-
-```bash
-# 1. Check postgres health
-docker compose -f docker-compose.yml --env-file ../.env ps postgres
-
-# 2. Verify postgres is accepting connections
-docker exec lsp-indexer-postgres pg_isready
-
-# 3. Check DB_URL format
-echo $DB_URL
-# Should be: postgresql://postgres:postgres@postgres:5432/postgres
-
-# 4. Test connection from indexer
-docker exec lsp-indexer nc -zv postgres 5432
-```
-
-### Build Failures
-
-```bash
-# 1. Clean Docker cache
-docker builder prune -a
-
-# 2. Remove old images
-docker rmi lsp-indexer:latest
-
-# 3. Rebuild with no cache
-docker compose -f docker-compose.yml --env-file ../.env build --no-cache
-
-# 4. Check disk space
-docker system df
-```
-
-### High Memory Usage
-
-```bash
-# 1. Check stats
-docker stats lsp-indexer
-
-# 2. Reduce worker pool size in .env
-METADATA_WORKER_POOL_SIZE=2
-
-# 3. Reduce fetch batch size
-FETCH_BATCH_SIZE=500
-
-# 4. Restart with new settings
-docker compose -f docker-compose.yml --env-file ../.env restart indexer
-```
-
-### Log Volume Full
-
-```bash
-# 1. Check volume size
-docker volume inspect lsp-indexer_indexer-logs
-
-# 2. Cleanup old logs (keeps last 7 days)
-docker exec lsp-indexer find /app/packages/indexer/logs -name "*.log" -mtime +7 -delete
-
-# 3. Compress old logs
-docker exec lsp-indexer gzip /app/packages/indexer/logs/*.log
-
-# 4. Backup and prune
-docker cp lsp-indexer:/app/packages/indexer/logs ./backup-logs
-docker exec lsp-indexer rm -rf /app/packages/indexer/logs/*.log.gz
-```
-
-## Production Deployment
-
-### Security Checklist
-
-- [ ] Change default postgres password in `.env`
-- [ ] Use strong `HASURA_GRAPHQL_ADMIN_SECRET` (if enabled)
-- [ ] Restrict port exposure (comment out `ports:` in compose file)
-- [ ] Use secrets management (Docker secrets, Vault)
-- [ ] Enable TLS for postgres (custom pg_hba.conf)
-- [ ] Regular backups (postgres + logs)
-- [ ] Monitor disk usage (volumes)
-- [ ] Set up log rotation (docker logging driver)
-
-### Monitoring Setup
-
-```bash
-# Add monitoring stack (Prometheus + Grafana)
-# 1. Install docker-compose monitoring plugin
-# 2. Add exporters:
-#    - node-exporter (system metrics)
-#    - postgres-exporter (DB metrics)
-#    - cadvisor (container metrics)
-
-# Example: Add to docker-compose.yml
-# postgres-exporter:
-#   image: prometheuscommunity/postgres-exporter
-#   environment:
-#     DATA_SOURCE_URI: postgres:5432/postgres?sslmode=disable
-#     DATA_SOURCE_USER: postgres
-#     DATA_SOURCE_PASS: ${POSTGRES_PASSWORD}
-```
-
-### Systemd Service (Auto-Start on Boot)
-
-Create `/etc/systemd/system/lsp-indexer.service`:
-
-```ini
-[Unit]
-Description=LUKSO LSP Indexer
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=/path/to/lsp-indexer/docker
-ExecStart=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env up -d
-ExecStop=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env stop
-ExecReload=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env restart
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable lsp-indexer
-sudo systemctl start lsp-indexer
-sudo systemctl status lsp-indexer
-```
-
-## Hasura (Optional)
-
-To enable GraphQL API, uncomment the `hasura` and `data-connector-agent` sections in `docker-compose.yml`.
-
-```bash
-# 1. Edit docker-compose.yml (uncomment hasura services)
-
-# 2. Restart stack
-docker compose -f docker-compose.yml --env-file ../.env up -d
-
-# 3. Access Hasura console
-open http://localhost:8080
-# Admin secret: see HASURA_GRAPHQL_ADMIN_SECRET in .env
-
-# 4. Apply metadata
-docker exec lsp-indexer pnpm hasura:apply
-```
-
-## Development vs Production
-
-### Development (host)
-
-```bash
-# Use host pnpm with live reload
-pnpm start
-
-# Benefits:
-# - Fast iteration
-# - Direct file access
-# - Native debugging
-```
-
-### Production (Docker)
-
-```bash
-# Use Docker for stability
-docker compose -f docker-compose.yml --env-file ../.env up -d
-
-# Benefits:
-# - Isolated environment
-# - Automatic restart
-# - Resource limits
-# - Easy deployment
-# - Comprehensive logging
-```
-
-## Next Steps
-
-1. **Configure `.env`** — Update RPC_URL and other settings
-2. **Start services** — `docker compose -f docker-compose.yml --env-file ../.env up -d`
-3. **Monitor logs** — `docker compose -f docker-compose.yml --env-file ../.env logs -f indexer`
-4. **Check health** — Wait for "healthy" status in `docker compose ps`
-5. **Verify indexing** — Query database for indexed entities
-6. **Set up backups** — Schedule regular postgres dumps
-7. **Enable monitoring** — Add Prometheus/Grafana (optional)
-
-## Support
-
-- **Logs**: Start with `docker compose logs indexer`
-- **Status**: Check `docker compose ps` for health
-- **Database**: Use `psql` to inspect indexed data
-- **Issues**: File bug reports with full logs attached
+A backup is not accepted until a restore drill proves that migration history, schema fingerprints,
+committed heads, and cursor state are intact and indexing resumes without gaps. Use the
+[recovery runbook](../../.github/runbooks/v3-recovery.md). CloudNativePG scheduled backups in the Helm
+chart are the reference automated path.
+
+## Production acceptance
+
+Do not cut traffic over merely because containers are healthy. The required gates are documented in
+the [acceptance runbook](../../.github/runbooks/v3-acceptance.md): exact finalized-height parity,
+failure/recovery drills, a 24-hour two-network soak, resource/lag evidence, backup restoration, and an
+owner decision. The permanent v3-to-main pull request remains owner-controlled.

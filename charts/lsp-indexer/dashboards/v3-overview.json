@@ -1,0 +1,190 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "lsp_indexer_block_to_commit_lag_seconds{network=~\"$network\"}",
+          "legendFormat": "{{network}}"
+        }
+      ],
+      "title": "Committed block lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "lsp_indexer_indexed_block{network=~\"$network\"}",
+          "legendFormat": "indexed {{network}}"
+        },
+        {
+          "expr": "lsp_indexer_cursor_block{network=~\"$network\"}",
+          "legendFormat": "cursor {{network}}"
+        }
+      ],
+      "title": "Committed head and cursor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "mappings": [], "min": 0, "max": 1 }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "lsp_indexer_database_up{network=~\"$network\"}",
+          "legendFormat": "database {{network}}"
+        },
+        {
+          "expr": "up{component=~\"indexer|metadata-worker\",deployment_network=~\"$network\"}",
+          "legendFormat": "{{component}} {{deployment_network}}"
+        }
+      ],
+      "title": "Runtime health",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sqd_fallback_active{deployment_network=~\"$network\"}",
+          "legendFormat": "{{deployment_network}} {{source}}"
+        }
+      ],
+      "title": "Active source",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "sqd_fallback_lag_blocks{deployment_network=~\"$network\"}",
+          "legendFormat": "lag {{deployment_network}}"
+        },
+        {
+          "expr": "sqd_fallback_switches{deployment_network=~\"$network\"}",
+          "legendFormat": "switches {{deployment_network}}"
+        }
+      ],
+      "title": "Source fallback",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "lsp_indexer_metadata_jobs{network=~\"$network\"}",
+          "legendFormat": "{{network}} {{status}}"
+        }
+      ],
+      "title": "Metadata jobs",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "lsp_indexer_metadata_oldest_age_seconds{network=~\"$network\"}",
+          "legendFormat": "{{network}} {{status}}"
+        }
+      ],
+      "title": "Oldest metadata job",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "blocks" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "id": 8,
+      "targets": [
+        {
+          "expr": "clamp_min(deriv(lsp_indexer_indexed_block{network=~\"$network\"}[5m]), 0)",
+          "legendFormat": "committed {{network}}"
+        },
+        {
+          "expr": "rate(sqd_blocks_processed_total{deployment_network=~\"$network\"}[5m])",
+          "legendFormat": "processed diagnostic {{deployment_network}}"
+        }
+      ],
+      "title": "Processing throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{component=~\"indexer|metadata-worker\",deployment_network=~\"$network\"}",
+          "legendFormat": "{{component}} {{deployment_network}}"
+        }
+      ],
+      "title": "Resident memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total{component=~\"indexer|metadata-worker\",deployment_network=~\"$network\"}[5m])",
+          "legendFormat": "{{component}} {{deployment_network}}"
+        }
+      ],
+      "title": "CPU cores",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["lsp-indexer", "v3"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(lsp_indexer_database_up, network)",
+        "includeAll": true,
+        "label": "Network",
+        "multi": true,
+        "name": "network",
+        "query": {
+          "query": "label_values(lsp_indexer_database_up, network)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "browser",
+  "title": "LSP Indexer v3",
+  "uid": "lsp-indexer-v3",
+  "version": 1
+}

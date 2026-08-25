@@ -49,6 +49,7 @@ import {
   type ProjectionMutations,
   type ProjectionVerification,
 } from '../../projections/index.js';
+import { createIndexerDatabaseMetricsReader } from '../../runtime/metrics.js';
 import { createNetworkDatabase, createNetworkPool, type NetworkDatabase } from '../client.js';
 import {
   loadDatabaseMigrationConfig,
@@ -2680,6 +2681,17 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(await countRows(ethereumPool, 'event_facts')).toBe(2);
     expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(2);
     expect((await ethereumDb.select().from(indexedHeads))[0]?.blockNumber).toBe(2);
+  });
+
+  it('reads the committed head with the newest Pipes cursor in one snapshot', async () => {
+    const snapshot = await createIndexerDatabaseMetricsReader(ethereumDb, ethereumRuntime).read();
+
+    expect(snapshot).toEqual({
+      indexedBlock: block2.header.number,
+      finalizedBlock: block1.header.number,
+      cursorBlock: block2.header.number,
+      blockTimestamp: new Date(block2.header.timestamp),
+    });
   });
 
   it('preserves a known finalized watermark when a later batch omits finality', async () => {

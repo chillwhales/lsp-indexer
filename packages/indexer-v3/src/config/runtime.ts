@@ -13,12 +13,24 @@ export interface BlockRange {
   to?: number;
 }
 
+export type SourceMode = 'portal' | 'rpc' | 'fallback';
+
+export interface SourceFallbackConfig {
+  rpcRateLimit: number;
+  sourceRetries: number;
+  maxStalenessMs: number;
+  maxLagBlocks: number;
+  allDownTimeoutMs: number;
+}
+
 export interface RuntimeConfig {
   network: NetworkConfig;
   streamId: string;
   databaseSchema: string;
   portalUrl: string;
   rpcUrl: string;
+  sourceMode: SourceMode;
+  sourceFallback: SourceFallbackConfig;
   range: BlockRange;
   allowHistoricalSource: boolean;
   metricsPort: number;
@@ -79,6 +91,15 @@ function readBoolean(value: string | undefined, name: string, fallback: boolean)
   throw new Error(`${name} must be one of: true, false, 1, 0`);
 }
 
+function readSourceMode(value: string | undefined, fallback: SourceMode): SourceMode {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) return fallback;
+  if (normalized === 'portal' || normalized === 'rpc' || normalized === 'fallback') {
+    return normalized;
+  }
+  throw new Error('INDEXER_SOURCE_MODE must be one of: portal, rpc, fallback');
+}
+
 function resolveRpcUrl(env: NodeJS.ProcessEnv, network: NetworkConfig): string {
   const networkOverride = readOptionalUrl(
     env[network.rpc.environmentVariable],
@@ -99,6 +120,10 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
   }
 
   const range: BlockRange = to == null ? { from } : { from, to };
+  const sourceMode = readSourceMode(
+    env.INDEXER_SOURCE_MODE,
+    network.portal.expectedRealtime ? 'portal' : 'fallback',
+  );
 
   return {
     network,
@@ -106,6 +131,38 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     databaseSchema: createNetworkSchema(network.key),
     portalUrl: readOptionalUrl(env.SQD_PORTAL_URL, 'SQD_PORTAL_URL') ?? network.portal.url,
     rpcUrl: resolveRpcUrl(env, network),
+    sourceMode,
+    sourceFallback: {
+      rpcRateLimit: readInteger(
+        env.INDEXER_RPC_RATE_LIMIT,
+        'INDEXER_RPC_RATE_LIMIT',
+        network.rpc.rateLimit,
+        1,
+        100_000,
+      ),
+      sourceRetries: readInteger(env.INDEXER_SOURCE_RETRIES, 'INDEXER_SOURCE_RETRIES', 2, 0, 100),
+      maxStalenessMs: readInteger(
+        env.INDEXER_SOURCE_STALL_TIMEOUT_MS,
+        'INDEXER_SOURCE_STALL_TIMEOUT_MS',
+        30_000,
+        1_000,
+        3_600_000,
+      ),
+      maxLagBlocks: readInteger(
+        env.INDEXER_SOURCE_MAX_LAG_BLOCKS,
+        'INDEXER_SOURCE_MAX_LAG_BLOCKS',
+        10,
+        1,
+        1_000_000,
+      ),
+      allDownTimeoutMs: readInteger(
+        env.INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS,
+        'INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS',
+        300_000,
+        1_000,
+        86_400_000,
+      ),
+    },
     range,
     allowHistoricalSource: readBoolean(
       env.INDEXER_ALLOW_HISTORICAL_SOURCE,

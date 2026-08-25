@@ -70,7 +70,12 @@ export function assertPortalReadiness(
   }
 
   const bounded = runtime.range.to != null;
-  if (!metadata.realTime && !bounded && !runtime.allowHistoricalSource) {
+  if (
+    runtime.sourceMode === 'portal' &&
+    !metadata.realTime &&
+    !bounded &&
+    !runtime.allowHistoricalSource
+  ) {
     throw new Error(
       `Portal dataset ${metadata.dataset} is not real-time. Set INDEXER_TO_BLOCK for a bounded backfill or explicitly set INDEXER_ALLOW_HISTORICAL_SOURCE=true.`,
     );

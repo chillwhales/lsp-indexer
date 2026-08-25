@@ -1,6 +1,7 @@
 # LSP Indexer v3 architecture
 
-Status: proposed for review in [#380](https://github.com/chillwhales/lsp-indexer/issues/380)
+Status: implemented on the v3 integration branch; production evidence remains in
+[#389](https://github.com/chillwhales/lsp-indexer/issues/389)
 
 This document records the architecture boundary for a from-scratch, multi-chain LSP Indexer v3.
 Detailed tables belong to #382, domain transitions belong to #384, and metadata lifecycle behavior
@@ -28,24 +29,29 @@ acceptance gates, and the affected goal issue in the same pull request.
 
 ## Verified SDK baseline
 
-The initial implementation spike targets exact versions rather than floating prerelease tags:
+The implementation pins exact versions rather than floating prerelease tags:
 
-| Component         | Baseline       | Reason                                                |
-| ----------------- | -------------- | ----------------------------------------------------- |
-| Node.js           | `22.15.0`      | Exact minimum required by the published Pipes package |
-| `@subsquid/pipes` | `1.0.0-beta.3` | Current published release when #380 was researched    |
-| `drizzle-orm`     | `0.44.7`       | Pipes peer dependency                                 |
-| `pg`              | `8.16.3`       | Pipes peer dependency                                 |
+| Component                     | Baseline         | Reason                                 |
+| ----------------------------- | ---------------- | -------------------------------------- |
+| Node.js                       | `22.15.0`        | Exact minimum and production image     |
+| `@subsquid/pipes`             | `1.0.0-alpha.22` | Official release with EVM RPC/fallback |
+| `@subsquid/evm-normalization` | `0.0.2`          | Exact alpha.22-tested RPC peer         |
+| `@subsquid/evm-rpc`           | `0.0.2`          | Exact alpha.22-tested RPC peer         |
+| `@subsquid/http-client`       | `1.8.1`          | Exact alpha.22-tested HTTP peer        |
+| `@subsquid/rpc-client`        | `4.16.0`         | Exact alpha.22-tested JSON-RPC peer    |
+| `drizzle-orm`                 | `0.44.7`         | Pipes target peer                      |
+| `pg`                          | `8.16.3`         | PostgreSQL driver                      |
 
-The baseline is evidence for the architecture, not permission to ship an outdated beta. Every
+The baseline is evidence for the architecture, not permission to ship an outdated prerelease. Every
 runtime or SDK upgrade is reviewed explicitly, and production uses an exact version. Primary
 references:
 
-- [Pipes v1.0.0-beta.3 release](https://github.com/subsquid/pipes-sdk/releases/tag/pipes-v1.0.0-beta.3)
+- [Pipes v1.0.0-alpha.22 release](https://github.com/subsquid/pipes-sdk/releases/tag/pipes-v1.0.0-alpha.22)
+- [Official RPC/fallback implementation](https://github.com/subsquid/pipes-sdk/pull/156)
 - [Pipes quickstart](https://docs.sqd.dev/en/sdk/pipes-sdk/evm/quickstart)
 - [Drizzle PostgreSQL target](https://docs.sqd.dev/en/sdk/pipes-sdk/evm/guides/basic-development/targets/postgres-drizzle)
-- [Released runner guidance](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-beta.3/packages/pipes/src/runtime/node/runner.ts)
-- [Released rollback tracker](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-beta.3/packages/pipes/src/targets/drizzle/node-postgres/drizzle-tracker.ts)
+- [Released runner guidance](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-alpha.22/packages/pipes/src/runtime/node/runner.ts)
+- [Released rollback tracker](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-alpha.22/packages/pipes/src/targets/drizzle/node-postgres/drizzle-tracker.ts)
 
 ## Target topology
 
@@ -162,16 +168,17 @@ does not abort the batch or any other call. A failed verification result cannot 
 relationship or projection. This prevents a malicious or nonconforming emitter from indefinitely
 stalling one network's cursor.
 
-### Current source gates
+### Current source boundary
 
-- The live `lukso-mainnet` Portal metadata currently reports `real_time: false`:
-  [dataset metadata](https://portal.sqd.dev/datasets/lukso-mainnet/metadata).
-- Pipes RPC fallback remains an open draft:
-  [subsquid/pipes-sdk#109](https://github.com/subsquid/pipes-sdk/pull/109).
-- LUKSO production cannot cut over until one of those official paths provides live data and passes
-  our fork/recovery suite.
-- V3 does not copy the old processor into a fallback adapter. A temporary custom source requires a
-  separate owner-approved architecture change because it creates a permanent correctness burden.
+- The `lukso-mainnet` Portal remains historical (`real_time: false`) and is treated as a finalized
+  first source, never as a live head.
+- Pipes alpha.22 officially publishes the EVM RPC/fallback implementation from
+  [subsquid/pipes-sdk#156](https://github.com/subsquid/pipes-sdk/pull/156). LUKSO uses the historical
+  Portal followed by the live RPC source; Ethereum networks use the same configurable boundary.
+- Direct LUKSO RPC and a forced Portal-to-RPC handoff have passed bounded live probes. Production
+  still requires same-height parity, multi-network soak, source failure, restart, and recovery
+  evidence from #389.
+- V3 does not copy the old processor into a fallback adapter or maintain a custom source.
 
 ## PostgreSQL and rollback boundary
 
@@ -401,7 +408,7 @@ natural key, URI, content hash, and source revision still match. Otherwise the j
 the response cannot replace newer canonical state. Token publication additionally requires both a
 currently verified NFT and a currently verified LSP8 parent collection.
 
-Pipes metrics expose claims and throughput, outcomes, categorized failures, retries, backlog by
+V3 metrics expose claims and throughput, outcomes, categorized failures, retries, backlog by
 status, oldest backlog age, maximum and settlement attempts, queue latency, fetch latency, and
 response bytes. The worker requires only its network-scoped database role and can restart or scale
 without Portal or RPC connectivity.

@@ -17,7 +17,8 @@ export interface NetworkReadiness {
   chainId: number;
   streamId: string;
   databaseSchema: string;
-  portal: PortalReadiness;
+  sourceMode: RuntimeConfig['sourceMode'];
+  portal?: PortalReadiness;
   rpcChainId: number;
   contracts: ConfiguredContractReadiness[];
 }
@@ -34,7 +35,9 @@ export async function verifyNetworkReadiness(
 ): Promise<NetworkReadiness> {
   const rpc = dependencies.rpc ?? createNetworkRpcClient(runtime);
   const [portalMetadata, rpcChainId, contracts] = await Promise.all([
-    fetchPortalMetadata(runtime.portalUrl, dependencies.fetchImplementation ?? fetch),
+    runtime.sourceMode === 'rpc'
+      ? Promise.resolve(undefined)
+      : fetchPortalMetadata(runtime.portalUrl, dependencies.fetchImplementation ?? fetch),
     assertRpcChain(rpc, runtime),
     assertConfiguredContracts(rpc, runtime),
   ]);
@@ -44,7 +47,8 @@ export async function verifyNetworkReadiness(
     chainId: runtime.network.chainId,
     streamId: runtime.streamId,
     databaseSchema: runtime.databaseSchema,
-    portal: assertPortalReadiness(runtime, portalMetadata),
+    sourceMode: runtime.sourceMode,
+    ...(portalMetadata == null ? {} : { portal: assertPortalReadiness(runtime, portalMetadata) }),
     rpcChainId,
     contracts,
   };

@@ -7,19 +7,20 @@ Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 > PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
 > deterministic LSP domain projections. It also includes finalized, durable metadata workers for
 > LSP3, LSP4, LSP8, and LSP29 sources plus a generated, read-only multi-chain Hasura query and
-> subscription contract. The v3 Node, React, and Next.js packages and production acceptance gates
-> are not complete, so it is not a replacement for the production v2 indexer.
+> subscription contract. The v3 Node, React, and Next.js packages are implemented. Production
+> acceptance still requires same-height shadow parity, a two-network soak, recovery exercises, and
+> repository-owner cutover approval, so v2 remains the public rollback path.
 
 ## Requirements
 
 - Node.js 22.15 or newer
 - pnpm 10.15
 - An RPC endpoint for the selected EVM network
-- An SQD Portal dataset that covers the requested range
+- An SQD Portal dataset for `portal` or `fallback` mode
 - PostgreSQL 17 for migrations and persistence
 
 Dependencies that define the runtime boundary are pinned exactly, including
-`@subsquid/pipes@1.0.0-beta.3`.
+`@subsquid/pipes@1.0.0-alpha.22` and its official EVM RPC peers.
 
 ## Network model
 
@@ -202,6 +203,12 @@ shrink cancels stale slots and the worker rechecks the length before fetching or
 | `RPC_URL_LUKSO_MAINNET`                 | No       | LUKSO-specific RPC override; takes priority over `RPC_URL`    |
 | `RPC_URL_ETHEREUM_MAINNET`              | No       | Ethereum-specific RPC override                                |
 | `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Sepolia-specific RPC override                                 |
+| `INDEXER_SOURCE_MODE`                   | No       | `portal`, `rpc`, or `fallback`; LUKSO defaults to fallback    |
+| `INDEXER_RPC_RATE_LIMIT`                | No       | Official RPC source request budget; network default is `10`   |
+| `INDEXER_SOURCE_RETRIES`                | No       | Retries per source before fallback; defaults to `2`           |
+| `INDEXER_SOURCE_STALL_TIMEOUT_MS`       | No       | Unproductive source time before fallback; defaults to `30000` |
+| `INDEXER_SOURCE_MAX_LAG_BLOCKS`         | No       | Active-source lag budget; defaults to `10` blocks             |
+| `INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS`    | No       | Fail after all sources remain down; defaults to `300000`      |
 | `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | Explicitly permit an unbounded run against a historical set   |
 | `INDEXER_METRICS_PORT`                  | No       | Local runner metrics port; defaults to `9090`                 |
 | `DATABASE_URL`                          | Runtime  | Generic PostgreSQL runtime URL                                |
@@ -325,7 +332,7 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 ```
 
 Generated migrations are normalized to stay schema-relative. `db:migrations:check` rejects a
-public-schema qualifier. Because Pipes beta.3 does not reconcile snapshot tables after tracked
+public-schema qualifier. Because Pipes alpha.22 does not reconcile snapshot tables after tracked
 columns change, ordinary pending migrations fail safely whenever rollback snapshot tables exist,
 even when they are empty.
 
@@ -394,6 +401,11 @@ blocks, logs, and the network-scoped stream identity, refuses to run without `IN
 fails unless the source returns every block exactly once in ascending order across the inclusive
 range; it is a source diagnostic, not the domain indexer.
 
+`INDEXER_SOURCE_MODE=fallback` supplies Pipes with an ordered source list. For LUKSO, the finalized
+historical Portal is first and the official RPC stream takes over at its frozen boundary. Pipes
+exports the active source, per-source health, switch count, lag, staleness, and all-source stall
+state. `rpc` and `portal` select an explicit single source for diagnosis.
+
 After migrations and readiness checks pass, run the event and projection indexer for exactly one
 configured network:
 
@@ -405,9 +417,10 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 The command uses the narrow event query, query-aware decoder, block-pinned RPC planner,
 deterministic reducer, official rollback-aware Drizzle target, and the same stable per-network
-cursor ID. `INDEXER_TO_BLOCK` can bound an initial replay. A custom `INDEXER_FROM_BLOCK` is only for
-a contiguous continuation from an existing cursor; use `probe:network` for arbitrary source
-fixtures that intentionally start later.
+cursor ID. Its health and metrics listener starts only after Portal/RPC and contract readiness pass,
+so an orchestrator cannot route to a runtime still in source preflight. `INDEXER_TO_BLOCK` can bound
+an initial replay. A custom `INDEXER_FROM_BLOCK` is only for a contiguous continuation from an
+existing cursor; use `probe:network` for arbitrary source fixtures that intentionally start later.
 
 Run the independent metadata worker against the same network schema:
 
@@ -444,18 +457,33 @@ TEST_HASURA_ADMIN_SECRET=operator-secret \
 pnpm --filter @chillwhales/indexer-v3 build
 ```
 
-## Current source gate
+## Production acceptance
 
-The LUKSO Mainnet Portal dataset currently reports that it is not real-time. Bounded historical
-ranges are safe to probe. An unbounded historical run requires
-`INDEXER_ALLOW_HISTORICAL_SOURCE=true`, but that opt-in does not make the source live. Production
-cutover remains blocked until an official real-time Portal or Pipes RPC source passes the recovery
-and reorg acceptance suite.
+The LUKSO Mainnet Portal remains historical, but Pipes alpha.22 now supplies an official live RPC
+source and fallback facade. A live bounded probe has verified direct LUKSO RPC reads and a
+Portal-to-RPC handoff beyond the Portal's frozen height. That removes the custom-source blocker; it
+does not replace production evidence.
+
+`acceptance:parity` requires v2 and v3 shadow endpoints frozen at one exact finalized height and
+compares every mapped shared row up to an explicit hard ceiling. `acceptance:soak` observes at least
+two networks independently and enforces committed lag, cursor drift, source health, throughput,
+metadata age, combined indexer/worker memory, combined p95 CPU, and duration budgets. See the
+[acceptance](../../.github/runbooks/v3-acceptance.md),
+[deployment](../../.github/runbooks/v3-deployment.md),
+[recovery](../../.github/runbooks/v3-recovery.md), and
+[cutover](../../.github/runbooks/v3-cutover.md) runbooks. Only the repository owner can approve
+cutover, v2 retirement, or the final integration merge.
+
+The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
+statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by
+straddling two database snapshots.
 
 See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
 [database contract](../../.github/V3_SCHEMA.md),
 [GraphQL contract](../../.github/V3_API.md),
 [raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
 [projection disposition](../../.github/V3_PROJECTION_DISPOSITION.md),
+[dependency decision](../../.github/V3_DEPENDENCY_DECISION.md),
+[validation report](../../.github/V3_VALIDATION_REPORT.md),
 [roadmap](../../.github/V3_ROADMAP.md), and
 [acceptance gates](../../.github/V3_ACCEPTANCE_GATES.md).

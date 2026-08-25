@@ -81,10 +81,11 @@ The detailed schema belongs to #380 and #382. At minimum, the v3 model will add 
 
 ## Upstream readiness gate
 
-The current LUKSO Portal dataset is not real-time. Production cutover therefore requires either
-real-time Portal coverage or an official Pipes RPC source/fallback that passes the v3 recovery and
-reorg suite. A temporary custom source is not the default plan because owning it would work against
-the maintenance goals of the rewrite.
+The LUKSO Portal dataset remains historical. Official Pipes `1.0.0-alpha.22` now supplies the EVM
+RPC/fallback path, and bounded direct-RPC and Portal-to-RPC handoff probes pass. No custom source or
+v2 adapter is required. Production readiness now depends on the repository recovery/reorg suite,
+same-height shadow parity, multi-network soak, backup restore, and explicit owner acceptance of the
+prerelease/support and license boundary recorded in `V3_DEPENDENCY_DECISION.md`.
 
 ## Final merge gate
 

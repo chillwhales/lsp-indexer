@@ -38,6 +38,7 @@ describe('network readiness', () => {
       chainId: 1,
       streamId: 'lsp-indexer:v3:eip155:1',
       databaseSchema: 'chain_ethereum_mainnet',
+      sourceMode: 'portal',
       portal: { dataset: 'ethereum-mainnet', realTime: true, bounded: false },
       rpcChainId: 1,
       contracts: [
@@ -53,5 +54,27 @@ describe('network readiness', () => {
         },
       ],
     });
+  });
+
+  it('checks RPC-only mode without requiring Portal availability', async () => {
+    const runtime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'lukso-mainnet',
+      INDEXER_SOURCE_MODE: 'rpc',
+    });
+    const fetchImplementation = vi.fn();
+    const rpc: RpcReadinessClient = {
+      getChainId(): Promise<number> {
+        return Promise.resolve(42);
+      },
+      getCode(): Promise<`0x${string}` | undefined> {
+        return Promise.resolve('0x01');
+      },
+    };
+
+    const readiness = await verifyNetworkReadiness(runtime, { fetchImplementation, rpc });
+
+    expect(readiness.sourceMode).toBe('rpc');
+    expect(readiness.portal).toBeUndefined();
+    expect(fetchImplementation).not.toHaveBeenCalled();
   });
 });

@@ -1,52 +1,37 @@
 #!/bin/sh
-set -e
+set -eu
 
-echo "🚀 Indexer starting..."
+cd /app/packages/indexer-v3
 
-# Navigate to indexer package to run migrations
-cd /app/packages/indexer
-
-echo "📊 Generating database migrations from schema.graphql..."
-pnpm migration:generate || {
-  echo "ℹ️  No schema changes detected - skipping migration generation"
-}
-
-echo "📊 Applying database migrations..."
-pnpm migration:apply
-
-echo "✅ Database migrations applied successfully"
-
-# Configure Hasura (always runs)
-echo "🔧 Waiting for Hasura to be ready..."
-
-# Wait for Hasura to be healthy (max 60 seconds)
-HASURA_URL="${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}"
-HASURA_READY=0
-for i in $(seq 1 60); do
-  if wget --spider -q "$HASURA_URL/healthz" 2>/dev/null; then
-    echo "✅ Hasura is ready"
-    HASURA_READY=1
-    break
-  fi
-  echo "⏳ Waiting for Hasura... ($i/60)"
-  sleep 1
-done
-
-if [ "$HASURA_READY" -ne 1 ]; then
-  echo "❌ Hasura was not ready after 60 seconds. Aborting."
-  exit 1
-fi
-
-echo "🔧 Generating Hasura configuration..."
-pnpm hasura:generate
-
-echo "🔧 Applying Hasura metadata..."
-pnpm hasura:apply
-
-echo "✅ Hasura configured successfully"
-
-# Navigate to indexer and start
-cd /app/packages/indexer
-
-echo "🏃 Starting indexer..."
-exec pnpm start:simple
+case "${1:-indexer}" in
+  indexer)
+    exec node lib/app/index-events.js
+    ;;
+  metadata)
+    exec node lib/app/process-metadata.js
+    ;;
+  migrate)
+    exec node lib/app/migrate-database.js
+    ;;
+  hasura-apply)
+    exec node lib/app/apply-hasura.js
+    ;;
+  check-database)
+    exec node lib/app/check-database.js
+    ;;
+  check-network)
+    exec node lib/app/check-network.js
+    ;;
+  probe-network)
+    exec node lib/app/probe-network.js
+    ;;
+  compare-shadow)
+    exec node lib/app/compare-shadow.js
+    ;;
+  observe-soak)
+    exec node lib/app/observe-soak.js
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac
