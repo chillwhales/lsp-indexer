@@ -1210,8 +1210,8 @@ function eventVariables(
     });
   }
 
-  if ('dataKey' in (filter ?? {}) || 'dataKeyName' in (filter ?? {})) {
-    const dataFilter = filter as DataChangedEventFilter | TokenIdDataChangedEventFilter;
+  if (filter && ('dataKey' in filter || 'dataKeyName' in filter)) {
+    const dataFilter = filter;
     const dataKey =
       dataFilter.dataKey ??
       (dataFilter.dataKeyName == null ? undefined : resolveDataKeyHex(dataFilter.dataKeyName));
