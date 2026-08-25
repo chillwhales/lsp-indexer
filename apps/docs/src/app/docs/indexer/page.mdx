@@ -32,6 +32,8 @@ complete. The v3 candidate includes:
 The v3 runtime schemas and Node, React, and Next.js package contracts cover all 15 public API roots.
 The v3 container and deployment definitions contain only the new runtime. V2 remains an external
 rollback endpoint until the repository owner completes the documented cutover gates.
+The docs image builds those SDK packages against the committed v3 Hasura schema snapshot, keeping
+containerized code generation on the same contract as local and CI builds.
 
 The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 projection. It stores
 CHILL/ORBS claim flags and Orb level, cooldown, and faction state. Node services, React hooks and

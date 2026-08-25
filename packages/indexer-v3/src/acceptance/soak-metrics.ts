@@ -3,6 +3,10 @@ export interface PrometheusSample {
   labels: Readonly<Record<string, string>>;
   value: number;
 }
+
+const PROMETHEUS_SAMPLE_EXPRESSION =
+  /^([A-Za-z_:][A-Za-z0-9_:]*)(?:\{(.*)\})?\s+([^\s]+)(?:\s+\d+)?$/;
+
 function unescapeLabel(value: string): string {
   return value.split('\\n').join('\n').split('\\"').join('"').split('\\\\').join('\\');
 }
@@ -24,19 +28,23 @@ function parseLabels(value: string | undefined): Record<string, string> {
   return labels;
 }
 
+function parsePrometheusLine(line: string): PrometheusSample | undefined {
+  if (line === '' || line.startsWith('#')) return undefined;
+  const match = PROMETHEUS_SAMPLE_EXPRESSION.exec(line);
+  if (match == null || match[1] == null || match[3] == null) {
+    throw new Error(`Invalid Prometheus sample: ${line}`);
+  }
+  const value = Number(match[3]);
+  if (!Number.isFinite(value)) return undefined;
+  return { name: match[1], labels: parseLabels(match[2]), value };
+}
+
 /** Parse the Prometheus text samples needed by the v3 acceptance observer. */
 export function parsePrometheusText(text: string): PrometheusSample[] {
   const samples: PrometheusSample[] = [];
   for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (line === '' || line.startsWith('#')) continue;
-    const match = /^([A-Za-z_:][A-Za-z0-9_:]*)(?:\{(.*)\})?\s+([^\s]+)(?:\s+\d+)?$/.exec(line);
-    if (match == null || match[1] == null || match[3] == null) {
-      throw new Error(`Invalid Prometheus sample: ${line}`);
-    }
-    const value = Number(match[3]);
-    if (!Number.isFinite(value)) continue;
-    samples.push({ name: match[1], labels: parseLabels(match[2]), value });
+    const sample = parsePrometheusLine(rawLine.trim());
+    if (sample != null) samples.push(sample);
   }
   return samples;
 }
