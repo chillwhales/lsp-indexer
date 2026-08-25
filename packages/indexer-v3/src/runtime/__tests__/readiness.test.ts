@@ -78,6 +78,30 @@ describe('network readiness', () => {
     expect(fetchImplementation).not.toHaveBeenCalled();
   });
 
+  it('keeps fallback mode when Portal metadata is usable', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const fetchImplementation = vi.fn(() =>
+      Promise.resolve(
+        createJsonResponse({ dataset: 'lukso-mainnet', real_time: false, start_block: 0 }),
+      ),
+    );
+    const rpc: RpcReadinessClient = {
+      getChainId(): Promise<number> {
+        return Promise.resolve(42);
+      },
+      getCode(): Promise<`0x${string}` | undefined> {
+        return Promise.resolve('0x01');
+      },
+    };
+
+    await expect(
+      verifyNetworkReadiness(runtime, { fetchImplementation, rpc }),
+    ).resolves.toMatchObject({
+      sourceMode: 'fallback',
+      portal: { dataset: 'lukso-mainnet', realTime: false },
+    });
+  });
+
   it('allows fallback mode to start from RPC while Portal metadata is unavailable', async () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const fetchImplementation = vi.fn(() => Promise.reject(new Error('Portal unavailable')));
@@ -92,7 +116,7 @@ describe('network readiness', () => {
 
     const readiness = await verifyNetworkReadiness(runtime, { fetchImplementation, rpc });
 
-    expect(readiness.sourceMode).toBe('fallback');
+    expect(readiness.sourceMode).toBe('rpc');
     expect(readiness.portal).toBeUndefined();
     expect(fetchImplementation).toHaveBeenCalledOnce();
   });
@@ -114,7 +138,7 @@ describe('network readiness', () => {
     );
   });
 
-  it('still rejects a valid Portal metadata document for the wrong fallback dataset', async () => {
+  it('uses verified RPC when fallback Portal metadata identifies the wrong dataset', async () => {
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
     const fetchImplementation = vi.fn(() =>
       Promise.resolve(
@@ -124,6 +148,27 @@ describe('network readiness', () => {
     const rpc: RpcReadinessClient = {
       getChainId(): Promise<number> {
         return Promise.resolve(42);
+      },
+      getCode(): Promise<`0x${string}` | undefined> {
+        return Promise.resolve('0x01');
+      },
+    };
+
+    await expect(
+      verifyNetworkReadiness(runtime, { fetchImplementation, rpc }),
+    ).resolves.toMatchObject({ sourceMode: 'rpc' });
+  });
+
+  it('keeps Portal-only mode fail-closed for a mismatched dataset', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'ethereum-mainnet' });
+    const fetchImplementation = vi.fn(() =>
+      Promise.resolve(
+        createJsonResponse({ dataset: 'lukso-mainnet', real_time: true, start_block: 0 }),
+      ),
+    );
+    const rpc: RpcReadinessClient = {
+      getChainId(): Promise<number> {
+        return Promise.resolve(1);
       },
       getCode(): Promise<`0x${string}` | undefined> {
         return Promise.resolve('0x01');

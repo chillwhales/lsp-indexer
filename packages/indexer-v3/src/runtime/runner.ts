@@ -28,6 +28,15 @@ export type DevelopmentPipeDefinition = Parameters<
   typeof devRunner<{ network: string }>
 >[0][number];
 
+function applyReadinessSourceMode(
+  runtime: RuntimeConfig,
+  readiness: NetworkReadiness,
+): RuntimeConfig {
+  return readiness.sourceMode === runtime.sourceMode
+    ? runtime
+    : { ...runtime, sourceMode: readiness.sourceMode };
+}
+
 /** Validate one production network and run its pipe program. */
 export async function runNetworkProgram(
   program: NetworkProgram,
@@ -41,9 +50,10 @@ export async function runNetworkProgram(
       ? {}
       : { fetchImplementation: options.fetchImplementation }),
   });
+  const effectiveRuntime = applyReadinessSourceMode(runtime, readiness);
 
   await program({
-    runtime,
+    runtime: effectiveRuntime,
     readiness,
     rpc,
     ...(options.logger == null ? {} : { logger: options.logger }),

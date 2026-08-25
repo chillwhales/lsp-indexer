@@ -91,7 +91,8 @@ kubectl --context <cluster> --namespace <v3-namespace> rollout status \
 
 Repeat for every enabled worker. Confirm each pod exposes `/health` and `/metrics`, uses the expected
 network key, and advances only its own committed head. A failed network must not restart or stop
-another network.
+another network. The indexer startup probe must protect the full preflight window; investigate a pod
+that exhausts its three-minute budget instead of weakening RPC or contract verification.
 
 Checkpoint 3 — Hasura:
 

@@ -25,6 +25,8 @@ TypeORM indexer.
   reviewed immutable image tags.
 - Indexer Deployments are unbounded services. Run a finite parity replay through the CLI or local
   Compose stack; setting `INDEXER_TO_BLOCK` in a Deployment would restart completed work forever.
+- An HTTP startup probe allows up to three minutes for Portal/RPC, contract, and database preflight.
+  Readiness and liveness do not begin until the post-preflight metrics listener is available.
 
 The runtime containers are non-root, do not receive service-account tokens, drop Linux
 capabilities, and use read-only root filesystems. The default egress policy permits cluster DNS,

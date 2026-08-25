@@ -36,7 +36,7 @@ across the frozen Portal boundary. Production defaults remain 30 seconds and are
 
 ## CI and local checks
 
-Local and specialist-workspace checks below ran on 2026-08-25 between 05:54 and 06:47 UTC. CI and
+Local and specialist-workspace checks below ran on 2026-08-25 between 05:54 and 07:17 UTC. CI and
 review links are attached to the feature PR because those systems operate on the published commit.
 
 | Check                                                 | Result                                                                   |
@@ -44,10 +44,10 @@ review links are attached to the feature PR because those systems operate on the
 | Frozen dependency install                             | Pass — `pnpm install --frozen-lockfile`                                  |
 | Lint                                                  | Pass — 0 errors; repository baseline warnings remain                     |
 | Indexer v3 typecheck                                  | Pass — `pnpm --filter @chillwhales/indexer-v3 typecheck`                 |
-| Indexer v3 unit/coverage suite                        | Pass — 39 files, 289 tests, 82.97% branch coverage                       |
+| Indexer v3 unit/coverage suite                        | Pass — 39 files, 293 tests, 83.06% branch coverage                       |
 | PostgreSQL 17 migration/persistence/fault suite       | CI required — no local PostgreSQL server                                 |
 | Hasura consistency/query/subscription suite           | Static metadata pass; live endpoint suite required in CI                 |
-| Full monorepo build/typecheck/test/package validation | Pass — build, typecheck, 55 files/542 tests, publint, and package ATTW   |
+| Full monorepo build/typecheck/test/package validation | Pass — build, typecheck, 55 files/546 tests, publint, and package ATTW   |
 | Docs generation/build                                 | Pass — generated sidecars clean; 22 routes built                         |
 | Compose and operations assets                         | Pass — dev/prod render, shell syntax, dashboard JSON, and alert YAML     |
 | Helm lint/render                                      | Pass — strict lint; 20/25 resources; migration input changes rehash Jobs |

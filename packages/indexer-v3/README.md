@@ -405,8 +405,9 @@ range; it is a source diagnostic, not the domain indexer.
 historical Portal is first and the official RPC stream takes over at its frozen boundary. Pipes
 exports the active source, per-source health, switch count, lag, staleness, and all-source stall
 state. A fallback process may start from a verified RPC while Portal metadata is unavailable; a
-reachable Portal that identifies the wrong dataset still fails readiness. `rpc` and `portal` select
-an explicit single source for diagnosis, and Portal-only mode fails closed on Portal unavailability.
+reachable Portal with unusable metadata is also removed from that process's source list so the
+verified RPC becomes its complete source. `rpc` and `portal` select an explicit single source for
+diagnosis, and Portal-only mode fails closed on unavailable or mismatched Portal metadata.
 
 After migrations and readiness checks pass, run the event and projection indexer for exactly one
 configured network:
@@ -481,6 +482,8 @@ cutover, v2 retirement, or the final integration merge.
 Soak duration is measured from the configured observation start and deadline independently of
 scrape latency. Indexer and metadata-worker CPU counters are converted to restart-safe rates
 independently and only then summed, so one process restart cannot manufacture a CPU spike.
+Parity preserves empty strings as real GraphQL values distinct from `null`; only documented enum,
+integer, address, hex, and CompactBytesArray representations are normalized.
 
 The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
 statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by

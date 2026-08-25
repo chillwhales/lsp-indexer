@@ -177,6 +177,29 @@ describe('shadow parity acceptance', () => {
     });
   });
 
+  it('preserves empty strings as distinct shared-field values', async () => {
+    const stringDomain: ShadowParityDomain = {
+      name: 'names',
+      source: { root: 'source_name', order: ['value'] },
+      target: { root: 'target_name', order: ['value'] },
+      fields: [{ name: 'value', source: 'value', target: 'value', kind: 'string' }],
+    };
+
+    await expect(
+      compareShadowDomain(
+        config,
+        stringDomain,
+        createSingleRowRequester({ value: '' }, { value: null }),
+      ),
+    ).resolves.toMatchObject({
+      passed: false,
+      differences: [
+        { row: { value: '' }, sourceOccurrences: 1, targetOccurrences: 0 },
+        { row: { value: null }, sourceOccurrences: 0, targetOccurrences: 1 },
+      ],
+    });
+  });
+
   it('normalizes collapsed v2 enums, CompactBytesArray values, and v3 JSON arrays', async () => {
     const scalarDomain: ShadowParityDomain = {
       name: 'controller-scalars',

@@ -10,7 +10,7 @@ create_or_update_login() {
     exit 1
   fi
 
-  psql --set=role="$role" --set=credential="$credential" <<'SQL'
+  psql --set=ON_ERROR_STOP=1 --set=role="$role" --set=credential="$credential" <<'SQL'
 SELECT format(
   'CREATE ROLE %I LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
   :'role',

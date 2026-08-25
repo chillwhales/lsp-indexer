@@ -30,7 +30,8 @@ The command compares every row up to the explicit ceiling; it fails rather than 
 It maps profiles and their owners, assets and their owners, NFTs, owned assets/tokens, active
 followers, creators, issued assets, controller permissions, total supply, decimals, token names,
 symbols, token types, token-ID formats, reference contracts, and base URIs across the v2 and v3
-structures. Enum and CompactBytesArray representations are normalized before comparison. Metadata
+structures. Enum and CompactBytesArray representations are normalized before comparison. Empty
+strings remain distinct from `null` instead of being treated as representation aliases. Metadata
 revision lifecycle, invalid raw values, and v3-only fields are validated by their dedicated
 invariant suites and must be reviewed separately. Pass only with `passed: true` and zero unexplained
 differences. Raise the ceiling or partition the run if any domain is marked `truncated`.

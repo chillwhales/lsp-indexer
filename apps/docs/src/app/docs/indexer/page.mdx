@@ -397,8 +397,10 @@ at the configured network start. Production still uses one isolated process per 
 command does not turn the local development runner into a supervisor. The runtime binds its health
 and metrics listener only after Portal/RPC and contract readiness pass, so an orchestrator cannot
 route to a process still in source preflight. Fallback mode may start from a verified RPC while
-Portal metadata transport is unavailable; Portal-only mode remains fail-closed, and a reachable
-Portal that identifies the wrong dataset is always rejected.
+Portal metadata is unavailable or unusable; that process runs RPC-only instead of retaining an
+unverified Portal in its source list. Portal-only mode remains fail-closed.
+The Helm startup probe reserves three minutes for that preflight before readiness or liveness can
+restart or receive traffic from the pod.
 
 ### V3 metadata workers
 
@@ -501,7 +503,8 @@ official live EVM RPC source and fallback facade: v3 reads the finalized histori
 continues through RPC when the Portal becomes stale. Direct LUKSO RPC and the Portal-to-RPC boundary
 have both passed bounded live probes. Explicit `portal` and `rpc` modes remain available for
 diagnostics. A fallback restart does not depend on Portal availability when its RPC and contracts
-are ready, while a semantically mismatched Portal dataset still blocks startup.
+are ready. Unavailable, malformed, mismatched, or incomplete Portal metadata makes that process run
+RPC-only; explicit Portal-only mode still rejects the same conditions.
 
 Production cutover still requires a same-height mapped shared-field v2/v3 report plus the dedicated
 v3-only invariant evidence, a two-network 24-hour soak with per-network throughput, lag,
@@ -545,6 +548,8 @@ before they are summed, so either process may restart without corrupting the res
 Evidence time comes from the configured observation start/deadline rather than scrape completion
 jitter. The full JSON example and evidence checklist live in the shadow-production acceptance
 runbook. A run shorter than the minimum is labeled `probe` and cannot satisfy the cutover gate.
+Parity keeps empty strings distinct from `null`; normalization is limited to the documented enum,
+integer, address, hex, and CompactBytesArray representation mappings.
 
 The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
 statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by
@@ -610,7 +615,8 @@ cd docker
 Login provisioning, database migration, and Hasura metadata apply are one-shot services. A bounded
 local indexer also exits zero at its final block and stays complete; production restarts its
 unbounded indexers unless explicitly stopped. The production override requires distinct database
-passwords, private RPC URLs, an immutable image tag, and production UI secrets. The repository's
+passwords, private RPC URLs, an immutable image tag, and production UI secrets. It disables Grafana
+anonymous access and fails login provisioning on the first SQL error. The repository's
 `docs/docker/REFERENCE.md` and root `.env.example` define the complete interface and backup
 constraints.
 

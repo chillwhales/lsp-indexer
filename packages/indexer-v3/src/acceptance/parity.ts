@@ -242,7 +242,7 @@ function normalizeTokenIdFormat(value: unknown, field: ShadowParityField): strin
 }
 
 function normalizeValue(value: unknown, field: ShadowParityField): NormalizedValue {
-  if (value == null || value === '') return null;
+  if (value == null) return null;
   if (field.kind === 'boolean') {
     if (typeof value !== 'boolean') throw new Error(`${field.name} must be a boolean`);
     return value;

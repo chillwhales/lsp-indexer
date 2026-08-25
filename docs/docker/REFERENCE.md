@@ -38,6 +38,9 @@ The production render fails unless these are present:
 - LUKSO and Ethereum RPC URLs
 - Grafana admin user
 
+The production override disables Grafana anonymous access; only the required administrator login
+can query its provisioned Prometheus and Loki data sources.
+
 Generate hexadecimal passwords so they remain safe inside PostgreSQL URLs:
 
 ```bash
@@ -61,7 +64,8 @@ openssl rand -hex 32
 
 `service_completed_successfully` dependencies prevent a runtime from starting against an unmigrated
 schema. Re-running login provisioning and migrations is idempotent; unexpected privileges,
-memberships, ownership, migration history, or schema fingerprints fail closed.
+memberships, ownership, migration history, or schema fingerprints fail closed. Login provisioning
+also enables `ON_ERROR_STOP`, so the one-shot service fails on its first SQL error.
 
 Local indexers use `on-failure`, so a bounded backfill exits zero and stays complete. The production
 override removes both `INDEXER_TO_BLOCK` values and changes the unbounded indexers to

@@ -65,8 +65,9 @@ docker compose \
 ```
 
 The override disables local builds, requires every enabled-network secret and both production RPC
-endpoints, disables the Hasura console/dev mode, and requires an immutable operator-selected image
-tag.
+endpoints, disables the Hasura console/dev mode and Grafana anonymous access, and requires an
+immutable operator-selected image tag. Database login provisioning stops on its first SQL error so
+an incomplete role or password rotation cannot be reported as successful.
 
 For Kubernetes production, the Helm chart is the reference deployment because it also provides
 CloudNativePG replication, scheduled object-store backups, PodDisruptionBudgets, NetworkPolicies,
