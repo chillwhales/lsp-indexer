@@ -35,6 +35,8 @@ export type UseInfiniteOwnedTokensReturn<F> = {
  * - Widest   → `onData(data: PartialOwnedToken[])`
  */
 export interface UseOwnedTokenSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all owned tokens) */
   filter?: OwnedTokenFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

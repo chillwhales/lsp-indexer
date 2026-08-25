@@ -24,7 +24,8 @@ export function createUseDataChangedEvents(
     PartialDataChangedEvent,
     FetchDataChangedEventsResult<PartialDataChangedEvent>
   >({
-    queryKey: (p) => dataChangedEventKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) =>
+      dataChangedEventKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.dataChangedEvents,
   });
@@ -33,13 +34,13 @@ export function createUseDataChangedEvents(
     params: UseDataChangedEventsParams & { include: I },
   ): UseDataChangedEventsReturn<DataChangedEventResult<I>>;
   function useDataChangedEvents(
-    params?: Omit<UseDataChangedEventsParams, 'include'> & { include?: never },
+    params: Omit<UseDataChangedEventsParams, 'include'> & { include?: never },
   ): UseDataChangedEventsReturn<DataChangedEvent>;
   function useDataChangedEvents(
     params: UseDataChangedEventsParams & { include?: DataChangedEventInclude },
   ): UseDataChangedEventsReturn<PartialDataChangedEvent>;
   function useDataChangedEvents(
-    params: UseDataChangedEventsParams & { include?: DataChangedEventInclude } = {},
+    params: UseDataChangedEventsParams & { include?: DataChangedEventInclude },
   ): UseDataChangedEventsReturn<PartialDataChangedEvent> {
     const { items, ...rest } = impl(params);
     return { dataChangedEvents: items, ...rest };

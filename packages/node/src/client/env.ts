@@ -1,4 +1,41 @@
+import { NetworkIdSchema } from '@lsp-indexer/types';
 import { IndexerError } from '../errors';
+
+function readNetwork(value: string | undefined, name: string): string {
+  if (!value) {
+    throw new IndexerError({
+      category: 'CONFIGURATION',
+      code: 'MISSING_ENV_VAR',
+      message: `${name} is not set. V3 never selects a network implicitly.`,
+    });
+  }
+  const result = NetworkIdSchema.safeParse(value);
+  if (!result.success) {
+    throw new IndexerError({
+      category: 'CONFIGURATION',
+      code: 'VALIDATION_FAILED',
+      message: `${name} must be a lowercase network slug such as "lukso-mainnet".`,
+      validationErrors: result.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        message: issue.message,
+      })),
+    });
+  }
+  return result.data;
+}
+
+/** Read the mandatory browser-visible v3 network selection. */
+export function getClientNetwork(): string {
+  return readNetwork(process.env.NEXT_PUBLIC_INDEXER_NETWORK, 'NEXT_PUBLIC_INDEXER_NETWORK');
+}
+
+/** Read the server v3 network, falling back only to the explicit public selection. */
+export function getServerNetwork(): string {
+  return readNetwork(
+    process.env.INDEXER_NETWORK ?? process.env.NEXT_PUBLIC_INDEXER_NETWORK,
+    process.env.INDEXER_NETWORK ? 'INDEXER_NETWORK' : 'NEXT_PUBLIC_INDEXER_NETWORK',
+  );
+}
 
 /** Read `NEXT_PUBLIC_INDEXER_URL` for client-side HTTP endpoint. */
 export function getClientUrl(): string {
@@ -12,7 +49,8 @@ export function getClientUrl(): string {
     });
   }
   try {
-    new URL(url);
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('protocol');
   } catch {
     throw new IndexerError({
       category: 'CONFIGURATION',
@@ -36,7 +74,8 @@ export function getServerUrl(): string {
     });
   }
   try {
-    new URL(url);
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('protocol');
   } catch {
     throw new IndexerError({
       category: 'CONFIGURATION',
@@ -66,7 +105,8 @@ export function getServerWsUrl(): string {
   const wsUrl = process.env.INDEXER_WS_URL;
   if (wsUrl) {
     try {
-      new URL(wsUrl);
+      const parsed = new URL(wsUrl);
+      if (parsed.protocol !== 'ws:' && parsed.protocol !== 'wss:') throw new Error('protocol');
       return wsUrl;
     } catch {
       throw new IndexerError({
@@ -85,7 +125,8 @@ export function getClientWsUrl(): string {
   const wsUrl = process.env.NEXT_PUBLIC_INDEXER_WS_URL;
   if (wsUrl) {
     try {
-      new URL(wsUrl);
+      const parsed = new URL(wsUrl);
+      if (parsed.protocol !== 'ws:' && parsed.protocol !== 'wss:') throw new Error('protocol');
       return wsUrl;
     } catch {
       throw new IndexerError({

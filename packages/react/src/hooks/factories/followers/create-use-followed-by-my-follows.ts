@@ -22,6 +22,7 @@ export function createUseFollowedByMyFollows(
   >({
     queryKey: (p) =>
       followerKeys.followedByMyFollows(
+        p.network,
         p.myAddress,
         p.targetAddress,
         p.sort,

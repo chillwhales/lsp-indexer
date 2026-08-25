@@ -1,0 +1,1216 @@
+{
+  "resource_version": 1,
+  "metadata": {
+    "version": 3,
+    "sources": [
+      {
+        "name": "v3",
+        "kind": "postgres",
+        "tables": [
+          {
+            "table": {
+              "name": "blocks",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "block",
+              "custom_root_fields": {
+                "select": "block",
+                "select_aggregate": "block_aggregate"
+              }
+            },
+            "array_relationships": [
+              {
+                "name": "events",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "number": "block_number"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "event_facts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "event_facts",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "event_fact",
+              "custom_root_fields": {
+                "select": "event_fact",
+                "select_aggregate": "event_fact_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "block",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "block_number": "number"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "blocks",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "universal_profiles",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "universal_profile",
+              "custom_root_fields": {
+                "select": "universal_profile",
+                "select_aggregate": "universal_profile_aggregate"
+              }
+            },
+            "array_relationships": [
+              {
+                "name": "ownedAssets",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "owner_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "ownedTokens",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "owner_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_tokens",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "controllers",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "profile_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "controllers",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "issuedAssets",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "issuer_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "issued_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "followed",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "follower_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "follower_edges",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "followedBy",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "followed_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "follower_edges",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "dataValues",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "data_values",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "metadataRevisions",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "metadata_revisions",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "digital_assets",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "digital_asset",
+              "custom_root_fields": {
+                "select": "digital_asset",
+                "select_aggregate": "digital_asset_aggregate"
+              }
+            },
+            "array_relationships": [
+              {
+                "name": "nfts",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "ownedAssets",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "ownedTokens",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_tokens",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "lsp4Creators",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "creators",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "lsp12IssuedBy",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "issued_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "dataValues",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "data_values",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "metadataRevisions",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "metadata_revisions",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "nfts",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "nft",
+              "custom_root_fields": {
+                "select": "nft",
+                "select_aggregate": "nft_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "chillwhales",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "chillwhales_nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "ownedToken",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address",
+                      "token_id": "token_id",
+                      "owner_address": "owner_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_tokens",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "ownedTokens",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "asset_address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_tokens",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "dataValues",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "data_values",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "metadataRevisions",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "metadata_revisions",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "owned_assets",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "owned_asset",
+              "custom_root_fields": {
+                "select": "owned_asset",
+                "select_aggregate": "owned_asset_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "owner_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "asset_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "tokenIds",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "owner_address": "owner_address",
+                      "asset_address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_tokens",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "owned_tokens",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "owned_token",
+              "custom_root_fields": {
+                "select": "owned_token",
+                "select_aggregate": "owned_token_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "owner_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "asset_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "nft",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "asset_address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "ownedAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "owner_address": "owner_address",
+                      "asset_address": "asset_address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "owned_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "follower_edges",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "follower",
+              "custom_root_fields": {
+                "select": "follower",
+                "select_aggregate": "follower_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "followerUniversalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "follower_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "followedUniversalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "followed_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "creators",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "lsp4_creator",
+              "custom_root_fields": {
+                "select": "lsp4_creator",
+                "select_aggregate": "lsp4_creator_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "asset_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "creatorProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "creator_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "issued_assets",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "lsp12_issued_asset",
+              "custom_root_fields": {
+                "select": "lsp12_issued_asset",
+                "select_aggregate": "lsp12_issued_asset_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "issuer_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "asset_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "controllers",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "lsp6_controller",
+              "custom_root_fields": {
+                "select": "lsp6_controller",
+                "select_aggregate": "lsp6_controller_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "profile_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "controllerProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "controller_address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "chillwhales_nfts",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "chillwhales_nft",
+              "custom_root_fields": {
+                "select": "chillwhales_nft",
+                "select_aggregate": "chillwhales_nft_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "nft",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "data_values",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "data_value",
+              "custom_root_fields": {
+                "select": "data_value",
+                "select_aggregate": "data_value_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "nft",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "metadata_revisions",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "metadata_revision",
+              "custom_root_fields": {
+                "select": "metadata_revision",
+                "select_aggregate": "metadata_revision_aggregate"
+              }
+            },
+            "object_relationships": [
+              {
+                "name": "universalProfile",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "universal_profiles",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "digitalAsset",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "digital_assets",
+                      "schema": "api"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "nft",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "chain_id": "chain_id",
+                      "address": "address",
+                      "token_id": "token_id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "nfts",
+                      "schema": "api"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "indexed_heads",
+              "schema": "api"
+            },
+            "configuration": {
+              "custom_name": "indexed_head",
+              "custom_root_fields": {
+                "select": "indexed_head",
+                "select_aggregate": "indexed_head_aggregate"
+              }
+            },
+            "select_permissions": [
+              {
+                "role": "public",
+                "permission": {
+                  "columns": "*",
+                  "filter": {},
+                  "allow_aggregations": true,
+                  "query_root_fields": ["select", "select_aggregate"],
+                  "subscription_root_fields": ["select"]
+                }
+              }
+            ]
+          }
+        ],
+        "configuration": {
+          "connection_info": {
+            "database_url": {
+              "from_env": "HASURA_GRAPHQL_V3_DATABASE_URL"
+            },
+            "isolation_level": "read-committed",
+            "pool_settings": {
+              "connection_lifetime": 600,
+              "idle_timeout": 180,
+              "max_connections": 50,
+              "retries": 1
+            },
+            "use_prepared_statements": true
+          }
+        }
+      }
+    ]
+  }
+}

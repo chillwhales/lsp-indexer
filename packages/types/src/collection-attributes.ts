@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { NetworkInputSchema, NetworkRefSchema } from './common';
+
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
@@ -12,19 +14,23 @@ export const CollectionAttributeSchema = z.object({
 });
 
 /** Result containing distinct attributes and total NFT count for a collection. */
-export const CollectionAttributesResultSchema = z.object({
-  attributes: z.array(CollectionAttributeSchema),
-  totalCount: z.number(),
-});
+export const CollectionAttributesResultSchema = z
+  .object({
+    attributes: z.array(CollectionAttributeSchema),
+    totalCount: z.number(),
+  })
+  .extend(NetworkRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Hook parameter schema
 // ---------------------------------------------------------------------------
 
 /** Params for useCollectionAttributes — distinct attributes for a collection address. */
-export const UseCollectionAttributesParamsSchema = z.object({
-  collectionAddress: z.string(),
-});
+export const UseCollectionAttributesParamsSchema = z
+  .object({
+    collectionAddress: z.string(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types

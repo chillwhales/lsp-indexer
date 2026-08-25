@@ -48,12 +48,3 @@ encoded_postgres_password="$(printf '%s' "$POSTGRES_PASSWORD" | sed -e 's/%/%25/
 {{ include "lsp-indexer.encodedPostgresPasswordScript" . }}
 database_url="postgresql://${POSTGRES_USER}:${encoded_postgres_password}@{{ include "lsp-indexer.databaseAddress" . }}"
 {{- end -}}
-
-{{- define "lsp-indexer.hasuraMetadataDefaults" -}}
-{{- $connectorBaseUrl := printf "http://%s-data-connector-agent:8081/api/v1" (include "lsp-indexer.fullname" .) -}}
-{{- $dataconnector := dict -}}
-{{- range $name, $path := .Values.hasura.metadataDefaults.dataConnectors -}}
-{{- $_ := set $dataconnector $name (dict "uri" (printf "%s/%s" $connectorBaseUrl $path)) -}}
-{{- end -}}
-{{- dict "backend_configs" (dict "dataconnector" $dataconnector) | toJson -}}
-{{- end -}}

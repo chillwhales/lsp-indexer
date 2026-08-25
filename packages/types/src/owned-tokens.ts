@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  NetworkInputSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -42,49 +47,52 @@ export const OwnedTokenOwnedAssetIncludeSchema = z.object({
  * LSP8 individual NFT ownership — which specific token an address holds.
  * Renamed from Hasura: `address` → `digitalAssetAddress`, `owner` → `holderAddress`.
  */
-export const OwnedTokenSchema = z.object({
-  /** Unique identifier */
-  id: z.string(),
-  /** Asset contract address (Hasura column: address) */
-  digitalAssetAddress: z.string(),
-  /** Holder address (Hasura column: owner) */
-  holderAddress: z.string(),
-  /** Specific token ID within the collection */
-  tokenId: z.string(),
-  /** Block number when this ownership was last updated (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Related digital asset (null = not included) */
-  digitalAsset: DigitalAssetSchema.nullable(),
-  /** Related NFT details (null = not included) */
-  nft: NftSchema.nullable(),
-  /** Related owned asset (parent fungible ownership record, null = not included) */
-  ownedAsset: OwnedAssetSchema.nullable(),
-  /** Related holder's universal profile details (null = not included in query) */
-  holder: ProfileSchema.nullable(),
-});
+export const OwnedTokenSchema = z
+  .object({
+    /** Unique identifier */
+    id: z.string(),
+    /** Asset contract address (Hasura column: address) */
+    digitalAssetAddress: z.string(),
+    /** Holder address (Hasura column: owner) */
+    holderAddress: z.string(),
+    /** Specific token ID within the collection */
+    tokenId: z.string(),
+    /** Block number when this ownership was last updated (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
+    /** Reserved v2 compatibility field; v3.0 returns `null` */
+    timestamp: z.string().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Related digital asset (null = not included) */
+    digitalAsset: DigitalAssetSchema.nullable(),
+    /** Related NFT details (null = not included) */
+    nft: NftSchema.nullable(),
+    /** Related owned asset (parent fungible ownership record, null = not included) */
+    ownedAsset: OwnedAssetSchema.nullable(),
+    /** Related holder's universal profile details (null = not included in query) */
+    holder: ProfileSchema.nullable(),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
 export const OwnedTokenFilterSchema = z.object({
-  /** Case-insensitive match on holder address (Hasura column: owner) */
+  /** Exact holder address; hexadecimal input is normalized to lowercase */
   holderAddress: z.string().optional(),
-  /** Case-insensitive match on asset contract address (Hasura column: address) */
+  /** Exact asset address; hexadecimal input is normalized to lowercase */
   digitalAssetAddress: z.string().optional(),
-  /** Case-insensitive match on token ID */
+  /** Exact canonical 32-byte token ID */
   tokenId: z.string().optional(),
-  /** Case-insensitive match on the holder's profile name (via universalProfile.lsp3Profile.name) */
+  /** Exact, case-sensitive match on the holder's current profile metadata name */
   holderName: z.string().optional(),
-  /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
+  /** Exact, case-sensitive match on the digital asset name */
   assetName: z.string().optional(),
-  /** Case-insensitive match on the NFT's name (via nft.lsp4Metadata.name or nft.lsp4MetadataBaseUri.name) */
+  /** Exact, case-sensitive match on the current NFT metadata name */
   tokenName: z.string().optional(),
 });
 
@@ -128,38 +136,44 @@ export const OwnedTokenIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Parameters for useOwnedToken — single owned token by unique ID */
-export const UseOwnedTokenParamsSchema = z.object({
-  /** Owned token unique ID */
-  id: z.string(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: OwnedTokenIncludeSchema.optional(),
-});
+export const UseOwnedTokenParamsSchema = z
+  .object({
+    /** Owned token unique ID */
+    id: z.string(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: OwnedTokenIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Parameters for useOwnedTokens — paginated list with filters and sorting */
-export const UseOwnedTokensParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: OwnedTokenFilterSchema.optional(),
-  /** Sort order for results */
-  sort: OwnedTokenSortSchema.optional(),
-  /** Maximum number of owned tokens to return */
-  limit: z.number().optional(),
-  /** Number of owned tokens to skip (for offset-based pagination) */
-  offset: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: OwnedTokenIncludeSchema.optional(),
-});
+export const UseOwnedTokensParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: OwnedTokenFilterSchema.optional(),
+    /** Sort order for results */
+    sort: OwnedTokenSortSchema.optional(),
+    /** Maximum number of owned tokens to return */
+    limit: z.number().optional(),
+    /** Number of owned tokens to skip (for offset-based pagination) */
+    offset: z.number().optional(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: OwnedTokenIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Parameters for useInfiniteOwnedTokens — infinite scroll with filters and sorting */
-export const UseInfiniteOwnedTokensParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: OwnedTokenFilterSchema.optional(),
-  /** Sort order for results */
-  sort: OwnedTokenSortSchema.optional(),
-  /** Number of owned tokens per page (default: 20) */
-  pageSize: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: OwnedTokenIncludeSchema.optional(),
-});
+export const UseInfiniteOwnedTokensParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: OwnedTokenFilterSchema.optional(),
+    /** Sort order for results */
+    sort: OwnedTokenSortSchema.optional(),
+    /** Number of owned tokens per page (default: 20) */
+    pageSize: z.number().optional(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: OwnedTokenIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -339,7 +353,17 @@ export type OwnedTokenResult<I extends OwnedTokenInclude | undefined = undefined
     ? OwnedToken
     : IncludeResult<
         OwnedToken,
-        'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId',
+        | 'id'
+        | 'network'
+        | 'chainId'
+        | 'digitalAssetAddress'
+        | 'holderAddress'
+        | 'tokenId'
+        | 'lastBlockNumber'
+        | 'lastBlockHash'
+        | 'lastTransactionHash'
+        | 'lastTransactionIndex'
+        | 'lastLogIndex',
         OwnedTokenScalarIncludeFieldMap,
         I
       > &
@@ -356,5 +380,15 @@ export type OwnedTokenResult<I extends OwnedTokenInclude | undefined = undefined
  */
 export type PartialOwnedToken = PartialExcept<
   OwnedToken,
-  'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'digitalAssetAddress'
+  | 'holderAddress'
+  | 'tokenId'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
 >;

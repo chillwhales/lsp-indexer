@@ -1,134 +1,112 @@
-# Docker Configuration
+# LSP Indexer v3 with Docker
 
-Docker deployment for LSP Indexer.
+This directory runs only the Pipes-based v3 indexer. The base Compose file starts isolated LUKSO
+and Ethereum indexers, one metadata worker per network, PostgreSQL, Hasura, and the local monitoring
+stack. The production file is a small override, so service topology is maintained in one place.
+Compose v2.24.4 or newer is required for the production file's explicit build-context reset.
 
-## Files
+## Startup order
 
-- **`Dockerfile`** — Multi-stage optimized build (~400MB)
-- **`docker-compose.yml`** — Development orchestration (builds from source)
-- **`docker-compose.prod.yml`** — Production orchestration with released Docker image
-- **`.env.prod.example`** — Production environment template
-- **`manage.sh`** — Management script (35+ commands)
-- **`entrypoint.sh`** — Container entrypoint (migrations + Hasura config + start)
+1. PostgreSQL becomes healthy.
+2. `database-logins` creates or updates the enabled networks' unprivileged runtime logins and the
+   read-only API login.
+3. `migration` creates the v3 schemas, generated writer/reader roles, and API views, then grants each
+   login only its intended role.
+4. The two indexers and two metadata workers start independently.
+5. Hasura starts with its metadata database login and the read-only v3 data-source login.
+6. `hasura-apply` applies deterministic metadata and rejects inconsistencies.
 
-## Features
+The login, migration, and Hasura-apply containers are expected to finish with exit code zero. A
+bounded local indexer also exits zero at its configured final block and is not restarted; production
+uses `unless-stopped` for its unbounded indexers. `manage.sh health` treats a successful bounded exit
+as complete rather than unhealthy.
 
-- Multi-stage build with layer caching
-- Dual logging (Docker stdout + pino JSON)
-- Health monitoring (postgres + indexer process)
-- Auto-restart policies
-- Resource limits (4GB indexer, 2GB postgres)
-- Persistent volumes (database + logs)
-- Non-root user for security
-- Production-ready defaults
-
-## Quick Start
+## Local stack
 
 ```bash
+cp .env.example .env
+
+# For a short local run, set bounded ranges in .env first.
+# INDEXER_TO_BLOCK_LUKSO_MAINNET=100
+# INDEXER_TO_BLOCK_ETHEREUM_MAINNET=100
+
 cd docker
-
-# Setup
-cp ../.env.example ../.env
-nano ../.env  # Configure RPC_URL
-
-# Start
+./manage.sh config
 ./manage.sh start
-
-# Monitor
-./manage.sh logs indexer all
-
-# Export logs
-./manage.sh logs-export ./logs
+./manage.sh status
+./manage.sh logs indexer-lukso
 ```
 
-## Production Deployment
+Hasura is exposed on port `8080`, Grafana on `3000`, and PostgreSQL only on
+`127.0.0.1:5432` by default.
 
-The production compose file uses the pre-built Docker image from GitHub Container Registry instead of building from source.
-
-### Setup
+## Production override
 
 ```bash
+cp .env.example .env.prod
+# Fill every production-required value, use URL-safe random passwords, pin
+# INDEXER_VERSION to an immutable sha-* image, and configure private RPCs.
+# Production deliberately removes local INDEXER_TO_BLOCK bounds.
+
 cd docker
-
-# Copy and configure production environment
-cp .env.prod.example ../.env.prod
-nano ../.env.prod  # Set REQUIRED: POSTGRES_PASSWORD, HASURA_GRAPHQL_ADMIN_SECRET, RPC_URL
-
-# Start production stack
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
-
-# Monitor logs
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs -f indexer
-
-# Stop
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
+./manage.sh --production config
+./manage.sh --production start
+./manage.sh --production health
 ```
 
-### Production vs Development
+The equivalent direct command is:
 
-| Aspect          | Development                                    | Production                                      |
-| --------------- | ---------------------------------------------- | ----------------------------------------------- |
-| Indexer         | Built from source                              | `ghcr.io/chillwhales/lsp-indexer:latest`        |
-| PostgreSQL port | Exposed (5432)                                 | Not exposed                                     |
-| Hasura console  | Enabled                                        | Disabled                                        |
-| Hasura dev mode | Enabled                                        | Disabled                                        |
-| Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus  |
-| Secrets         | Optional defaults                              | Required (no defaults, including Grafana admin) |
+```bash
+docker compose \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.prod.yml \
+  --env-file .env.prod \
+  up -d
+```
+
+The override disables local builds, requires every enabled-network secret and both production RPC
+endpoints, disables the Hasura console/dev mode and Grafana anonymous access, and requires an
+immutable operator-selected image tag. Database login provisioning stops on its first SQL error so
+an incomplete role or password rotation cannot be reported as successful.
+
+For Kubernetes production, the Helm chart is the reference deployment because it also provides
+CloudNativePG replication, scheduled object-store backups, PodDisruptionBudgets, NetworkPolicies,
+ServiceMonitor discovery, PrometheusRule alerts, and Argo CD ordering.
 
 ## Monitoring
 
-The production compose includes a full monitoring stack (Grafana, Loki, Alloy, cAdvisor, Prometheus). Dashboards are available at `GRAFANA_PORT` (default 3000) with anonymous read-only access enabled. Admin login (default `admin`/`admin`) is required for editing dashboards — change the password via `GRAFANA_ADMIN_PASSWORD` in your `.env.prod`.
+Grafana provisions the shared v3 dashboard from `charts/lsp-indexer/dashboards/v3-overview.json`.
+Alloy scrapes both indexer and metadata metrics endpoints and forwards them to Prometheus. The local
+Prometheus evaluates `prometheus/alerts.yml`; connect an Alertmanager in the target environment to
+route notifications. Alloy also forwards container logs to Loki.
 
-Logs from all containers are collected by Grafana Alloy and stored in Loki (14-day retention). Container metrics (CPU, memory, network, disk I/O) are scraped from cAdvisor and pushed to Prometheus.
+Important signals include committed block lag, committed head/cursor drift, database availability,
+missing committed heads, active Pipes source, fallback switches, throughput, and metadata backlog
+age.
 
-## Management Commands
+## Backups and restore
 
-```bash
-./manage.sh help              # See all commands
-
-# Service management
-./manage.sh start             # Start services
-./manage.sh stop              # Stop services
-./manage.sh restart           # Restart services
-./manage.sh status            # Check status
-./manage.sh health            # Run health checks
-
-# Logs
-./manage.sh logs              # View logs
-./manage.sh logs-export ./dir # Export to directory
-./manage.sh logs-cleanup 7    # Remove >7 days old
-
-# Database
-./manage.sh db                # Open psql
-./manage.sh db-dump           # Backup
-./manage.sh db-restore file   # Restore
-
-# System
-./manage.sh stats             # Resource usage
-./manage.sh env               # Show environment
-./manage.sh shell             # Open shell
-```
-
-## Documentation
-
-See [../docs/docker/](../docs/docker/):
-
-- [QUICKSTART.md](../docs/docker/QUICKSTART.md) — Get started in 5 minutes
-- [REFERENCE.md](../docs/docker/REFERENCE.md) — Complete guide
-- [ARCHITECTURE.md](../docs/docker/ARCHITECTURE.md) — Design overview
-
-## Environment Configuration
-
-Uses `.env` file from repository root.
+Create a manual custom-format backup:
 
 ```bash
-# Copy template
-cp .env.example .env
-
-# Configure (REQUIRED)
-nano .env
-# Set: RPC_URL=https://your-rpc-endpoint.io
-
-# Optional: Customize other settings
-# See .env.example for all options
+./manage.sh db-dump ./v3-backup.dump
 ```
+
+The Docker stack does not claim scheduled-backup durability. Production operators must schedule and
+test PostgreSQL backups externally, or use the chart's CloudNativePG `ScheduledBackup`. Follow
+`.github/runbooks/v3-recovery.md` for restore and replay validation. Never treat an untested backup as
+a passing recovery gate.
+
+## Files
+
+- `Dockerfile` — reproducible Node 22/pnpm 10 v3-only image
+- `docker-compose.yml` — shared two-network topology
+- `docker-compose.prod.yml` — production-only requirements and image override
+- `entrypoint.sh` — explicit v3 runtime and acceptance commands
+- `postgres/init-v3-logins.sh` — idempotent login provisioning
+- `alloy/`, `prometheus/`, `loki/`, `grafana/` — local observability
+- `manage.sh` — small wrapper around the two Compose modes
+
+See [the public Docker quickstart](../docs/docker/QUICKSTART.md),
+[the reference](../docs/docker/REFERENCE.md), and
+[the v3 deployment runbook](../.github/runbooks/v3-deployment.md).

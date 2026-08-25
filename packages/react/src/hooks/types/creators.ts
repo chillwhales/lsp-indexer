@@ -29,6 +29,8 @@ export type UseInfiniteCreatorsReturn<F> = {
  * - Widest   → `onData(data: PartialCreator[])`
  */
 export interface UseCreatorSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all creators) */
   filter?: CreatorFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

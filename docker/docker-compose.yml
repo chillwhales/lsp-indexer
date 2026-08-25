@@ -1,51 +1,69 @@
-# ==============================================================================
-# Docker Compose for indexer — Fully Unattended Operation
-# ==============================================================================
-#
-# Features:
-# - Multi-stage build with layer caching for fast rebuilds
-# - PostgreSQL with persistent volume
-# - Hasura GraphQL API (automatically configured on startup)
-# - Grafana monitoring (dashboards, logs, metrics)
-# - Comprehensive logging (both file and stdout)
-# - Health checks for all services
-# - Auto-restart policies
-# - Proper service dependencies and startup ordering
-#
-# Usage:
-#   cd docker
-#   docker compose --env-file ../.env up -d
-#   docker compose --env-file ../.env logs -f indexer
-#   docker compose --env-file ../.env down
-#
-# Environment:
-#   Copy ../.env.example to ../.env and configure before running
-#   The .env file MUST be in the repository root (../.env)
-#
-# ==============================================================================
+# Local v3 stack. Production adds docker-compose.prod.yml as an override.
+
+x-v3-image: &v3-image
+  image: lsp-indexer-v3:local
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+
+x-indexer-source-runtime: &indexer-source-runtime
+  NODE_ENV: production
+  INDEXER_SOURCE_RETRIES: ${INDEXER_SOURCE_RETRIES:-2}
+  INDEXER_SOURCE_STALL_TIMEOUT_MS: ${INDEXER_SOURCE_STALL_TIMEOUT_MS:-30000}
+  INDEXER_SOURCE_MAX_LAG_BLOCKS: ${INDEXER_SOURCE_MAX_LAG_BLOCKS:-10}
+  INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS: ${INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS:-300000}
+
+x-database-runtime: &database-runtime
+  NODE_ENV: production
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+  DATABASE_CONNECTION_TIMEOUT_MS: ${DATABASE_CONNECTION_TIMEOUT_MS:-10000}
+  DATABASE_IDLE_TIMEOUT_MS: ${DATABASE_IDLE_TIMEOUT_MS:-30000}
+  DATABASE_STATEMENT_TIMEOUT_MS: ${DATABASE_STATEMENT_TIMEOUT_MS:-60000}
+  DATABASE_LOCK_TIMEOUT_MS: ${DATABASE_LOCK_TIMEOUT_MS:-10000}
+  DATABASE_IDLE_TRANSACTION_TIMEOUT_MS: ${DATABASE_IDLE_TRANSACTION_TIMEOUT_MS:-60000}
+  DATABASE_UNFINALIZED_BLOCKS_RETENTION: ${DATABASE_UNFINALIZED_BLOCKS_RETENTION:-1000}
+
+x-metadata-runtime: &metadata-runtime
+  METADATA_CONCURRENCY: ${METADATA_CONCURRENCY:-8}
+  METADATA_POLL_INTERVAL_MS: ${METADATA_POLL_INTERVAL_MS:-1000}
+  METADATA_REQUEST_TIMEOUT_MS: ${METADATA_REQUEST_TIMEOUT_MS:-15000}
+  METADATA_MAX_RESPONSE_BYTES: ${METADATA_MAX_RESPONSE_BYTES:-2097152}
+  METADATA_MAX_REDIRECTS: ${METADATA_MAX_REDIRECTS:-3}
+  METADATA_MAX_ATTEMPTS: ${METADATA_MAX_ATTEMPTS:-6}
+  METADATA_RETRY_BASE_MS: ${METADATA_RETRY_BASE_MS:-5000}
+  METADATA_RETRY_MAX_MS: ${METADATA_RETRY_MAX_MS:-1800000}
+  METADATA_LEASE_TIMEOUT_MS: ${METADATA_LEASE_TIMEOUT_MS:-300000}
+  METADATA_ALLOW_HTTP: ${METADATA_ALLOW_HTTP:-false}
+
+x-runtime-dependencies: &runtime-dependencies
+  migration:
+    condition: service_completed_successfully
+
+x-v3-healthcheck: &v3-healthcheck
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
+x-v3-logging: &v3-logging
+  driver: json-file
+  options:
+    max-size: 100m
+    max-file: '10'
+    compress: 'true'
 
 services:
-  # ----------------------------------------------------------------------------
-  # PostgreSQL Database
-  # ----------------------------------------------------------------------------
   postgres:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-postgres
     image: postgres:17-alpine
     restart: unless-stopped
-
-    # Health check to ensure DB is ready before starting indexer
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 12
       start_period: 10s
-
-    # Persistent volume for database data
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
-    # PostgreSQL tuning for high-write workload (blockchain indexing)
     command:
       - postgres
       - -c
@@ -55,408 +73,265 @@ services:
       - -c
       - checkpoint_timeout=15min
       - -c
-      - work_mem=64MB
+      - work_mem=32MB
       - -c
       - log_min_duration_statement=500
-
-    # Database credentials from .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
-
-    # Expose port for external tools (optional)
+      POSTGRES_DB: ${POSTGRES_DB:-lsp_indexer_v3}
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - 127.0.0.1:${POSTGRES_PORT:-5432}:5432
+    logging: *v3-logging
 
-    # Resource limits (adjust based on your server)
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 512M
-
-  # ----------------------------------------------------------------------------
-  # Indexer — LUKSO Blockchain Indexer
-  # ----------------------------------------------------------------------------
-  indexer:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer
-    build:
-      context: ..
-      dockerfile: ./docker/Dockerfile
-      # Cache build stages for fast rebuilds
-      cache_from:
-        - lsp-indexer:latest
-
-    image: lsp-indexer:latest
-    restart: unless-stopped
-
-    # Wait for PostgreSQL to be healthy before starting
-    # Note: Hasura/data-connector start in parallel but indexer doesn't wait
-    # (entrypoint script waits for Hasura to be ready before configuring)
+  database-logins:
+    image: postgres:17-alpine
+    restart: 'no'
     depends_on:
       postgres:
         condition: service_healthy
-
-    # Health check - verify indexer process is running
-    healthcheck:
-      test: ['CMD', 'pgrep', '-f', 'ts-node.*lib/app/index.js']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-    # Mount logs directory for persistent storage
     volumes:
-      - indexer-logs:/app/packages/indexer/logs
-
-    # All environment variables from .env
+      - ./postgres/init-v3-logins.sh:/usr/local/bin/init-v3-logins:ro
+    entrypoint: [/usr/local/bin/init-v3-logins]
     environment:
-      # Database connection
-      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-lsp_indexer_v3}
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET: ${DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET:-lsp_v3_lukso_mainnet}
+      DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET: ${DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET:-lukso-local}
+      DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: ${DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET:-lsp_v3_ethereum_mainnet}
+      DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET: ${DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET:-ethereum-local}
+      DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA: ${DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA:-lsp_v3_ethereum_sepolia}
+      DATABASE_RUNTIME_PASSWORD_ETHEREUM_SEPOLIA: ${DATABASE_RUNTIME_PASSWORD_ETHEREUM_SEPOLIA:-sepolia-local}
+      DATABASE_MIGRATION_NETWORKS: ${DATABASE_MIGRATION_NETWORKS:-lukso-mainnet,ethereum-mainnet}
+      DATABASE_API_LOGIN: ${DATABASE_API_LOGIN:-lsp_v3_hasura}
+      DATABASE_API_PASSWORD: ${DATABASE_API_PASSWORD:-hasura-local}
+    logging: *v3-logging
 
-      # Blockchain data sources
-      SQD_GATEWAY: ${SQD_GATEWAY:-https://v2.archive.subsquid.io/network/lukso-mainnet}
-      SQD_API_KEY: ${SQD_API_KEY:-}
-      RPC_URL: ${RPC_URL:-https://rpc.lukso.sigmacore.io}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
+  migration:
+    <<: *v3-image
+    restart: 'no'
+    command: migrate
+    depends_on:
+      database-logins:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_ADMIN_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+      DATABASE_MIGRATION_NETWORKS: ${DATABASE_MIGRATION_NETWORKS:-lukso-mainnet,ethereum-mainnet}
+      DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET: ${DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET:-lsp_v3_lukso_mainnet}
+      DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: ${DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET:-lsp_v3_ethereum_mainnet}
+      DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA: ${DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA:-lsp_v3_ethereum_sepolia}
+      DATABASE_API_LOGIN: ${DATABASE_API_LOGIN:-lsp_v3_hasura}
+    logging: *v3-logging
 
-      # IPFS & Metadata
-      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
-      FETCH_LIMIT: ${FETCH_LIMIT:-10000}
-      FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
-      FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}
-      METADATA_WORKER_POOL_SIZE: ${METADATA_WORKER_POOL_SIZE:-4}
+  indexer-lukso:
+    <<: *v3-image
+    restart: on-failure
+    command: indexer
+    depends_on: *runtime-dependencies
+    environment:
+      <<: [*indexer-source-runtime, *database-runtime]
+      INDEXER_NETWORK: lukso-mainnet
+      INDEXER_SOURCE_MODE: ${INDEXER_SOURCE_MODE_LUKSO_MAINNET:-fallback}
+      INDEXER_RPC_RATE_LIMIT: ${INDEXER_RPC_RATE_LIMIT_LUKSO_MAINNET:-10}
+      INDEXER_FROM_BLOCK: ${INDEXER_FROM_BLOCK_LUKSO_MAINNET:-0}
+      INDEXER_TO_BLOCK: ${INDEXER_TO_BLOCK_LUKSO_MAINNET:-}
+      INDEXER_METRICS_PORT: 9090
+      SQD_PORTAL_URL: ${SQD_PORTAL_URL_LUKSO_MAINNET:-https://portal.sqd.dev/datasets/lukso-mainnet}
+      RPC_URL_LUKSO_MAINNET: ${RPC_URL_LUKSO_MAINNET:-https://rpc.mainnet.lukso.network}
+      DATABASE_URL: postgresql://${DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET:-lsp_v3_lukso_mainnet}:${DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET:-lukso-local}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+    healthcheck:
+      <<: *v3-healthcheck
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:9090/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+    logging: *v3-logging
 
-      # Logging
-      NODE_ENV: ${NODE_ENV:-production}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_DIR: /app/packages/indexer/logs
-      INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
+  metadata-lukso:
+    <<: *v3-image
+    restart: unless-stopped
+    command: metadata
+    depends_on: *runtime-dependencies
+    environment:
+      <<: [*database-runtime, *metadata-runtime]
+      INDEXER_NETWORK: lukso-mainnet
+      METADATA_METRICS_PORT: 9091
+      METADATA_IPFS_GATEWAYS: ${METADATA_IPFS_GATEWAYS_LUKSO_MAINNET:-https://api.universalprofile.cloud/ipfs/}
+      DATABASE_URL: postgresql://${DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET:-lsp_v3_lukso_mainnet}:${DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET:-lukso-local}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+    healthcheck:
+      <<: *v3-healthcheck
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:9091/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+    logging: *v3-logging
 
-      # Hasura configuration (for entrypoint script)
-      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+  indexer-ethereum:
+    <<: *v3-image
+    restart: on-failure
+    command: indexer
+    depends_on: *runtime-dependencies
+    environment:
+      <<: [*indexer-source-runtime, *database-runtime]
+      INDEXER_NETWORK: ethereum-mainnet
+      INDEXER_SOURCE_MODE: ${INDEXER_SOURCE_MODE_ETHEREUM_MAINNET:-fallback}
+      INDEXER_RPC_RATE_LIMIT: ${INDEXER_RPC_RATE_LIMIT_ETHEREUM_MAINNET:-10}
+      INDEXER_FROM_BLOCK: ${INDEXER_FROM_BLOCK_ETHEREUM_MAINNET:-0}
+      INDEXER_TO_BLOCK: ${INDEXER_TO_BLOCK_ETHEREUM_MAINNET:-}
+      INDEXER_METRICS_PORT: 9090
+      SQD_PORTAL_URL: ${SQD_PORTAL_URL_ETHEREUM_MAINNET:-https://portal.sqd.dev/datasets/ethereum-mainnet}
+      RPC_URL_ETHEREUM_MAINNET: ${RPC_URL_ETHEREUM_MAINNET:-https://ethereum-rpc.publicnode.com}
+      DATABASE_URL: postgresql://${DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET:-lsp_v3_ethereum_mainnet}:${DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET:-ethereum-local}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+    healthcheck:
+      <<: *v3-healthcheck
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:9090/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+    logging: *v3-logging
 
-    # Logging configuration for Docker
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '100m'
-        max-file: '10'
-        compress: 'true'
+  metadata-ethereum:
+    <<: *v3-image
+    restart: unless-stopped
+    command: metadata
+    depends_on: *runtime-dependencies
+    environment:
+      <<: [*database-runtime, *metadata-runtime]
+      INDEXER_NETWORK: ethereum-mainnet
+      METADATA_METRICS_PORT: 9091
+      METADATA_IPFS_GATEWAYS: ${METADATA_IPFS_GATEWAYS_ETHEREUM_MAINNET:-https://ipfs.io/ipfs/}
+      DATABASE_URL: postgresql://${DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET:-lsp_v3_ethereum_mainnet}:${DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET:-ethereum-local}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+    healthcheck:
+      <<: *v3-healthcheck
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:9091/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+    logging: *v3-logging
 
-    # Resource limits (adjust based on your server)
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 1G
-
-  # ----------------------------------------------------------------------------
-  # Hasura GraphQL Engine
-  # Automatically configured on startup with all tables and relationships
-  # ----------------------------------------------------------------------------
   hasura:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-hasura
     image: hasura/graphql-engine:v2.46.0
     restart: unless-stopped
-
     depends_on:
-      postgres:
-        condition: service_healthy
-      data-connector-agent:
-        condition: service_healthy
-
+      migration:
+        condition: service_completed_successfully
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
+      test: [CMD, curl, -f, http://localhost:8080/healthz]
       interval: 5s
       timeout: 10s
-      retries: 5
-      start_period: 5s
-
+      retries: 12
+      start_period: 10s
     ports:
-      - '${HASURA_GRAPHQL_PORT:-8080}:8080'
-
+      - ${HASURA_GRAPHQL_PORT:-8080}:8080
     environment:
-      PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+      HASURA_GRAPHQL_V3_DATABASE_URL: postgresql://${DATABASE_API_LOGIN:-lsp_v3_hasura}:${DATABASE_API_PASSWORD:-hasura-local}@postgres:5432/${POSTGRES_DB:-lsp_indexer_v3}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-hasura-local}
       HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}
       HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-true}
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}
-      HASURA_GRAPHQL_METADATA_DEFAULTS: ${HASURA_GRAPHQL_METADATA_DEFAULTS:-{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}}
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-public}
+      HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
-
-  # ----------------------------------------------------------------------------
-  # Hasura Data Connector Agent
-  # Required dependency for Hasura GraphQL Engine
-  # ----------------------------------------------------------------------------
-  data-connector-agent:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-data-connector-agent
-    image: hasura/graphql-data-connector:v2.46.0
-    restart: unless-stopped
-
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
-      interval: 5s
-      timeout: 10s
-      retries: 5
-      start_period: 5s
-
+  hasura-apply:
+    <<: *v3-image
+    restart: 'no'
+    command: hasura-apply
+    depends_on:
+      hasura:
+        condition: service_healthy
     environment:
-      QUARKUS_LOG_LEVEL: ERROR
-      QUARKUS_OPENTELEMETRY_ENABLED: 'false'
+      HASURA_GRAPHQL_ENDPOINT: http://hasura:8080
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-hasura-local}
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-  # ----------------------------------------------------------------------------
-  # Loki — Log Aggregation
-  # Receives logs from Alloy and stores them on local filesystem
-  # ----------------------------------------------------------------------------
   loki:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-loki
     image: grafana/loki:3.4
     restart: unless-stopped
-
     command: -config.file=/etc/loki/config.yaml
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:3100/ready || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
     volumes:
       - loki-data:/loki
       - ./loki/config.yaml:/etc/loki/config.yaml:ro
+    logging: *v3-logging
 
-    # 1GB limit — Loki needs headroom for concurrent LogQL queries with JSON
-    # parsing and unwrap aggregations from the Grafana dashboard (20+ panels,
-    # 30s refresh).  512MB caused intermittent OOM kills → "No data" panels.
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
-
-  # ----------------------------------------------------------------------------
-  # Prometheus — Metrics Storage
-  # Receives metrics from Alloy via remote write
-  # ----------------------------------------------------------------------------
   prometheus:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-prometheus
     image: prom/prometheus:v3.2.0
     restart: unless-stopped
-
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-remote-write-receiver
       - --storage.tsdb.retention.time=14d
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:9090/-/healthy || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
     volumes:
       - prometheus-data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-  # ----------------------------------------------------------------------------
-  # Grafana Alloy — Unified Log & Metric Collector
-  # Collects Docker logs → Loki, scrapes cAdvisor metrics → Prometheus
-  # ----------------------------------------------------------------------------
   alloy:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-alloy
     image: grafana/alloy:v1.14.0
     restart: unless-stopped
-
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
-
     depends_on:
-      loki:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:12345/-/healthy || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
+      - loki
+      - prometheus
+      - indexer-lukso
+      - metadata-lukso
+      - indexer-ethereum
+      - metadata-ethereum
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 64M
-
-  # ----------------------------------------------------------------------------
-  # cAdvisor — Container Resource Metrics
-  # Provides per-container CPU, memory, network, and disk I/O metrics
-  # ----------------------------------------------------------------------------
   cadvisor:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-cadvisor
     image: gcr.io/cadvisor/cadvisor:v0.51.0
     restart: unless-stopped
     privileged: true
-
     command: --housekeeping_interval=30s --docker_only=true
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:8080/healthz || exit 1',
-        ]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 64M
-
-  # ----------------------------------------------------------------------------
-  # Grafana — Dashboard & Visualization
-  # Pre-provisioned with Loki and Prometheus datasources + dashboard JSON files
-  # ----------------------------------------------------------------------------
   grafana:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-grafana
     image: grafana/grafana:11.4.0
     restart: unless-stopped
-
     depends_on:
-      loki:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:3000/api/health || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
+      - loki
+      - prometheus
     ports:
-      - '${GRAFANA_PORT:-3000}:3000'
-
+      - ${GRAFANA_PORT:-3000}:3000
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
-
+      - ../charts/lsp-indexer/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: 'true'
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    logging: *v3-logging
 
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-# ==============================================================================
-# Persistent Volumes
-# ==============================================================================
 volumes:
-  # PostgreSQL data — persists across container restarts
   postgres-data:
-    driver: local
-    # Optional: use a specific host path instead of Docker volume
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ${POSTGRES_VOLUME_PATH:-./data/postgres}
-
-  # Indexer logs — accessible from host for analysis
-  indexer-logs:
-    driver: local
-    # Optional: use a specific host path for easier access
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ${LOG_DIR:-./logs}
-
-  # Grafana dashboard data — operator edits persist across restarts
   grafana-data:
-    driver: local
-
-  # Loki log data — stores collected container logs
   loki-data:
-    driver: local
-
-  # Prometheus metric data — stores scraped time-series metrics
   prometheus-data:
-    driver: local
-# ==============================================================================
-# Networks (optional)
-# ==============================================================================
-# Uncomment to create a custom network for service isolation
-# networks:
-#   lsp-indexer-net:
-#     driver: bridge

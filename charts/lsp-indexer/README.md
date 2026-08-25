@@ -1,78 +1,74 @@
-# lsp-indexer Helm chart
+# LSP Indexer v3 Helm chart
 
-Umbrella chart for running the LSP Indexer on Kubernetes.
+This chart deploys the from-scratch, multi-chain v3 stack. It does not run the legacy Squid or
+TypeORM indexer.
 
 ## Deployment contract
 
-- Docs app is served at `https://indexer.chillwhales.dev/`.
-- Hasura stays internal except for the exact public GraphQL route
-  `https://indexer.chillwhales.dev/v1/graphql`.
-- The `/v1/graphql` ingress uses a prefix path that routes to Hasura's native
-  `/v1/graphql` endpoint before the docs catch-all route.
-- Hasura console, metadata, and health endpoints are not exposed through ingress.
-- Runtime secrets are supplied by existing Kubernetes Secrets, usually sealed in
-  the GitOps repository.
-- Production image tags must be overridden by the cluster values overlay. The
-  default `sha-operator-required` tag is a sentinel, not a deployable release.
+- One `Recreate` indexer Deployment and one `Recreate` metadata-worker Deployment are rendered for
+  every enabled network. Stable Pipes IDs come from the chain ID, never the pod name.
+- Every network gets a distinct PostgreSQL login, database URL, RPC URL, physical chain schema,
+  metrics Service, and failure boundary.
+- A revision-named Job applies the idempotent Drizzle migrations for all enabled networks. Runtime
+  init containers wait for its schema/role boundary before starting. Completed migration Jobs are
+  retained for one day for evidence and then removed by the Kubernetes TTL controller. The revision
+  hashes the chart version and every value that affects the immutable Job pod template, including
+  image-pull Secrets and database Secret keys, so an upgrade creates a new Job instead of attempting
+  an invalid in-place patch.
+- Hasura uses the CNPG owner only for its metadata database. Its `v3` data source uses the separate,
+  read-only URL in `HASURA_GRAPHQL_V3_DATABASE_URL`.
+- A post-install/post-upgrade Job first proves every enabled network schema and runtime-role boundary
+  is migrated, then waits for Hasura, replaces only the generated `v3` source, and rejects
+  inconsistent metadata. This database gate also protects plain Helm installs that omit `--wait`.
+- Docs are served at the configured ingress root. Only `/v1/graphql` is routed to Hasura; the
+  console, metadata API, and health endpoint remain internal.
+- The default `sha-operator-required` image tags are sentinels. A deployment overlay must select
+  reviewed immutable image tags.
+- Indexer Deployments are unbounded services. Run a finite parity replay through the CLI or local
+  Compose stack; setting `INDEXER_TO_BLOCK` in a Deployment would restart completed work forever.
+- An HTTP startup probe allows up to three minutes for Portal/RPC, contract, and database preflight.
+  Readiness and liveness do not begin until the post-preflight metrics listener is available.
 
-## Required Secrets
+The runtime containers are non-root, do not receive service-account tokens, drop Linux
+capabilities, and use read-only root filesystems. The default egress policy permits cluster DNS,
+the release's CNPG pods, and public HTTP(S), while excluding private and reserved IPv4 ranges. Add
+`networkPolicy.additionalEgress` rules for an approved external database or private RPC, Portal, or
+IPFS endpoint. Metadata workers receive only their network database credential; RPC credentials are
+mounted into the corresponding indexer alone.
 
-`secrets.existingSecret` is read by the indexer and Hasura:
+## Required Secrets and logins
 
-| Key | Purpose |
-| --- | --- |
-| `HASURA_GRAPHQL_ADMIN_SECRET` | Hasura admin secret used by Hasura and the indexer entrypoint |
-| `RPC_URL` | LUKSO RPC endpoint consumed by the indexer |
-| `SQD_API_KEY` | Optional SQD legacy gateway API key consumed by the indexer when `secrets.keys.sqdApiKey` is set |
+`secrets.existingSecret` must already contain full URLs and source credentials:
 
-`cnpg.bootstrap.secretName` is an existing `kubernetes.io/basic-auth` Secret
-used by CloudNativePG during `initdb`. By default, Hasura and the indexer also
-read the username and password keys specified by `postgres.passwordSecret` from
-this Secret for their database URLs so runtime credentials cannot drift from the
-database owner credentials. It must contain:
+| Default key                      | Consumer                    | Purpose                          |
+| -------------------------------- | --------------------------- | -------------------------------- |
+| `HASURA_GRAPHQL_ADMIN_SECRET`    | Hasura and metadata hook    | One-shot Hasura administration   |
+| `DATABASE_ADMIN_URL`             | Migration hook              | One-shot migration administrator |
+| `HASURA_GRAPHQL_V3_DATABASE_URL` | Hasura                      | Read-only v3 API login           |
+| `DATABASE_URL_LUKSO_MAINNET`     | LUKSO indexer and worker    | LUKSO-only writer login          |
+| `DATABASE_URL_ETHEREUM_MAINNET`  | Ethereum indexer and worker | Ethereum-only writer login       |
+| `DATABASE_URL_ETHEREUM_SEPOLIA`  | Optional Sepolia processes  | Sepolia-only writer login        |
+| `RPC_URL_LUKSO_MAINNET`          | LUKSO indexer               | Validated LUKSO RPC endpoint     |
+| `RPC_URL_ETHEREUM_MAINNET`       | Ethereum indexer            | Validated Ethereum RPC endpoint  |
+| `RPC_URL_ETHEREUM_SEPOLIA`       | Optional Sepolia indexer    | Validated Sepolia RPC endpoint   |
 
-| Key | Purpose |
-| --- | --- |
-| `username` | Database owner username; must match `cnpg.bootstrap.owner` |
-| `password` | Database owner password |
+Provision the login names in `indexer.networks[*].runtimeLogin` and
+`indexer.migration.apiLogin` before the migration hook runs. The migrator does not create login
+credentials. It grants each existing runtime login only its network writer role and grants the API
+login only the non-login read role. The full URLs above must use those same logins; never place the
+migration administrator in a long-running runtime Secret.
 
-The rendered deployments read credentials from Secrets at pod startup and
-percent-encode `POSTGRES_PASSWORD` before constructing database URLs. Generated
-passwords may contain URL-reserved characters such as `+`, `/`, and `=`.
+`cnpg.bootstrap.secretName` is a separate `kubernetes.io/basic-auth` Secret used to create the CNPG
+database owner. Its `username` must match `cnpg.bootstrap.owner`. Hasura constructs only its metadata
+database URL from this Secret.
 
-The chart defaults to a dedicated `lsp_indexer` database and owner rather than
-the PostgreSQL superuser role. When backups are enabled, CNPG reads the S3 access
-key from `cnpg.backup.accessKeyIdKey` and the S3 secret key from
-`cnpg.backup.secretAccessKeyKey`; these default to `ACCESS_KEY_ID` and
-`SECRET_ACCESS_KEY`. Set `cnpg.backup.secretAccessKeyKey` in the values overlay
-when a cluster uses a different Secret key name.
+When object-store backups are enabled, `cnpg.backup.existingSecret` contains the keys selected by
+`accessKeyIdKey` and `secretAccessKeyKey`. The optional Reflector shell copies that Secret from the
+configured infrastructure namespace. Under Argo CD, the reflected Secret is submitted in sync wave
+`-3`, before the CNPG Cluster in wave `-2`, so the referenced credential object exists before CNPG
+starts its instances.
 
-Set `cnpg.walStorage.enabled=true` to provision a dedicated CNPG WAL volume.
-This keeps WAL growth isolated from the main PGDATA volume and follows CNPG's
-native `spec.walStorage` behavior.
-
-When `cnpg.backup.reflector.enabled=true`, the chart creates an empty Secret
-shell named by `cnpg.backup.existingSecret` in the release namespace. Emberstack
-Reflector copies the sensitive S3 keys from
-`<cnpg.backup.reflector.sourceNamespace>/<cnpg.backup.existingSecret>` into that
-shell before CNPG reads it.
-
-## Images
-
-The repository publishes two images through the `Build images` workflow:
-
-- `ghcr.io/chillwhales/lsp-indexer:sha-<short>`
-- `ghcr.io/chillwhales/lsp-indexer-docs:sha-<short>`
-
-The docs image currently bakes these public build-time variables:
-
-- `NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/v1/graphql`
-- `NEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/v1/graphql`
-
-If preview environments need per-PR hosts later, move the docs app to runtime
-public configuration before adding an ApplicationSet.
-
-## Minimal values overlay
+## Production overlay
 
 ```yaml
 global:
@@ -82,27 +78,80 @@ global:
 indexer:
   image:
     tag: sha-abcdef0
+  networks:
+    - key: lukso-mainnet
+      enabled: true
+      runtimeLogin: lsp_v3_lukso_mainnet
+      databaseSecretKey: DATABASE_URL_LUKSO_MAINNET
+      rpcSecretKey: RPC_URL_LUKSO_MAINNET
+      portalUrl: https://portal.sqd.dev/datasets/lukso-mainnet
+      sourceMode: fallback
+      rpcRateLimit: 10
+      fromBlock: '0'
+      metricsPort: 9090
+      metadataMetricsPort: 9091
+      ipfsGateways: https://api.universalprofile.cloud/ipfs/
+    - key: ethereum-mainnet
+      enabled: true
+      runtimeLogin: lsp_v3_ethereum_mainnet
+      databaseSecretKey: DATABASE_URL_ETHEREUM_MAINNET
+      rpcSecretKey: RPC_URL_ETHEREUM_MAINNET
+      portalUrl: https://portal.sqd.dev/datasets/ethereum-mainnet
+      sourceMode: fallback
+      rpcRateLimit: 10
+      fromBlock: '0'
+      metricsPort: 9090
+      metadataMetricsPort: 9091
+      ipfsGateways: https://ipfs.io/ipfs/
+
+hasura:
+  replicaCount: 2
 
 docs:
   image:
     tag: sha-abcdef0
 
-secrets:
-  existingSecret: lsp-indexer-secrets
-  keys:
-    sqdApiKey: SQD_API_KEY
-
 cnpg:
-  bootstrap:
-    secretName: lsp-indexer-db
-  walStorage:
-    enabled: true
-    size: 10Gi
+  instances: 2
   backup:
     enabled: true
+    schedule: '0 0 2 * * *'
+    retentionPolicy: 30d
     existingSecret: cnpg-minio-credentials
-    destinationPath: s3://cnpg-backups/lsp-indexer
+    destinationPath: s3://cnpg-backups/lsp-indexer-v3
     reflector:
       enabled: true
       sourceNamespace: infrastructure
+
+monitoring:
+  enabled: true
 ```
+
+Replace the network list as one complete value in overlays; Helm arrays do not merge by `key`.
+
+## Observability
+
+With `monitoring.enabled=true`, the chart creates a ServiceMonitor, alerts, and the
+`LSP Indexer v3` Grafana dashboard. Alerts cover process/database availability, committed-head
+absence and lag, cursor drift, all-source stalls, source flapping, and old metadata work. Runtime gauges read
+the committed PostgreSQL indexed head and Pipes cursor, so a processed-but-uncommitted batch never
+looks healthy. The dashboard shows both committed and diagnostic processed throughput plus
+per-process resident memory and CPU for every indexer and metadata worker. It expects the Prometheus
+Grafana datasource UID to be `prometheus`. ServiceMonitor relabeling stamps the Helm release and
+Kubernetes namespace onto every sample; each chart rule selects those labels, so a healthy shadow
+release cannot hide a missing target in another release. Source-switch alerts use counter-aware
+`increase()` arithmetic across pod restarts.
+
+The Prometheus Operator CRDs must exist before enabling monitoring. CNPG and ScheduledBackup CRDs
+must exist before enabling their resources.
+
+## Backups and rollout safety
+
+`cnpg.backup.enabled=true` configures both the object store on the Cluster and a CNPG
+`ScheduledBackup`. Backups are not accepted until an operator restores one into an isolated cluster,
+checks the catalog, starts an indexer from the restored cursor, and records the exercise.
+
+Use the repository runbooks for deployment, [backup/recovery](../../.github/runbooks/v3-recovery.md),
+[shadow acceptance](../../.github/runbooks/v3-acceptance.md), and
+[cutover/rollback](../../.github/runbooks/v3-cutover.md). Never delete v2 state or merge the
+integration PR as part of a Helm release.

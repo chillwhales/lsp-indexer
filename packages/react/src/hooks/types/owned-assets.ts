@@ -35,6 +35,8 @@ export type UseInfiniteOwnedAssetsReturn<F> = {
  * - Widest   → `onData(data: PartialOwnedAsset[])`
  */
 export interface UseOwnedAssetSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all owned assets) */
   filter?: OwnedAssetFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

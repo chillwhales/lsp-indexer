@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { TypeIdNameSchema } from '@chillwhales/lsp1';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import { EventRefSchema, NetworkInputSchema, SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -24,47 +24,53 @@ import {
 // ---------------------------------------------------------------------------
 
 /** LSP1 universalReceiver call — triggered when a UP receives tokens, NFTs, or value. */
-export const UniversalReceiverEventSchema = z.object({
-  /** Receiving contract address — the UP that received the universalReceiver call (always present) */
-  address: z.string(),
-  /** Sender address — who/what triggered the call (always present) */
-  from: z.string(),
-  /** LSP1 type identifier — bytes32 hash identifying the operation type (always present) */
-  typeId: z.string(),
-  /** Resolved human-readable name for known LSP1 type IDs, null if unknown (null = not included or type ID unknown) */
-  typeIdName: z.string().nullable(),
-  /** Raw hex data received in the universalReceiver call (null = not included) */
-  receivedData: z.string().nullable(),
-  /** Raw hex return value from the universalReceiver call (null = not included) */
-  returnedValue: z.string().nullable(),
-  /** Wei value transferred with the call (bigint for uint256 precision, null = not included) */
-  value: z.bigint().nullable(),
-  /** Block number where event was emitted (null = not included) */
-  blockNumber: z.number().nullable(),
-  /** Timestamp when event was indexed (null = not included) */
-  timestamp: z.string().nullable(),
-  /** Log index within the transaction (null = not included) */
-  logIndex: z.number().nullable(),
-  /** Transaction index within the block (null = not included) */
-  transactionIndex: z.number().nullable(),
-  /** Universal Profile of the receiving address (null = not included or address is not a UP) */
-  universalProfile: ProfileSchema.nullable(),
-  /** Universal Profile of the sender address (null = not included or sender is not a UP) */
-  fromProfile: ProfileSchema.nullable(),
-  /** Digital Asset of the sender — the asset being transferred (null = not included or sender is not a DA) */
-  fromAsset: DigitalAssetSchema.nullable(),
-});
+export const UniversalReceiverEventSchema = z
+  .object({
+    id: z.string(),
+    /** Receiving contract address — the UP that received the universalReceiver call (always present) */
+    address: z.string(),
+    /** Sender address — who/what triggered the call (always present) */
+    from: z.string(),
+    /** LSP1 type identifier — bytes32 hash identifying the operation type (always present) */
+    typeId: z.string(),
+    /** Resolved human-readable name for known LSP1 type IDs, null if unknown (null = not included or type ID unknown) */
+    typeIdName: z.string().nullable(),
+    /** Raw hex data received in the universalReceiver call (null = not included) */
+    receivedData: z.string().nullable(),
+    /** Raw hex return value from the universalReceiver call (null = not included) */
+    returnedValue: z.string().nullable(),
+    /** Wei value transferred with the call (bigint for uint256 precision, null = not included) */
+    value: z.bigint().nullable(),
+    /** Block number where event was emitted (null = not included) */
+    blockNumber: z.number().nullable(),
+    /** Timestamp when event was indexed (null = not included) */
+    timestamp: z.string().nullable(),
+    /** Log index within the transaction (null = not included) */
+    logIndex: z.number().nullable(),
+    /** Transaction index within the block (null = not included) */
+    transactionIndex: z.number().nullable(),
+    /** Universal Profile of the receiving address (null = not included or address is not a UP) */
+    universalProfile: ProfileSchema.nullable(),
+    /** Reserved v2 sender relation; v3.0 returns `null` */
+    fromProfile: ProfileSchema.nullable(),
+    /** Reserved v2 sender relation; v3.0 returns `null` */
+    fromAsset: DigitalAssetSchema.nullable(),
+    topic0: z.string(),
+    topics: z.array(z.string()),
+    data: z.string(),
+  })
+  .extend(EventRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const UniversalReceiverEventFilterSchema = z.object({
-  /** Case-insensitive match on receiving contract address (uses _ilike) */
+  /** Exact receiving contract address; hexadecimal input is normalized to lowercase */
   address: z.string().optional(),
-  /** Case-insensitive match on sender address (uses _ilike) */
+  /** Exact sender address; hexadecimal input is normalized to lowercase */
   from: z.string().optional(),
-  /** Case-insensitive match on LSP1 type identifier (uses _ilike) */
+  /** Exact canonical 32-byte LSP1 type identifier */
   typeId: z.string().optional(),
   /** Known LSP1 type ID name (e.g., 'LSP7Tokens_SenderNotification') — resolved to hex at service layer */
   typeIdName: TypeIdNameSchema.optional(),
@@ -76,11 +82,11 @@ export const UniversalReceiverEventFilterSchema = z.object({
   blockNumberFrom: z.number().optional(),
   /** Block number upper bound (inclusive, _lte) */
   blockNumberTo: z.number().optional(),
-  /** Case-insensitive search on receiving UP name (nested: universalProfile.lsp3Profile.name.value._ilike) */
+  /** Exact, case-sensitive match on the receiving profile's current metadata name */
   universalProfileName: z.string().optional(),
-  /** Case-insensitive search on sender UP name (nested: fromProfile.lsp3Profile.name.value._ilike) */
+  /** Reserved compatibility field; v3 rejects this unsupported filter */
   fromProfileName: z.string().optional(),
-  /** Case-insensitive search on sender DA name (nested: fromAsset.lsp4TokenName.value._ilike) */
+  /** Reserved compatibility field; v3 rejects this unsupported filter */
   fromAssetName: z.string().optional(),
 });
 
@@ -138,21 +144,25 @@ export const UniversalReceiverEventIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Params for useUniversalReceiverEvents — paginated list of universal receiver events */
-export const UseUniversalReceiverEventsParamsSchema = z.object({
-  filter: UniversalReceiverEventFilterSchema.optional(),
-  sort: UniversalReceiverEventSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: UniversalReceiverEventIncludeSchema.optional(),
-});
+export const UseUniversalReceiverEventsParamsSchema = z
+  .object({
+    filter: UniversalReceiverEventFilterSchema.optional(),
+    sort: UniversalReceiverEventSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: UniversalReceiverEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteUniversalReceiverEvents — infinite scroll variant */
-export const UseInfiniteUniversalReceiverEventsParamsSchema = z.object({
-  filter: UniversalReceiverEventFilterSchema.optional(),
-  sort: UniversalReceiverEventSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: UniversalReceiverEventIncludeSchema.optional(),
-});
+export const UseInfiniteUniversalReceiverEventsParamsSchema = z
+  .object({
+    filter: UniversalReceiverEventFilterSchema.optional(),
+    sort: UniversalReceiverEventSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: UniversalReceiverEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -257,7 +267,21 @@ export type UniversalReceiverEventResult<
   ? UniversalReceiverEvent
   : IncludeResult<
       UniversalReceiverEvent,
-      'address' | 'from' | 'typeId',
+      | 'id'
+      | 'network'
+      | 'chainId'
+      | 'address'
+      | 'from'
+      | 'typeId'
+      | 'blockNumber'
+      | 'blockHash'
+      | 'timestamp'
+      | 'transactionHash'
+      | 'transactionIndex'
+      | 'logIndex'
+      | 'topic0'
+      | 'topics'
+      | 'data',
       UniversalReceiverEventScalarIncludeFieldMap,
       I
     > &
@@ -271,5 +295,19 @@ export type UniversalReceiverEventResult<
  */
 export type PartialUniversalReceiverEvent = PartialExcept<
   UniversalReceiverEvent,
-  'address' | 'from' | 'typeId'
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'from'
+  | 'typeId'
+  | 'blockNumber'
+  | 'blockHash'
+  | 'timestamp'
+  | 'transactionHash'
+  | 'transactionIndex'
+  | 'logIndex'
+  | 'topic0'
+  | 'topics'
+  | 'data'
 >;

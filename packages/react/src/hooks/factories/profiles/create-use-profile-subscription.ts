@@ -19,7 +19,7 @@ export function createUseProfileSubscription(useSubscription: UseSubscriptionFn)
     },
   ): UseSubscriptionReturn<ProfileResult<I>>;
   function useProfileSubscription(
-    params?: Omit<UseProfileSubscriptionParams, 'include'> & {
+    params: Omit<UseProfileSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: Profile[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseProfileSubscription(useSubscription: UseSubscriptionFn)
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useProfileSubscription(
-    params: UseProfileSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseProfileSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialProfile> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseProfileSubscription(useSubscription: UseSubscriptionFn)
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildProfileSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildProfileSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [profileKeys.all] : undefined,
+      invalidateKeys: invalidate ? [profileKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

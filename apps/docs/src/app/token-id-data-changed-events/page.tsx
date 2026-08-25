@@ -41,6 +41,7 @@ import {
   buildNestedInclude,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 import { TokenIdDataChangedEventCard } from '@/components/token-id-data-changed-event-card';
@@ -299,6 +300,7 @@ function TidIncludeSections({
 
 function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useLatestTokenIdDataChangedEvent } = useTokenIdDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const { values, debouncedValues, setFieldValue } = useFilterFields(LATEST_FILTERS);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
     TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
@@ -314,6 +316,7 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   const { tokenIdDataChangedEvent, isLoading, error, isFetching } =
     useLatestTokenIdDataChangedEvent({
+      network,
       filter,
       include,
     });
@@ -358,11 +361,13 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useTokenIdDataChangedEvents } = useTokenIdDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { tokenIdDataChangedEvents, totalCount, isLoading, error, isFetching } =
     useTokenIdDataChangedEvents({
+      network,
       filter: state.filter,
       sort: state.sort,
       limit,
@@ -410,6 +415,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteTokenIdDataChangedEvents } = useTokenIdDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const {
@@ -421,6 +427,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteTokenIdDataChangedEvents({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -466,11 +473,13 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useTokenIdDataChangedEventSubscription } = useTokenIdDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useTokenIdDataChangedEventSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

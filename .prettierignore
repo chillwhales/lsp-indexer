@@ -7,9 +7,11 @@ packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 packages/node/src/graphql/
 packages/node/schema.graphql
+packages/indexer-v3/hasura/schema.graphql
 .env
 pnpm-lock.yaml
 .next/
 .planning/
 .gsd/
 dist/
+charts/lsp-indexer/templates/

@@ -46,6 +46,7 @@ import {
   SortControls,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
 } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
 
@@ -130,6 +131,7 @@ function useListState() {
 }
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useProfile } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
@@ -139,7 +141,11 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
     include,
   } = useIncludeToggles(PROFILE_INCLUDE_FIELDS);
 
-  const { profile, isLoading, error, isFetching } = useProfile({ address: queryAddress, include });
+  const { profile, isLoading, error, isFetching } = useProfile({
+    network,
+    address: queryAddress,
+    include,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,11 +206,13 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useProfiles } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { profiles, totalCount, isLoading, error, isFetching } = useProfiles({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -252,11 +260,13 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useInfiniteProfiles } = useHooks(mode);
   const state = useListState();
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteProfiles({
+      network,
       filter: state.filter,
       sort: state.sort,
       pageSize: 10,
@@ -302,12 +312,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useProfileSubscription } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useProfileSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { DataKeyNameSchema } from '@chillwhales/erc725';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import { EventRefSchema, NetworkInputSchema, SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -24,37 +24,43 @@ import {
 // ---------------------------------------------------------------------------
 
 /** ERC725Y DataChanged event — emitted by a UP or DA contract. */
-export const DataChangedEventSchema = z.object({
-  /** Emitting contract address — either a UP or DA (always present) */
-  address: z.string(),
-  /** Raw hex ERC725Y data key (always present) */
-  dataKey: z.string(),
-  /** Raw hex data value (always present, no decoding) */
-  dataValue: z.string(),
-  /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
-  dataKeyName: z.string().nullable(),
-  /** Block number where event was emitted (null = not included) */
-  blockNumber: z.number().nullable(),
-  /** Timestamp when event was indexed (null = not included) */
-  timestamp: z.string().nullable(),
-  /** Log index within the transaction (null = not included) */
-  logIndex: z.number().nullable(),
-  /** Transaction index within the block (null = not included) */
-  transactionIndex: z.number().nullable(),
-  /** Universal Profile of the emitting address (null = not included or address is a DA) */
-  universalProfile: ProfileSchema.nullable(),
-  /** Digital Asset of the emitting address (null = not included or address is a UP) */
-  digitalAsset: DigitalAssetSchema.nullable(),
-});
+export const DataChangedEventSchema = z
+  .object({
+    id: z.string(),
+    /** Emitting contract address — either a UP or DA (always present) */
+    address: z.string(),
+    /** Raw hex ERC725Y data key (always present) */
+    dataKey: z.string(),
+    /** Raw hex data value (always present, no decoding) */
+    dataValue: z.string(),
+    /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
+    dataKeyName: z.string().nullable(),
+    /** Block number where event was emitted (null = not included) */
+    blockNumber: z.number().nullable(),
+    /** Timestamp when event was indexed (null = not included) */
+    timestamp: z.string().nullable(),
+    /** Log index within the transaction (null = not included) */
+    logIndex: z.number().nullable(),
+    /** Transaction index within the block (null = not included) */
+    transactionIndex: z.number().nullable(),
+    /** Universal Profile of the emitting address (null = not included or address is a DA) */
+    universalProfile: ProfileSchema.nullable(),
+    /** Digital Asset of the emitting address (null = not included or address is a UP) */
+    digitalAsset: DigitalAssetSchema.nullable(),
+    topic0: z.string(),
+    topics: z.array(z.string()),
+    data: z.string(),
+  })
+  .extend(EventRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const DataChangedEventFilterSchema = z.object({
-  /** Case-insensitive match on emitting contract address (uses _ilike) */
+  /** Exact emitting contract address; hexadecimal input is normalized to lowercase */
   address: z.string().optional(),
-  /** Case-insensitive match on data key hex (uses _ilike) */
+  /** Exact canonical 32-byte data key */
   dataKey: z.string().optional(),
   /** Known ERC725Y key name (e.g., 'LSP3Profile') — resolved to hex at service layer */
   dataKeyName: DataKeyNameSchema.optional(),
@@ -66,9 +72,9 @@ export const DataChangedEventFilterSchema = z.object({
   blockNumberFrom: z.number().optional(),
   /** Block number upper bound (inclusive, _lte) */
   blockNumberTo: z.number().optional(),
-  /** Case-insensitive search on UP name (nested: universalProfile.lsp3Profile.name.value._ilike) */
+  /** Exact, case-sensitive match on the Universal Profile's current metadata name */
   universalProfileName: z.string().optional(),
-  /** Case-insensitive search on DA name (nested: digitalAsset.lsp4TokenName.value._ilike) */
+  /** Exact, case-sensitive match on the digital asset name */
   digitalAssetName: z.string().optional(),
 });
 
@@ -125,27 +131,33 @@ export const DataChangedEventIncludeSchema = z.object({
  * can be used with a human-readable name (e.g., 'LSP3Profile') — the service
  * layer resolves it to hex automatically.
  */
-export const UseLatestDataChangedEventParamsSchema = z.object({
-  filter: DataChangedEventFilterSchema.optional(),
-  include: DataChangedEventIncludeSchema.optional(),
-});
+export const UseLatestDataChangedEventParamsSchema = z
+  .object({
+    filter: DataChangedEventFilterSchema.optional(),
+    include: DataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useDataChangedEvents — paginated list of data changed events */
-export const UseDataChangedEventsParamsSchema = z.object({
-  filter: DataChangedEventFilterSchema.optional(),
-  sort: DataChangedEventSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: DataChangedEventIncludeSchema.optional(),
-});
+export const UseDataChangedEventsParamsSchema = z
+  .object({
+    filter: DataChangedEventFilterSchema.optional(),
+    sort: DataChangedEventSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: DataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteDataChangedEvents — infinite scroll variant */
-export const UseInfiniteDataChangedEventsParamsSchema = z.object({
-  filter: DataChangedEventFilterSchema.optional(),
-  sort: DataChangedEventSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: DataChangedEventIncludeSchema.optional(),
-});
+export const UseInfiniteDataChangedEventsParamsSchema = z
+  .object({
+    filter: DataChangedEventFilterSchema.optional(),
+    sort: DataChangedEventSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: DataChangedEventIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -229,7 +241,21 @@ export type DataChangedEventResult<I extends DataChangedEventInclude | undefined
     ? DataChangedEvent
     : IncludeResult<
         DataChangedEvent,
-        'address' | 'dataKey' | 'dataValue',
+        | 'id'
+        | 'network'
+        | 'chainId'
+        | 'address'
+        | 'dataKey'
+        | 'dataValue'
+        | 'blockNumber'
+        | 'blockHash'
+        | 'timestamp'
+        | 'transactionHash'
+        | 'transactionIndex'
+        | 'logIndex'
+        | 'topic0'
+        | 'topics'
+        | 'data',
         DataChangedEventScalarIncludeFieldMap,
         I
       > &
@@ -242,5 +268,19 @@ export type DataChangedEventResult<I extends DataChangedEventInclude | undefined
  */
 export type PartialDataChangedEvent = PartialExcept<
   DataChangedEvent,
-  'address' | 'dataKey' | 'dataValue'
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'dataKey'
+  | 'dataValue'
+  | 'blockNumber'
+  | 'blockHash'
+  | 'timestamp'
+  | 'transactionHash'
+  | 'transactionIndex'
+  | 'logIndex'
+  | 'topic0'
+  | 'topics'
+  | 'data'
 >;

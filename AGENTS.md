@@ -153,7 +153,13 @@ No top-level arrow functions. Never use `export default function` — use named 
 - **Never push directly to a PR base branch** — always create a feature branch and open a PR to it. This applies to `main`, epic branches, and any other branch that has an open PR.
 - **Check for existing open PRs** from the current branch before creating a new one: `gh pr list --head $(git branch --show-current) --state open`
 - **Branch naming**: `feat/indexer-<name>` per issue
-- **All PRs target**: `refactor/indexer-v2-react` (not `main`)
+- **PR bases**:
+  - V2 maintenance PRs target `refactor/indexer-v2-react` (not `main`).
+  - V3 epic #390 implementation PRs target the protected integration branch `lsp-indexer-v3`.
+  - The permanent draft integration PR #391 is the designated v3 path from `lsp-indexer-v3` to `main`.
+  - PR #391 remains under direct repository-owner control:
+    - The owner personally marks it ready and merges it after all v3 gates pass.
+    - If this workflow needs to change, stop and request an owner-authored policy amendment before taking further PR action.
 - **Commit format**: `feat(indexer): description (#issue)` or `feat: description (closes #issue)`
 - **After merge**: delete local + remote branch, `git fetch --prune`
 - **Never merge PRs** without user review

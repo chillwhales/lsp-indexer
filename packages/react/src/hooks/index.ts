@@ -16,6 +16,7 @@ export * from './profiles';
 export * from './token-id-data-changed-events';
 export * from './universal-receiver-events';
 export * from './use-subscription';
+export * from './v3';
 
 // Types
 export * from './types';

@@ -1,10 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import * as actions from '../actions';
 
 import {
+  getBlocks,
+  getChillwhalesNfts,
+  getControllers,
   getCreators,
   getDataChangedEvents,
+  getDataValues,
   getDigitalAsset,
   getDigitalAssets,
   getEncryptedAssets,
@@ -14,6 +19,7 @@ import {
   getIssuedAssets,
   getLatestDataChangedEvent,
   getLatestTokenIdDataChangedEvent,
+  getMetadataRevisions,
   getNft,
   getNfts,
   getOwnedAsset,
@@ -24,22 +30,34 @@ import {
   getProfiles,
   getTokenIdDataChangedEvents,
   getUniversalReceiverEvents,
+  getV3Domain,
 } from '../actions';
 
 import {
+  useBlocks,
+  useChillwhalesNfts,
+  useControllers,
   useCreators,
   useDataChangedEvents,
+  useDataValues,
   useDigitalAsset,
   useDigitalAssets,
   useEncryptedAssets,
+  useEvents,
   useFollowCount,
   useFollows,
+  useIndexedHead,
+  useIndexedHeads,
+  useInfiniteBlocks,
   useInfiniteCreators,
   useInfiniteDataChangedEvents,
+  useInfiniteDataValues,
   useInfiniteDigitalAssets,
   useInfiniteEncryptedAssets,
+  useInfiniteEvents,
   useInfiniteFollows,
   useInfiniteIssuedAssets,
+  useInfiniteMetadataRevisions,
   useInfiniteNfts,
   useInfiniteOwnedAssets,
   useInfiniteOwnedTokens,
@@ -50,6 +68,7 @@ import {
   useIssuedAssets,
   useLatestDataChangedEvent,
   useLatestTokenIdDataChangedEvent,
+  useMetadataRevisions,
   useNft,
   useNfts,
   useOwnedAsset,
@@ -60,6 +79,8 @@ import {
   useProfiles,
   useTokenIdDataChangedEvents,
   useUniversalReceiverEvents,
+  useV3Infinite,
+  useV3List,
 } from '../index';
 
 // ---------------------------------------------------------------------------
@@ -178,6 +199,34 @@ describe('@lsp-indexer/next', () => {
       expect(typeof getTokenIdDataChangedEvents).toBe('function');
       expect(typeof getUniversalReceiverEvents).toBe('function');
     });
+
+    it('exports the uniform v3 action and new domain conveniences', () => {
+      expect(typeof getV3Domain).toBe('function');
+      expect(typeof getBlocks).toBe('function');
+      expect(typeof getControllers).toBe('function');
+      expect(typeof getChillwhalesNfts).toBe('function');
+      expect(typeof getDataValues).toBe('function');
+      expect(typeof getMetadataRevisions).toBe('function');
+      expect(
+        [
+          'getV3Blocks',
+          'getV3Events',
+          'getV3UniversalProfiles',
+          'getV3DigitalAssets',
+          'getV3Nfts',
+          'getV3OwnedAssets',
+          'getV3OwnedTokens',
+          'getV3Followers',
+          'getV3Creators',
+          'getV3IssuedAssets',
+          'getV3Controllers',
+          'getV3ChillwhalesNfts',
+          'getV3DataValues',
+          'getV3MetadataRevisions',
+          'getV3IndexedHeads',
+        ].every((name) => typeof Reflect.get(actions, name) === 'function'),
+      ).toBe(true);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -219,6 +268,20 @@ describe('@lsp-indexer/next', () => {
       expect(typeof useLatestTokenIdDataChangedEvent).toBe('function');
       expect(typeof useUniversalReceiverEvents).toBe('function');
       expect(typeof useInfiniteUniversalReceiverEvents).toBe('function');
+      expect(typeof useV3List).toBe('function');
+      expect(typeof useV3Infinite).toBe('function');
+      expect(typeof useBlocks).toBe('function');
+      expect(typeof useInfiniteBlocks).toBe('function');
+      expect(typeof useEvents).toBe('function');
+      expect(typeof useInfiniteEvents).toBe('function');
+      expect(typeof useControllers).toBe('function');
+      expect(typeof useChillwhalesNfts).toBe('function');
+      expect(typeof useDataValues).toBe('function');
+      expect(typeof useInfiniteDataValues).toBe('function');
+      expect(typeof useMetadataRevisions).toBe('function');
+      expect(typeof useInfiniteMetadataRevisions).toBe('function');
+      expect(typeof useIndexedHead).toBe('function');
+      expect(typeof useIndexedHeads).toBe('function');
     });
   });
 });

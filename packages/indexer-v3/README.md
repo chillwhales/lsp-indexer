@@ -1,0 +1,500 @@
+# `@chillwhales/indexer-v3`
+
+Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
+
+> **Alpha implementation:** this package provides the typed network catalog, validated
+> single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
+> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
+> deterministic LSP domain projections. It also includes finalized, durable metadata workers for
+> LSP3, LSP4, LSP8, and LSP29 sources plus a generated, read-only multi-chain Hasura query and
+> subscription contract. The v3 Node, React, and Next.js packages are implemented. Production
+> acceptance still requires same-height shadow parity, a two-network soak, recovery exercises, and
+> repository-owner cutover approval, so v2 remains the public rollback path.
+
+## Requirements
+
+- Node.js 22.15 or newer
+- pnpm 10.15
+- An RPC endpoint for the selected EVM network
+- An SQD Portal dataset for `portal` or `fallback` mode
+- PostgreSQL 17 for migrations and persistence
+
+Dependencies that define the runtime boundary are pinned exactly, including
+`@subsquid/pipes@1.0.0-alpha.22` and its official EVM RPC peers.
+
+## Network model
+
+Production runs one process or container per network. Each configured network has a stable EIP-155
+Pipes identity and a separate PostgreSQL schema.
+
+| Network key        | Chain ID | Pipes stream ID                  | Database schema          |
+| ------------------ | -------: | -------------------------------- | ------------------------ |
+| `lukso-mainnet`    |       42 | `lsp-indexer:v3:eip155:42`       | `chain_lukso_mainnet`    |
+| `ethereum-mainnet` |        1 | `lsp-indexer:v3:eip155:1`        | `chain_ethereum_mainnet` |
+| `ethereum-sepolia` | 11155111 | `lsp-indexer:v3:eip155:11155111` | `chain_ethereum_sepolia` |
+
+Well-known LSP23 and LSP26 deployments are optional typed capabilities in the same registry. A
+contract that is not deployed is absent; v3 never substitutes the zero address. The exported
+registry and every nested configuration value are read-only and frozen. This lets later domain
+decoders derive their contract filters from configuration instead of per-plugin chain lists.
+
+The Pipes `devRunner` wrapper is available for local multi-network development only. Production
+must keep network processes isolated so a crash, CPU spike, or provider failure on one chain does
+not stop another.
+
+Each chain schema contains the same 18-table Drizzle model: canonical blocks and raw event facts;
+profiles, digital assets, NFTs, ownership, followers, creators, issued assets, permissions,
+ERC725Y data, the network-gated Chillwhales extension, metadata revisions, metadata jobs, indexed
+head, and the Pipes cursor. Sixteen
+application tables are registered with the official Pipes rollback target. Snapshot tables,
+functions, triggers, and cursors are created and used only inside that chain schema.
+Creator, issued-asset, and controller ERC725Y array indexes retain their complete unsigned 128-bit
+range as PostgreSQL `numeric(39, 0)` values mapped to TypeScript `bigint`.
+Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
+identity. Before advancing the head, the target verifies every parent link after the previously
+indexed head, rejecting a replay that retains a stale intermediate block and appends a disconnected
+tip. Forward writes cannot lower the indexed head; Pipes snapshot restoration is the only backward
+path. Pipes cursor timestamps are milliseconds and are converted directly to PostgreSQL timestamps
+without rescaling. Both current and finalized head identities reference exact canonical block rows.
+An advancing finalized pair must match its locally stored block, while a finalized height outside
+the stored range does not advance the watermark. The finalized number and hash must both be present
+or both be null. Lower or omitted finality retains the previous watermark.
+Source-wide finality ahead of a historical backfill is clamped to the processed cursor and its hash.
+Every raw event topic array must be one-dimensional, nonempty, null-free, contain only canonical
+lowercase bytes32 values, and start with the separately indexed `topic0`.
+
+The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
+`UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
+track only the `api` views, not chain schemas or internal job/cursor tables. Every public row has
+`network` and `chain_id`; every manual relationship maps `chain_id` so identical addresses on
+different networks stay isolated.
+
+## Raw event ingestion
+
+The production query is limited to the 11 signatures handled by the v2 event plugins. Seven
+signatures are global. LSP23 factory and LSP26 follower events are additionally constrained by the
+selected network's configured singleton address and deployment block. In parallel with those
+narrow log filters, the query requests and persists every block header, including blocks without a
+matching event. This keeps canonical parent links and the exact indexed-head block identity
+continuous while storing no unrelated logs. Pipes millisecond timestamps are persisted directly.
+
+| Event                    | Domain    | Scope                |
+| ------------------------ | --------- | -------------------- |
+| `DataChanged`            | `erc725y` | Global topic         |
+| `Executed`               | `erc725x` | Global topic         |
+| `UniversalReceiver`      | `lsp0`    | Global topic         |
+| LSP7 `Transfer`          | `lsp7`    | Global topic         |
+| LSP8 `Transfer`          | `lsp8`    | Global topic         |
+| `OwnershipTransferred`   | `lsp14`   | Global topic         |
+| `TokenIdDataChanged`     | `lsp8`    | Global topic         |
+| `Follow`, `Unfollow`     | `lsp26`   | Configured singleton |
+| `DeployedContracts`      | `lsp23`   | Configured singleton |
+| `DeployedERC1167Proxies` | `lsp23`   | Configured singleton |
+
+Every fact has network, chain, block hash, parent hash, transaction hash, transaction index, and log
+index provenance. Its ID is derived from the EIP-155 chain ID and canonical log position. Decoded
+unsigned integers are decimal strings and LSP8 keeps its v2-compatible synthetic amount of `1`.
+
+A known topic with a syntactically valid raw log is retained with `decoded = null` when ABI decoding
+fails. Unknown topics, wrong singleton addresses, pre-deployment singleton logs, and unavailable
+network capabilities are excluded. Invalid fundamental provenance fails the atomic batch instead of
+advancing the cursor.
+
+## Domain projections
+
+The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
+exact block number and hash, interface category, and address; executes current and legacy
+LSP0/LSP7/LSP8 interface checks through bounded direct reads before the configured Multicall3
+deployment and bounded Multicall3 batches afterward; and pins every read to its triggering block.
+The actual `eth_call` in either path uses the Portal block hash through EIP-1898 with canonical
+membership required. The RPC block hash is also checked before and after the read, so a provider
+reorg or load-balanced backend cannot commit results from the wrong fork. The configured endpoint
+must support EIP-1898 block identifiers. Decimals are accepted only for verified LSP7 assets.
+
+The reducer applies only newly inserted facts in block/transaction/log order. Existing rows are
+loaded through bounded state-query chunks so large Pipes batches stay below PostgreSQL's parameter
+limit. It atomically writes:
+
+- Universal Profiles and digital assets, including owner, standard, decimals, supply, and LSP4/LSP8
+  scalar state
+- NFTs with raw and formatted token IDs, mint/burn state, owner, and derived base-URI location
+- UP-scoped asset balances and token ownership
+- Follower tombstones, creators, issued assets, controllers, permissions, and raw ERC725Y values
+- The LUKSO-only Chillwhales extension for claim flags and Orb level, cooldown, and faction
+
+Transfer facts mutate balances, supply, and NFTs only when their LSP7/LSP8 event domain matches the
+asset's verified standard.
+
+A failed individual interface call produces no new typed entity. If a previously verified contract
+later fails verification, its core row becomes `invalid` and later facts cannot mutate typed state
+until it verifies again. A later successful verification refreshes the asset's current standard and
+standard-specific fields, so implementation upgrades do not retain a stale classification. Moving
+away from LSP8 also clears the collection-only format, reference, base URI, NFTs, token ownership,
+and extension rows while raw events and ERC725Y values remain stored. Removing a controller array
+slot clears only its index; independent permission maps keep that controller materialized until all
+of them are empty. Clearing a creator, issued-asset, or controller array length with the canonical
+empty ERC725Y value treats its length as zero. Creator and issued-asset members are removed;
+controller indexes are cleared while rows with independent permission maps remain. Other malformed
+lengths are ignored. A transport or malformed-response failure aborts the transaction and leaves
+the cursor at the preceding position.
+Exact replay validates existing deterministic facts but does not reduce them again, preventing
+double-applied balances and supply. Changed creator, issued-asset, and controller relationships are
+deleted before reinsertion so two rows may safely exchange a unique ERC725Y array index in one
+batch. Creator `verified` flags follow later LSP0 verification changes even when the triggering fact
+does not touch the creator registry.
+
+An empty or malformed packed Orb level value clears both level and cooldown while retaining faction.
+CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
+number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
+tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30
+blocks later after an individual failed call; true flags remain monotonic. Polling-only heads load
+the extension row together with its verified asset guard before applying status or retry-schedule
+updates. The same projection transaction creates or
+supersedes durable metadata jobs from verified LSP3/LSP4 values, LSP29 array entries, and derived
+LSP8 token locations.
+
+## Metadata lifecycle
+
+Metadata fetching is a separate process for each selected network. It never performs HTTP or IPFS
+work inside the Pipes transaction. A worker claims only jobs at or below the committed finalized
+watermark, uses bounded concurrency and `FOR UPDATE SKIP LOCKED`, and recovers an expired
+`processing` lease after a crash or restart. Multiple replicas for the same network can therefore
+drain one queue safely. Claims, lease expiry, durable retries, and published fetch timestamps use the
+PostgreSQL transaction clock, so worker-host clock skew cannot steal or strand leases or distort
+revision freshness. `SIGINT` and `SIGTERM` wake an idle poll immediately and close the metrics server
+and database pool after in-flight work settles.
+
+Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
+public HTTP(S) target validation. Missing or malformed redirect locations fail terminally instead of
+consuming retry attempts. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29 content is
+accepted. IPFS schemes are normalized case-insensitively. LSP31 sources accept at most five supported
+locations and try each location, including every configured gateway for each IPFS entry. Retryable
+transport and HTTP failures use durable, jittered exponential backoff; malformed content and
+exhausted attempts become terminal failures.
+
+The worker reloads the exact current chain source before fetching and again in the serializable
+publication transaction. A finalized URI, hash, token location, verification, or source-revision
+change cancels the old job. A mismatch whose projection provenance is still above the finalized
+watermark instead returns the claim to retry without consuming an attempt; a reorg that restores the
+verified target therefore leaves the original finalized job claimable. Token publication requires
+both the NFT and its LSP8 parent collection to remain verified, so a slow response cannot overwrite
+newer canonical state. Successful content is stored as a deterministic `metadata_revisions` row with
+its source provenance. Job state remains internal and is exposed through metrics rather than the
+public API views. An existing deterministic revision is immutable; a later fetch for the same chain
+source cannot replace its published bytes or provenance. Repeated identical metadata and LSP8
+location controls retain their first source provenance without rewriting NFTs or resetting jobs.
+Metadata recovered after a verification transition waits for that transition to finalize, and
+collection recovery is page-bounded. When an LSP8 collection becomes verified, its stored base URI
+and token-ID format are reapplied before existing NFTs are paged, so both derived token locations and
+direct token metadata are recovered without loading the full collection into memory. Direct token
+recovery reads the NFT's durable verification state instead of relying on the current event scope.
+LSP29 jobs also require their index to remain below the authoritative current array length; a length
+shrink cancels stale slots and the worker rechecks the length before fetching or publishing.
+
+## Configuration
+
+| Variable                                | Required | Purpose                                                       |
+| --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `INDEXER_NETWORK`                       | Yes      | Network key from the catalog                                  |
+| `INDEXER_FROM_BLOCK`                    | No       | Network start, or a contiguous existing-cursor continuation   |
+| `INDEXER_TO_BLOCK`                      | No       | Inclusive end block; required by the bounded source probe     |
+| `SQD_PORTAL_URL`                        | No       | Override the selected network's Portal dataset URL            |
+| `RPC_URL`                               | No       | Generic RPC override                                          |
+| `RPC_URL_LUKSO_MAINNET`                 | No       | LUKSO-specific RPC override; takes priority over `RPC_URL`    |
+| `RPC_URL_ETHEREUM_MAINNET`              | No       | Ethereum-specific RPC override                                |
+| `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Sepolia-specific RPC override                                 |
+| `INDEXER_SOURCE_MODE`                   | No       | `portal`, `rpc`, or `fallback`; LUKSO defaults to fallback    |
+| `INDEXER_RPC_RATE_LIMIT`                | No       | Official RPC source request budget; network default is `10`   |
+| `INDEXER_SOURCE_RETRIES`                | No       | Retries per source before fallback; defaults to `2`           |
+| `INDEXER_SOURCE_STALL_TIMEOUT_MS`       | No       | Unproductive source time before fallback; defaults to `30000` |
+| `INDEXER_SOURCE_MAX_LAG_BLOCKS`         | No       | Active-source lag budget; defaults to `10` blocks             |
+| `INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS`    | No       | Fail after all sources remain down; defaults to `300000`      |
+| `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | Explicitly permit an unbounded run against a historical set   |
+| `INDEXER_METRICS_PORT`                  | No       | Local runner metrics port; defaults to `9090`                 |
+| `DATABASE_URL`                          | Runtime  | Generic PostgreSQL runtime URL                                |
+| `DATABASE_URL_<NETWORK>`                | No       | Network URL override; takes priority over `DATABASE_URL`      |
+| `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL used only by the one-shot migration command         |
+| `DATABASE_MIGRATION_NETWORKS`           | No       | Comma-separated enabled set; defaults to the full catalog     |
+| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login to grant the network writer role               |
+| `DATABASE_API_LOGIN`                    | No       | Existing Hasura login granted only the API reader role        |
+| `DATABASE_POOL_MAX`                     | No       | Runtime connection limit; defaults to `10`                    |
+| `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | Connection timeout; defaults to `10000`                       |
+| `DATABASE_IDLE_TIMEOUT_MS`              | No       | Idle connection timeout; defaults to `30000`                  |
+| `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | Statement timeout; defaults to `60000`                        |
+| `DATABASE_LOCK_TIMEOUT_MS`              | No       | Lock timeout; defaults to `10000`                             |
+| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | Idle transaction timeout; defaults to `60000`                 |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality   |
+| `METADATA_CONCURRENCY`                  | No       | Concurrent jobs per worker; defaults to `8`                   |
+| `METADATA_POLL_INTERVAL_MS`             | No       | Idle queue poll interval; defaults to `1000`                  |
+| `METADATA_REQUEST_TIMEOUT_MS`           | No       | Per-request timeout; defaults to `15000`                      |
+| `METADATA_MAX_RESPONSE_BYTES`           | No       | Response limit; defaults to `2097152`                         |
+| `METADATA_MAX_REDIRECTS`                | No       | Redirect limit; defaults to `3`                               |
+| `METADATA_MAX_ATTEMPTS`                 | No       | Attempts before terminal failure; defaults to `6`             |
+| `METADATA_RETRY_BASE_MS`                | No       | Initial durable retry delay; defaults to `5000`               |
+| `METADATA_RETRY_MAX_MS`                 | No       | Maximum retry delay; defaults to `1800000`                    |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; exceeds timeout × 5 locations × gateway count       |
+| `METADATA_METRICS_PORT`                 | No       | Worker metrics port; defaults to `9091`                       |
+| `METADATA_IPFS_GATEWAYS`                | No       | Ordered comma-separated gateways; defaults to network primary |
+| `METADATA_ALLOW_HTTP`                   | No       | Explicitly permit public plain HTTP; defaults to `false`      |
+| `METADATA_RUN_ONCE`                     | No       | Drain one claim batch and exit; defaults to `false`           |
+| `HASURA_GRAPHQL_V3_DATABASE_URL`        | Hasura   | Least-privilege PostgreSQL URL for the generated `v3` source  |
+| `HASURA_GRAPHQL_UNAUTHORIZED_ROLE`      | Hasura   | Set to `public` for unauthenticated package reads             |
+| `HASURA_GRAPHQL_ENDPOINT`               | API ops  | Hasura origin used by metadata and schema commands            |
+| `HASURA_GRAPHQL_ADMIN_SECRET`           | API ops  | Operator secret used only to apply or inspect metadata        |
+
+URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
+ID, and configured contract bytecode are validated before a network program starts. A
+network-specific RPC or database variable takes priority over its generic counterpart.
+The persistence target consumes this loaded database configuration directly, including
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION`; there is no separate target-level fallback.
+
+## Database setup
+
+The migration command is separate from every indexer process. It creates the immutable `lsp_v3`
+type schema, one physical schema and non-login writer role per enabled network, Drizzle migration
+history and cursor tables, and the read-only `api` views. A cluster-wide advisory lock rejects
+concurrent migration commands. Exported migration entry points reject duplicate network keys, chain
+IDs, schemas, writer roles, and runtime logins before connecting, and every schema and role must
+equal its deterministic network mapping without colliding with a reserved schema or role. Runtime
+login roles must already exist; provide their names to grant each login only its matching writer
+role. Every login must be unique to one network, remain `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
+NOREPLICATION NOBYPASSRLS`, and may reach no role other than its assigned writer. Its writer
+membership must carry `SET OPTION` so the pool can assume the role, and must not carry `ADMIN
+OPTION`. Migration and startup revalidate both membership options and every capability, then reject
+direct or transitive memberships in any other role. Because a session can `RESET ROLE`, they also
+reject direct ACLs, object ownership, default ACLs, and policy references held by the runtime login,
+except for non-grantable `CONNECT` on the current database. Existing deterministic owner and writer
+roles are accepted only when they remain `NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE
+NOREPLICATION NOBYPASSRLS` and have no direct or transitive role memberships. A writer may own or
+receive privileges only inside its assigned chain schema; outside it, the exceptions are
+non-grantable `USAGE` on `lsp_v3` and its four canonical enum types plus a global function default
+ACL containing only the writer's own `EXECUTE`. That restrictive default removes PostgreSQL's
+built-in `PUBLIC EXECUTE` from future Pipes rollback functions, and migration revokes it from
+existing chain functions. Migration and startup reject stale read-only grants, shared-schema
+`CREATE`, grant options, foreign ownership, other default privileges, and policy references. They
+also inventory schema, relation, sequence, column, routine, type, and default ACLs inside every
+chain schema: only the writer's privileges and the API owner's non-grantable schema `USAGE` plus
+`SELECT` on enumerated public tables are accepted. PostgreSQL's non-grantable `PUBLIC USAGE` on
+writer-owned table row types, including Pipes snapshots, is the sole ambient exception; without
+chain schema usage or relation privileges it cannot expose rows. The migrator inventories every
+role that can reach each writer role and permits only the migration admin and currently configured
+runtime login; only the current migration admin may reach the API owner role. Revoke old memberships
+before rotating either credential. Each existing chain schema must have no identity or exactly its
+configured singleton identity. The shared schema is rejected unless it contains only the four
+canonical enums and their PostgreSQL-generated array types. The API reader is rejected if it owns a
+schema, relation, routine, type, or database, or has direct or effective `PUBLIC` access outside
+shared-enum usage, API schema usage, and `SELECT` on the enumerated public views. Publicly executable
+custom routines, including default-public `SECURITY DEFINER` routines, are rejected. Runtime
+readiness independently audits the active credential's effective `PUBLIC` privileges across
+schemas, relations, columns, routines, types, the database, and default ACLs. Its explicit allowlist
+covers only ambient system access, non-grantable connection and temporary-database access, and
+canonical shared-enum usage; `PUBLIC CREATE`, grant options, and reachable custom routines are
+startup failures.
+
+The migrator drops the enumerated API views before source-table migrations and rebuilds them after
+every enabled schema is current, allowing column removal, reordering, and type changes. View
+removal, every enabled network migration, and view replacement share one PostgreSQL transaction; a
+failure on any chain or during the rebuild rolls back earlier chain changes and restores the prior
+views. Migration and startup require the writer to own the migration table and its sequence, the
+cursor, and every expected chain table. Before a pending migration, the ownership audit permits
+latest-schema tables that have not been created yet, then requires the complete inventory after
+migration. A deterministic PostgreSQL 17 catalog
+fingerprint additionally covers all non-snapshot tables and sequences, relation settings, columns
+and defaults, constraints, indexes, and sequence parameters. It runs before changing a fully current
+schema, after every migration, and during startup readiness, so an out-of-band dropped or added
+column, foreign key, check, index, or other reviewed object is rejected even when the migration
+journal still matches. Dynamic Pipes `__snapshots` tables are intentionally excluded.
+
+```bash
+DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
+DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+DATABASE_API_LOGIN=lsp_v3_hasura \
+  pnpm --filter @chillwhales/indexer-v3 db:migrate
+```
+
+The runtime pool automatically assumes the deterministic network role and pins this search path:
+
+```text
+chain_<network>,lsp_v3,public
+```
+
+Check the role, schema, seeded chain identity, and privilege boundary before starting a pipe.
+Readiness validates both the assumed writer role and the underlying session login, including
+every login, inheritance, superuser, database/role creation, replication, and row-security-bypass
+capability; every reachable role membership; writer ownership; the complete chain ACL surface; and
+direct privilege or ownership dependencies. It also rejects unexpected effective `PUBLIC`
+privileges and any mismatch between the live chain catalog and the reviewed schema fingerprint:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 db:check
+```
+
+Generated migrations are normalized to stay schema-relative. `db:migrations:check` rejects a
+public-schema qualifier. Because Pipes alpha.22 does not reconcile snapshot tables after tracked
+columns change, ordinary pending migrations fail safely whenever rollback snapshot tables exist,
+even when they are empty.
+
+The projection rollout is an explicit, tested alpha rebuild exception. Stop every v3 indexer before
+running it. Its reviewed `destructive-replay` migration drops old Pipes snapshot functions,
+triggers, and tables and clears every mutable chain table plus `sqd_cursor` in the same transaction
+across all enabled networks. It preserves `network_config` and migration history. On restart, Pipes
+recreates all 16 rollback artifacts from the new schema and ingestion replays from
+the configured network start block. A fresh or reset schema with a later `INDEXER_FROM_BLOCK` is
+rejected. With an existing cursor, a custom start is accepted only when it does not leave a gap
+after the latest committed block. No other migration bypasses the snapshot guard.
+
+## Hasura API setup
+
+The generated Hasura metadata tracks all 15 `api` views. The public role can filter, order,
+paginate, aggregate, traverse chain-scoped relationships, and use live-query subscriptions. It
+cannot mutate rows, inspect metadata jobs, or access physical chain schemas. A query without a
+`chain_id` filter spans every network enabled by the migration.
+
+Provision the login named by `DATABASE_API_LOGIN` before running `db:migrate`, then configure
+Hasura's source with that login rather than the migration credential. Migration grants the reader
+membership with inheritance, disables role switching and membership administration, and pins its
+search path to `api,lsp_v3,public` for this database so shared enum filters resolve without physical
+chain access. Keep `DATABASE_API_LOGIN` set on every later migration; omitting it declares that the
+reader role must have no members and rejects stale access:
+
+```env
+HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_hasura:secret@localhost/lsp_indexer_v3
+HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+```
+
+```bash
+HASURA_GRAPHQL_ENDPOINT=http://localhost:8080 \
+HASURA_GRAPHQL_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 hasura:apply
+```
+
+`hasura:generate` refreshes the deterministic metadata snapshot. `hasura:schema:dump` introspects
+the public role and refreshes the GraphQL schema consumed by later package code generation.
+`hasura:check` and `hasura:schema:check` reject drift. Paginated queries must append
+`chain_id, id` to their order, except `indexed_head`, whose natural suffix is
+`chain_id, network`. See the complete [v3 GraphQL contract](../../.github/V3_API.md).
+Applying metadata preserves every unrelated Hasura source and feature, and uses the exported
+resource version so it cannot silently overwrite a concurrent metadata change.
+
+## Commands
+
+Check that a Portal and RPC endpoint match a configured network:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+  pnpm --filter @chillwhales/indexer-v3 check:network
+```
+
+Exercise the real Pipes source with a deliberately small, bounded raw-log range:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+INDEXER_FROM_BLOCK=22000000 \
+INDEXER_TO_BLOCK=22000010 \
+  pnpm --filter @chillwhales/indexer-v3 probe:network
+```
+
+The probe explicitly requests every block, including blocks without logs. It reports batches,
+blocks, logs, and the network-scoped stream identity, refuses to run without `INDEXER_TO_BLOCK`, and
+fails unless the source returns every block exactly once in ascending order across the inclusive
+range; it is a source diagnostic, not the domain indexer.
+
+`INDEXER_SOURCE_MODE=fallback` supplies Pipes with an ordered source list. For LUKSO, the finalized
+historical Portal is first and the official RPC stream takes over at its frozen boundary. Pipes
+exports the active source, per-source health, switch count, lag, staleness, and all-source stall
+state. A fallback process may start from a verified RPC while Portal metadata is unavailable; a
+reachable Portal with unusable metadata is also removed from that process's source list so the
+verified RPC becomes its complete source. `rpc` and `portal` select an explicit single source for
+diagnosis, and Portal-only mode fails closed on unavailable or mismatched Portal metadata.
+
+After migrations and readiness checks pass, run the event and projection indexer for exactly one
+configured network:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 index:events
+```
+
+The command uses the narrow event query, query-aware decoder, block-pinned RPC planner,
+deterministic reducer, official rollback-aware Drizzle target, and the same stable per-network
+cursor ID. Its health and metrics listener starts only after Portal/RPC and contract readiness pass,
+so an orchestrator cannot route to a runtime still in source preflight. `INDEXER_TO_BLOCK` can bound
+an initial replay. In fallback mode, RPC and contract readiness are mandatory while Portal transport
+availability is recoverable by the Pipes source policy. A custom `INDEXER_FROM_BLOCK` is only for a
+contiguous continuation from an existing cursor; use `probe:network` for arbitrary source fixtures
+that intentionally start later.
+
+Run the independent metadata worker against the same network schema:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 metadata:worker
+```
+
+Give each concurrently hosted network worker a unique `METADATA_METRICS_PORT`. Set
+`METADATA_RUN_ONCE=true` to claim at most one bounded batch for a job runner or diagnostic. The
+worker needs database readiness, but it does not require Portal or RPC connectivity. Inline
+`data:` content is bounded; IPFS uses the ordered `METADATA_IPFS_GATEWAYS` list; HTTPS is the
+network default, and public plain HTTP requires `METADATA_ALLOW_HTTP=true`. Every network hop
+rejects mixed or non-public DNS answers and connects through a validated address while preserving
+the hostname for TLS, closing the DNS-rebinding gap. Every pinned lookup honors Node's single- and
+all-address callback shapes, and a retryable failure advances to the next validated DNS address
+within the request's overall deadline. Requests negotiate identity encoding so response bounds,
+content hashes, UTF-8 validation, and JSON parsing all operate on the original metadata bytes.
+Full-history backlog, oldest-age, and maximum-attempt gauges refresh every 30 seconds rather than
+after every claim batch; per-job counters and latency histograms remain immediate.
+
+Run local validation:
+
+```bash
+pnpm --filter @chillwhales/indexer-v3 typecheck
+pnpm --filter @chillwhales/indexer-v3 test:coverage
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
+  pnpm --filter @chillwhales/indexer-v3 test:persistence
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
+TEST_HASURA_GRAPHQL_ENDPOINT=http://localhost:8080/v1/graphql \
+TEST_HASURA_ADMIN_SECRET=operator-secret \
+  pnpm --filter @chillwhales/indexer-v3 test:hasura
+pnpm --filter @chillwhales/indexer-v3 build
+```
+
+## Production acceptance
+
+The LUKSO Mainnet Portal remains historical, but Pipes alpha.22 now supplies an official live RPC
+source and fallback facade. A live bounded probe has verified direct LUKSO RPC reads and a
+Portal-to-RPC handoff beyond the Portal's frozen height. That removes the custom-source blocker; it
+does not replace production evidence.
+
+`acceptance:parity` requires v2 and v3 shadow endpoints frozen at one exact finalized height and
+compares every mapped shared row up to an explicit hard ceiling. `acceptance:soak` observes at least
+two networks independently and enforces committed lag, cursor drift, source health, throughput,
+metadata age, combined indexer/worker memory, combined p95 CPU, and duration budgets. See the
+[acceptance](../../.github/runbooks/v3-acceptance.md),
+[deployment](../../.github/runbooks/v3-deployment.md),
+[recovery](../../.github/runbooks/v3-recovery.md), and
+[cutover](../../.github/runbooks/v3-cutover.md) runbooks. Only the repository owner can approve
+cutover, v2 retirement, or the final integration merge.
+
+Soak duration is measured from the configured observation start and deadline independently of
+scrape latency. Indexer and metadata-worker CPU counters are converted to restart-safe rates
+independently and only then summed, so one process restart cannot manufacture a CPU spike.
+Parity preserves empty strings as real GraphQL values distinct from `null`; only documented enum,
+integer, address, hex, and CompactBytesArray representations are normalized.
+
+The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
+statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by
+straddling two database snapshots.
+
+See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
+[database contract](../../.github/V3_SCHEMA.md),
+[GraphQL contract](../../.github/V3_API.md),
+[raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
+[projection disposition](../../.github/V3_PROJECTION_DISPOSITION.md),
+[dependency decision](../../.github/V3_DEPENDENCY_DECISION.md),
+[validation report](../../.github/V3_VALIDATION_REPORT.md),
+[roadmap](../../.github/V3_ROADMAP.md), and
+[acceptance gates](../../.github/V3_ACCEPTANCE_GATES.md).

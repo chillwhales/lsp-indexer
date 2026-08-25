@@ -20,7 +20,7 @@ export function createUseFollows(
     PartialFollower,
     FetchFollowsResult<PartialFollower>
   >({
-    queryKey: (p) => followerKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) => followerKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.follows,
   });

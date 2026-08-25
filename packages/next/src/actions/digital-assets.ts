@@ -19,16 +19,22 @@ import {
 import { validateInput } from './validate';
 
 /** Server action: fetch a single digital asset by address. */
-export async function getDigitalAsset(params: { address: string }): Promise<DigitalAsset | null>;
+export async function getDigitalAsset(params: {
+  network: string;
+  address: string;
+}): Promise<DigitalAsset | null>;
 export async function getDigitalAsset<const I extends DigitalAssetInclude>(params: {
+  network: string;
   address: string;
   include: I;
 }): Promise<DigitalAssetResult<I> | null>;
 export async function getDigitalAsset(params: {
+  network: string;
   address: string;
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null>;
 export async function getDigitalAsset(params: {
+  network: string;
   address: string;
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null> {
@@ -37,33 +43,37 @@ export async function getDigitalAsset(params: {
 }
 
 /** Server action: fetch a paginated list of digital assets. */
-export async function getDigitalAssets(params?: {
+export async function getDigitalAssets(params: {
+  network: string;
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchDigitalAssetsResult>;
-export async function getDigitalAssets<const I extends DigitalAssetInclude>(params?: {
+export async function getDigitalAssets<const I extends DigitalAssetInclude>(params: {
+  network: string;
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchDigitalAssetsResult<DigitalAssetResult<I>>>;
-export async function getDigitalAssets(params?: {
+export async function getDigitalAssets(params: {
+  network: string;
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
-export async function getDigitalAssets(params?: {
+export async function getDigitalAssets(params: {
+  network: string;
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
-  if (params) validateInput(UseDigitalAssetsParamsSchema, params, 'getDigitalAssets');
+  validateInput(UseDigitalAssetsParamsSchema, params, 'getDigitalAssets');
   return await fetchDigitalAssets(getServerUrl(), params);
 }

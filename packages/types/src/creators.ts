@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  NetworkInputSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
@@ -22,47 +27,52 @@ import {
 // ---------------------------------------------------------------------------
 
 /** LSP4 creator — one per unique creator↔digital-asset pair. */
-export const CreatorSchema = z.object({
-  /** Address that created the digital asset (always present) */
-  creatorAddress: z.string(),
-  /** Digital asset contract address (always present) */
-  digitalAssetAddress: z.string(),
-  /** Position in the LSP4 creators array (null = not included or not set) */
-  arrayIndex: z.number().nullable(),
-  /** ERC165 interface ID of the creator (null = not included or not set) */
-  interfaceId: z.string().nullable(),
-  /** Timestamp when indexed (ISO string) */
-  timestamp: z.string().nullable(),
-  /** Block number where the creator event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Universal Profile of the creator (null = not included in query) */
-  creatorProfile: ProfileSchema.nullable(),
-  /** Digital asset details (null = not included in query) */
-  digitalAsset: DigitalAssetSchema.nullable(),
-});
+export const CreatorSchema = z
+  .object({
+    id: z.string(),
+    /** Address that created the digital asset (always present) */
+    creatorAddress: z.string(),
+    /** Digital asset contract address (always present) */
+    digitalAssetAddress: z.string(),
+    /** Position in the LSP4 creators array (null = not included or not set) */
+    arrayIndex: z.number().nullable(),
+    /** ERC165 interface ID of the creator (null = not included or not set) */
+    interfaceId: z.string().nullable(),
+    /** Timestamp when indexed (ISO string) */
+    /** Reserved v2 compatibility field; v3.0 returns `null` */
+    timestamp: z.string().nullable(),
+    /** Block number where the creator event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Universal Profile of the creator (null = not included in query) */
+    creatorProfile: ProfileSchema.nullable(),
+    /** Digital asset details (null = not included in query) */
+    digitalAsset: DigitalAssetSchema.nullable(),
+    verified: z.boolean(),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const CreatorFilterSchema = z.object({
-  /** Case-insensitive match on creator address */
+  /** Exact creator address; hexadecimal input is normalized to lowercase */
   creatorAddress: z.string().optional(),
-  /** Case-insensitive match on digital asset address */
+  /** Exact digital asset address; hexadecimal input is normalized to lowercase */
   digitalAssetAddress: z.string().optional(),
-  /** Case-insensitive match on interface ID */
+  /** Exact hexadecimal interface ID; input is normalized to lowercase */
   interfaceId: z.string().optional(),
-  /** Case-insensitive match on creator's profile name (nested via creatorProfile.lsp3Profile.name) */
+  /** Exact, case-sensitive match on the creator's current profile metadata name */
   creatorName: z.string().optional(),
-  /** Case-insensitive match on digital asset name (nested via digitalAsset.lsp4TokenName.name) */
+  /** Exact, case-sensitive match on the digital asset name */
   digitalAssetName: z.string().optional(),
-  /** ISO timestamp or unix seconds lower bound (inclusive) */
+  /** Reserved compatibility field; v3 rejects creator timestamp filtering */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
-  /** ISO timestamp or unix seconds upper bound (inclusive) */
+  /** Reserved compatibility field; v3 rejects creator timestamp filtering */
   timestampTo: z.union([z.string(), z.number()]).optional(),
 });
 
@@ -116,21 +126,25 @@ export const CreatorIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Params for useCreators — paginated list of creators */
-export const UseCreatorsParamsSchema = z.object({
-  filter: CreatorFilterSchema.optional(),
-  sort: CreatorSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: CreatorIncludeSchema.optional(),
-});
+export const UseCreatorsParamsSchema = z
+  .object({
+    filter: CreatorFilterSchema.optional(),
+    sort: CreatorSortSchema.optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    include: CreatorIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Params for useInfiniteCreators — infinite scroll variant */
-export const UseInfiniteCreatorsParamsSchema = z.object({
-  filter: CreatorFilterSchema.optional(),
-  sort: CreatorSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: CreatorIncludeSchema.optional(),
-});
+export const UseInfiniteCreatorsParamsSchema = z
+  .object({
+    filter: CreatorFilterSchema.optional(),
+    sort: CreatorSortSchema.optional(),
+    pageSize: z.number().optional(),
+    include: CreatorIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -209,7 +223,17 @@ export type CreatorResult<I extends CreatorInclude | undefined = undefined> = I 
   ? Creator
   : IncludeResult<
       Creator,
-      'creatorAddress' | 'digitalAssetAddress',
+      | 'id'
+      | 'network'
+      | 'chainId'
+      | 'creatorAddress'
+      | 'digitalAssetAddress'
+      | 'verified'
+      | 'lastBlockNumber'
+      | 'lastBlockHash'
+      | 'lastTransactionHash'
+      | 'lastTransactionIndex'
+      | 'lastLogIndex',
       CreatorScalarIncludeFieldMap,
       I
     > &
@@ -220,4 +244,17 @@ export type CreatorResult<I extends CreatorInclude | undefined = undefined> = I 
  * Creator with only base fields guaranteed — used for components that accept
  * any include-narrowed Creator.
  */
-export type PartialCreator = PartialExcept<Creator, 'creatorAddress' | 'digitalAssetAddress'>;
+export type PartialCreator = PartialExcept<
+  Creator,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'creatorAddress'
+  | 'digitalAssetAddress'
+  | 'verified'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

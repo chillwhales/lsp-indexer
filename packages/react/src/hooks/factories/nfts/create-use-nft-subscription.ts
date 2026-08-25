@@ -19,7 +19,7 @@ export function createUseNftSubscription(useSubscription: UseSubscriptionFn) {
     },
   ): UseSubscriptionReturn<NftResult<I>>;
   function useNftSubscription(
-    params?: Omit<UseNftSubscriptionParams, 'include'> & {
+    params: Omit<UseNftSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: Nft[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseNftSubscription(useSubscription: UseSubscriptionFn) {
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useNftSubscription(
-    params: UseNftSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseNftSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialNft> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseNftSubscription(useSubscription: UseSubscriptionFn) {
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildNftSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildNftSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [nftKeys.all] : undefined,
+      invalidateKeys: invalidate ? [nftKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

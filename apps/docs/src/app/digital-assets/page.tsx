@@ -48,6 +48,7 @@ import {
   SortControls,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
 } from '@/components/playground';
 
 const FILTERS: FilterFieldConfig[] = [
@@ -150,6 +151,7 @@ function useListState() {
 }
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useDigitalAsset } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
@@ -160,6 +162,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   } = useIncludeToggles(DIGITAL_ASSET_INCLUDE_FIELDS);
 
   const { digitalAsset, isLoading, error, isFetching } = useDigitalAsset({
+    network,
     address: queryAddress,
     include,
   });
@@ -223,11 +226,13 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useDigitalAssets } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { digitalAssets, totalCount, isLoading, error, isFetching } = useDigitalAssets({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -275,6 +280,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useInfiniteDigitalAssets } = useHooks(mode);
   const state = useListState();
 
@@ -287,6 +293,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteDigitalAssets({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -332,12 +339,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useDigitalAssetSubscription } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useDigitalAssetSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

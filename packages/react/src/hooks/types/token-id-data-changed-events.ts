@@ -38,6 +38,8 @@ export type UseInfiniteTokenIdDataChangedEventsReturn<F> = {
  * - Widest   → `onData(data: PartialTokenIdDataChangedEvent[])`
  */
 export interface UseTokenIdDataChangedEventSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all events) */
   filter?: TokenIdDataChangedEventFilter;
   /** Sort order (optional — defaults to block-order desc) */

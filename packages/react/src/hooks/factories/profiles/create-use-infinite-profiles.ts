@@ -22,7 +22,7 @@ export function createUseInfiniteProfiles(
     PartialProfile,
     FetchProfilesResult<PartialProfile>
   >({
-    queryKey: (p) => profileKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => profileKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
   });
@@ -31,13 +31,13 @@ export function createUseInfiniteProfiles(
     params: UseInfiniteProfilesParams & { include: I },
   ): UseInfiniteProfilesReturn<ProfileResult<I>>;
   function useInfiniteProfiles(
-    params?: Omit<UseInfiniteProfilesParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteProfilesParams, 'include'> & { include?: never },
   ): UseInfiniteProfilesReturn<Profile>;
   function useInfiniteProfiles(
     params: UseInfiniteProfilesParams & { include?: ProfileInclude },
   ): UseInfiniteProfilesReturn<PartialProfile>;
   function useInfiniteProfiles(
-    params: UseInfiniteProfilesParams & { include?: ProfileInclude } = {},
+    params: UseInfiniteProfilesParams & { include?: ProfileInclude },
   ): UseInfiniteProfilesReturn<PartialProfile> {
     const { items, ...rest } = impl(params);
     return { profiles: items, ...rest };

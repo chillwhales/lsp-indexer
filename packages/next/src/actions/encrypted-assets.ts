@@ -20,50 +20,58 @@ import {
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of encrypted assets. */
-export async function getEncryptedAssets(params?: {
+export async function getEncryptedAssets(params: {
+  network: string;
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchEncryptedAssetsResult>;
-export async function getEncryptedAssets<const I extends EncryptedAssetInclude>(params?: {
+export async function getEncryptedAssets<const I extends EncryptedAssetInclude>(params: {
+  network: string;
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchEncryptedAssetsResult<EncryptedAssetResult<I>>>;
-export async function getEncryptedAssets(params?: {
+export async function getEncryptedAssets(params: {
+  network: string;
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>>;
-export async function getEncryptedAssets(params?: {
+export async function getEncryptedAssets(params: {
+  network: string;
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>> {
-  if (params) validateInput(UseEncryptedAssetsParamsSchema, params, 'getEncryptedAssets');
+  validateInput(UseEncryptedAssetsParamsSchema, params, 'getEncryptedAssets');
   return await fetchEncryptedAssets(getServerUrl(), params);
 }
 
 /** Server action: fetch encrypted assets by batch of (address, contentId, revision) tuples. */
 export async function getEncryptedAssetsBatch(params: {
+  network: string;
   tuples: EncryptedAssetBatchTuple[];
 }): Promise<FetchEncryptedAssetsBatchResult>;
 export async function getEncryptedAssetsBatch<const I extends EncryptedAssetInclude>(params: {
+  network: string;
   tuples: EncryptedAssetBatchTuple[];
   include: I;
 }): Promise<FetchEncryptedAssetsBatchResult<EncryptedAssetResult<I>>>;
 export async function getEncryptedAssetsBatch(params: {
+  network: string;
   tuples: EncryptedAssetBatchTuple[];
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>>;
 export async function getEncryptedAssetsBatch(params: {
+  network: string;
   tuples: EncryptedAssetBatchTuple[];
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>> {

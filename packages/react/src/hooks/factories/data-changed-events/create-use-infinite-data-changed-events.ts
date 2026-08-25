@@ -24,7 +24,7 @@ export function createUseInfiniteDataChangedEvents(
     PartialDataChangedEvent,
     FetchDataChangedEventsResult<PartialDataChangedEvent>
   >({
-    queryKey: (p) => dataChangedEventKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => dataChangedEventKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.dataChangedEvents,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteDataChangedEvents(
     params: UseInfiniteDataChangedEventsParams & { include: I },
   ): UseInfiniteDataChangedEventsReturn<DataChangedEventResult<I>>;
   function useInfiniteDataChangedEvents(
-    params?: Omit<UseInfiniteDataChangedEventsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteDataChangedEventsParams, 'include'> & { include?: never },
   ): UseInfiniteDataChangedEventsReturn<DataChangedEvent>;
   function useInfiniteDataChangedEvents(
     params: UseInfiniteDataChangedEventsParams & { include?: DataChangedEventInclude },
   ): UseInfiniteDataChangedEventsReturn<PartialDataChangedEvent>;
   function useInfiniteDataChangedEvents(
-    params: UseInfiniteDataChangedEventsParams & { include?: DataChangedEventInclude } = {},
+    params: UseInfiniteDataChangedEventsParams & { include?: DataChangedEventInclude },
   ): UseInfiniteDataChangedEventsReturn<PartialDataChangedEvent> {
     const { items, ...rest } = impl(params);
     return { dataChangedEvents: items, ...rest };

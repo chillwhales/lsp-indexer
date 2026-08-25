@@ -24,7 +24,7 @@ export function createUseInfiniteOwnedAssets(
     PartialOwnedAsset,
     FetchOwnedAssetsResult<PartialOwnedAsset>
   >({
-    queryKey: (p) => ownedAssetKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => ownedAssetKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.ownedAssets,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteOwnedAssets(
     params: UseInfiniteOwnedAssetsParams & { include: I },
   ): UseInfiniteOwnedAssetsReturn<OwnedAssetResult<I>>;
   function useInfiniteOwnedAssets(
-    params?: Omit<UseInfiniteOwnedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteOwnedAssetsParams, 'include'> & { include?: never },
   ): UseInfiniteOwnedAssetsReturn<OwnedAsset>;
   function useInfiniteOwnedAssets(
     params: UseInfiniteOwnedAssetsParams & { include?: OwnedAssetInclude },
   ): UseInfiniteOwnedAssetsReturn<PartialOwnedAsset>;
   function useInfiniteOwnedAssets(
-    params: UseInfiniteOwnedAssetsParams & { include?: OwnedAssetInclude } = {},
+    params: UseInfiniteOwnedAssetsParams & { include?: OwnedAssetInclude },
   ): UseInfiniteOwnedAssetsReturn<PartialOwnedAsset> {
     const { items, ...rest } = impl(params);
     return { ownedAssets: items, ...rest };

@@ -24,7 +24,7 @@ export function createUseInfiniteEncryptedAssets(
     PartialEncryptedAsset,
     FetchEncryptedAssetsResult<PartialEncryptedAsset>
   >({
-    queryKey: (p) => encryptedAssetKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => encryptedAssetKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.encryptedAssets,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteEncryptedAssets(
     params: UseInfiniteEncryptedAssetsParams & { include: I },
   ): UseInfiniteEncryptedAssetsReturn<EncryptedAssetResult<I>>;
   function useInfiniteEncryptedAssets(
-    params?: Omit<UseInfiniteEncryptedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteEncryptedAssetsParams, 'include'> & { include?: never },
   ): UseInfiniteEncryptedAssetsReturn<EncryptedAsset>;
   function useInfiniteEncryptedAssets(
     params: UseInfiniteEncryptedAssetsParams & { include?: EncryptedAssetInclude },
   ): UseInfiniteEncryptedAssetsReturn<PartialEncryptedAsset>;
   function useInfiniteEncryptedAssets(
-    params: UseInfiniteEncryptedAssetsParams & { include?: EncryptedAssetInclude } = {},
+    params: UseInfiniteEncryptedAssetsParams & { include?: EncryptedAssetInclude },
   ): UseInfiniteEncryptedAssetsReturn<PartialEncryptedAsset> {
     const { items, ...rest } = impl(params);
     return { encryptedAssets: items, ...rest };

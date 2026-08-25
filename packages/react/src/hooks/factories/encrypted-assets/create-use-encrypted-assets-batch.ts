@@ -31,10 +31,10 @@ export function createUseEncryptedAssetsBatch(
   function useEncryptedAssetsBatch(
     params: UseEncryptedAssetsBatchParams & { include?: EncryptedAssetInclude },
   ): UseEncryptedAssetsBatchReturn<PartialEncryptedAsset> {
-    const { tuples, include } = params;
+    const { tuples, include, network } = params;
 
     const { data, ...rest } = useQuery({
-      queryKey: encryptedAssetKeys.batch(tuples, include),
+      queryKey: encryptedAssetKeys.batch(network, tuples, include),
       queryFn: () => queryFn(params),
       enabled: tuples.length > 0,
     });

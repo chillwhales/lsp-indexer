@@ -1,0 +1,94 @@
+{{- if and .Values.indexer.enabled .Values.hasura.metadataApply.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-v3-hasura-apply
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hasura-metadata
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "1"
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "10"
+spec:
+  backoffLimit: {{ .Values.hasura.metadataApply.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "lsp-indexer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: hasura-metadata
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: apply
+          image: "{{ .Values.indexer.image.repository }}:{{ .Values.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.indexer.image.pullPolicy }}
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              migration_deadline=$(( $(date +%s) + {{ .Values.indexer.migration.activeDeadlineSeconds }} ))
+              {{ range $network := .Values.indexer.networks }}
+              {{ if $network.enabled }}
+              until INDEXER_NETWORK={{ $network.key | quote }} \
+                {{ printf "DATABASE_URL=\"$DATABASE_URL_%s\"" ($network.key | upper | replace "-" "_") }} \
+                /app/entrypoint.sh check-database >/dev/null; do
+                if [ "$(date +%s)" -ge "$migration_deadline" ]; then
+                  echo "V3 database migration did not become ready for {{ $network.key }} before the deadline" >&2
+                  exit 1
+                fi
+                sleep 5
+              done
+              {{ end }}
+              {{ end }}
+              elapsed=0
+              until wget -q -T 2 -O /dev/null "${HASURA_GRAPHQL_ENDPOINT}/healthz"; do
+                if [ "$elapsed" -ge 180 ]; then
+                  echo "Hasura did not become healthy within 180 seconds" >&2
+                  exit 1
+                fi
+                sleep 2
+                elapsed=$((elapsed + 2))
+              done
+              exec /app/entrypoint.sh hasura-apply
+          env:
+            - name: HASURA_GRAPHQL_ENDPOINT
+              value: {{ printf "http://%s-hasura:%v" (include "lsp-indexer.fullname" .) .Values.hasura.service.port | quote }}
+            - name: HASURA_GRAPHQL_ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.hasuraAdminSecret }}
+            {{- range $network := .Values.indexer.networks }}
+            {{- if $network.enabled }}
+            - name: {{ printf "DATABASE_URL_%s" ($network.key | upper | replace "-" "_") }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.secrets.existingSecret }}
+                  key: {{ $network.databaseSecretKey }}
+            {{- end }}
+            {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+{{- end }}

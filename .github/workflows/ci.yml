@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, refactor/indexer-v2-react]
+    branches: [main, refactor/indexer-v2-react, lsp-indexer-v3]
   pull_request:
-    branches: [main, refactor/indexer-v2-react]
+    branches: [main, refactor/indexer-v2-react, lsp-indexer-v3]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,14 +15,22 @@ jobs:
   # Build, lint, test pipeline (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   build-test:
+    permissions:
+      contents: read
+      pull-requests: write
     uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
     with:
       node-version: 22
       build-command: pnpm build
       lint-command: pnpm lint
-      format-command: pnpm format:check && pnpm --filter docs generate:check
+      format-command: pnpm format:check && pnpm --filter docs generate:check && pnpm --filter @chillwhales/indexer-v3 db:migrations:check && pnpm --filter @chillwhales/indexer-v3 hasura:check
       typecheck-command: pnpm typecheck
-      test-command: pnpm test:coverage
+      test-command: |
+        if [ "$(node -p "process.versions.node.split('.')[0]")" -lt 22 ]; then
+          INCLUDE_INDEXER_V3=false pnpm test:coverage
+        else
+          pnpm test:coverage
+        fi
       pre-lint-command: 'pnpm --filter=@chillwhales/indexer build'
       test-node-versions: '[20, 22]'
       artifact-paths: |
@@ -31,12 +39,136 @@ jobs:
         packages/react/dist
         packages/next/dist
         packages/indexer/lib
+        packages/indexer-v3/lib
+        packages/indexer-v3/drizzle
+        packages/indexer-v3/hasura
+
+  # ---------------------------------------------------------------------------
+  # V3 PostgreSQL migrations, isolation, atomicity, and rollback integration
+  # ---------------------------------------------------------------------------
+  persistence:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Test v3 persistence against PostgreSQL 17
+        run: pnpm --filter @chillwhales/indexer-v3 test:persistence
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+
+  # ---------------------------------------------------------------------------
+  # V3 Hasura metadata, public schema, multi-chain reads, and live subscriptions
+  # ---------------------------------------------------------------------------
+  api-contract:
+    runs-on: ubuntu-latest
+    env:
+      HASURA_GRAPHQL_ENDPOINT: http://127.0.0.1:8080
+      HASURA_GRAPHQL_ADMIN_SECRET: v3-api-admin-test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      TEST_HASURA_GRAPHQL_ENDPOINT: http://127.0.0.1:8080/v1/graphql
+      TEST_HASURA_ADMIN_SECRET: v3-api-admin-test
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the public v3 package client
+        run: pnpm --filter @lsp-indexer/types build && pnpm --filter @lsp-indexer/node build
+      - name: Create the least-privilege Hasura login
+        run: >-
+          docker run --rm --network host
+          -e PGPASSWORD=postgres postgres:17
+          psql -h 127.0.0.1 -U postgres -d postgres
+          -v ON_ERROR_STOP=1
+          -c "CREATE ROLE lsp_v3_api_test LOGIN PASSWORD 'v3-api-test-password'"
+      - name: Migrate the v3 multi-chain schemas
+        run: pnpm --filter @chillwhales/indexer-v3 db:migrate
+        env:
+          DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+          DATABASE_API_LOGIN: lsp_v3_api_test
+      - name: Start Hasura v2.46
+        run: >-
+          docker run --detach --name lsp-v3-hasura --network host
+          -e HASURA_GRAPHQL_METADATA_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
+          -e HASURA_GRAPHQL_V3_DATABASE_URL=postgresql://lsp_v3_api_test:v3-api-test-password@127.0.0.1:5432/postgres
+          -e HASURA_GRAPHQL_ADMIN_SECRET=v3-api-admin-test
+          -e HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public
+          -e HASURA_GRAPHQL_ENABLE_CONSOLE=false
+          -e HASURA_GRAPHQL_ENABLE_TELEMETRY=false
+          -e HASURA_GRAPHQL_SERVER_PORT=8080
+          hasura/graphql-engine:v2.46.0
+      - name: Wait for Hasura
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/healthz; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs lsp-v3-hasura
+          exit 1
+      - name: Apply the v3 source metadata
+        run: pnpm --filter @chillwhales/indexer-v3 hasura:apply
+      - name: Generate the live public schema
+        run: pnpm --filter @chillwhales/indexer-v3 hasura:schema:dump
+      - name: Upload the generated public schema
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-public-hasura-schema
+          path: packages/indexer-v3/hasura/schema.graphql
+      - name: Reject public-schema drift
+        run: git diff --exit-code -- packages/indexer-v3/hasura/schema.graphql
+      - name: Exercise the public v3 API contract
+        run: pnpm --filter @chillwhales/indexer-v3 test:hasura
+      - name: Show Hasura logs on failure
+        if: failure()
+        run: docker logs lsp-v3-hasura
 
   # ---------------------------------------------------------------------------
   # Quality checks (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   quality:
-    needs: [build-test]
+    needs: [build-test, persistence, api-contract]
     uses: kethalia/workflows/.github/workflows/ci-quality.yml@v4
     with:
       verify-command: pnpm validate:publish
@@ -55,3 +187,65 @@ jobs:
       kubeconform-schema-locations: |
         default
         https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+
+  # ---------------------------------------------------------------------------
+  # Production-only Helm resources (monitoring, dashboard, and backups)
+  # ---------------------------------------------------------------------------
+  helm-production:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.16.4
+      - name: Lint and render the complete production chart
+        run: |
+          helm lint --strict charts/lsp-indexer \
+            --set monitoring.enabled=true \
+            --set cnpg.backup.enabled=true \
+            --set cnpg.backup.reflector.enabled=true
+          helm template lsp-indexer charts/lsp-indexer \
+            --namespace lsp-indexer \
+            --set monitoring.enabled=true \
+            --set cnpg.backup.enabled=true \
+            --set cnpg.backup.reflector.enabled=true \
+            > /tmp/lsp-indexer-production.yaml
+      - name: Assert production rollout and alert semantics
+        run: |
+          grep --fixed-strings --quiet 'argocd.argoproj.io/sync-wave: "-3"' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: helm_release' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: kubernetes_namespace' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'absent(up{component="indexer", deployment_network="lukso-mainnet", helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"})' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'increase(sqd_fallback_switches{helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"}[15m])' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for lukso-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for ethereum-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_LUKSO_MAINNET' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_ETHEREUM_MAINNET' /tmp/lsp-indexer-production.yaml
+          if grep --fixed-strings --quiet 'delta(sqd_fallback_switches' /tmp/lsp-indexer-production.yaml; then
+            echo 'Source-switch alerts must use counter-aware increase()' >&2
+            exit 1
+          fi
+      - name: Install kubeconform
+        env:
+          KUBECONFORM_VERSION: v0.6.7
+        run: |
+          archive=kubeconform-linux-amd64.tar.gz
+          base=https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}
+          validation_dir=$(mktemp -d)
+          curl --fail --silent --show-error --location --output "$validation_dir/$archive" "$base/$archive"
+          curl --fail --silent --show-error --location --output "$validation_dir/CHECKSUMS" "$base/CHECKSUMS"
+          grep " $archive$" "$validation_dir/CHECKSUMS" \
+            | (cd "$validation_dir" && sha256sum --check -)
+          tar --extract --gzip --directory "$validation_dir" --file "$validation_dir/$archive" kubeconform
+          sudo install --mode 0755 "$validation_dir/kubeconform" /usr/local/bin/kubeconform
+      - name: Validate the complete production render
+        run: |
+          kubeconform \
+            -kubernetes-version 1.30.0 \
+            -strict \
+            -summary \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            /tmp/lsp-indexer-production.yaml

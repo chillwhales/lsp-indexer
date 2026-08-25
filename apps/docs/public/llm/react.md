@@ -3,11 +3,12 @@
 
 # @lsp-indexer/react
 
-Client-side React hooks for querying LUKSO blockchain data. The browser connects to Hasura
-directly — no server needed. Built on top of `@tanstack/react-query`.
+Client-side React hooks for querying the multi-chain v3 indexer. The browser connects to Hasura
+directly—no server is needed. The package is built on `@tanstack/react-query` and delegates all
+query semantics to `@lsp-indexer/node`.
 
 ```bash
-npm install @lsp-indexer/react @tanstack/react-query
+npm install @lsp-indexer/react@^3 @tanstack/react-query
 ```
 
 ---
@@ -18,12 +19,15 @@ Set the client-side env var (browser-accessible):
 
 ```env
 NEXT_PUBLIC_INDEXER_URL=http://localhost:8080/v1/graphql
+NEXT_PUBLIC_INDEXER_NETWORK=lukso-mainnet
 # Optional — for subscriptions
 NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:8080/v1/graphql
 ```
 
-The `NEXT_PUBLIC_` prefix exposes the URL to the browser. This is intentional — the browser
-needs to reach Hasura directly. Do **not** put secrets in these variables.
+The `NEXT_PUBLIC_` prefix exposes the URL and selected network to the browser. This is intentional:
+the browser needs both to make an exact chain-scoped request. Do **not** put secrets in these
+variables. Hooks still receive `network` explicitly; the environment helper never silently selects
+a chain.
 
 ---
 
@@ -57,11 +61,35 @@ export function Providers({ children }: { children: React.ReactNode }) {
 The subscription provider is optional — only needed if you use `use*Subscription` hooks.
 It creates a single shared WebSocket connection to Hasura.
 
+For the uniform v3 hooks, `IndexerProvider` creates one shared Node client for HTTP and WebSocket
+transport and also satisfies every familiar subscription hook. Requests still contain an explicit
+`network`; the provider does not add hidden request identity.
+
+```tsx
+import { IndexerProvider } from '@lsp-indexer/react';
+
+<QueryClientProvider client={queryClient}>
+  <IndexerProvider
+    url={process.env.NEXT_PUBLIC_INDEXER_URL!}
+    wsUrl={process.env.NEXT_PUBLIC_INDEXER_WS_URL}
+    network="lukso-mainnet"
+  >
+    {children}
+  </IndexerProvider>
+</QueryClientProvider>;
+```
+
+`useIndexerClient()` exposes the scoped Node client and `useIndexerNetwork()` exposes its configured
+default so an application can pass that value explicitly to hooks. Changing `url`, `wsUrl`, or
+`network` creates the replacement client and disposes the old connection on cleanup.
+
 ---
 
 ## Hook Patterns
 
-Every domain follows the same 4-hook pattern:
+Every hook parameter object includes a required `network`. It is included in every React Query key,
+so identical addresses on different chains cannot share cached results. Most domains follow the
+same four-hook pattern:
 
 ### Single entity — `useProfile`
 
@@ -69,7 +97,10 @@ Every domain follows the same 4-hook pattern:
 import { useProfile } from '@lsp-indexer/react';
 
 function ProfileCard({ address }: { address: string }) {
-  const { profile, isLoading, error, isFetching } = useProfile({ address });
+  const { profile, isLoading, error, isFetching } = useProfile({
+    network: 'lukso-mainnet',
+    address,
+  });
 
   if (isLoading) return <Skeleton />;
   if (error) return <ErrorAlert error={error} />;
@@ -85,8 +116,9 @@ import { useProfiles } from '@lsp-indexer/react';
 
 function ProfileList() {
   const { profiles, totalCount, isLoading, error } = useProfiles({
+    network: 'lukso-mainnet',
     filter: { name: 'whale' },
-    sort: { field: 'name', direction: 'asc' },
+    sort: { field: 'newest', direction: 'desc' },
     limit: 10,
   });
 
@@ -106,6 +138,7 @@ import { useInfiniteProfiles } from '@lsp-indexer/react';
 
 function InfiniteProfileList() {
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteProfiles({
+    network: 'lukso-mainnet',
     filter: { name: 'whale' },
     pageSize: 20,
   });
@@ -130,6 +163,7 @@ import { useProfileSubscription } from '@lsp-indexer/react';
 
 function LiveProfiles() {
   const { data, isConnected, isSubscribed, error } = useProfileSubscription({
+    network: 'lukso-mainnet',
     filter: { name: 'whale' },
     limit: 10,
   });
@@ -147,7 +181,7 @@ function LiveProfiles() {
 
 ## Available Domains
 
-All 12 domains follow the same pattern. Replace `Profile` with any domain name:
+The familiar consumer domains retain their domain-shaped hooks:
 
 | Domain                | Hooks                                                                                                                                                                                                                                                                                    |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -164,6 +198,53 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
 | Collection Attributes | `useCollectionAttributes`                                                                                                                                                                                                                                                                |
+| Chillwhales NFTs (v3) | `useChillwhalesNfts`, `useInfiniteChillwhalesNfts`, `useChillwhalesNftSubscription`                                                                                                                                                                                                      |
+
+### Uniform v3 hooks
+
+`useV3List`, `useV3Infinite`, and `useV3Subscription` expose the same typed interface for all 15
+public v3 roots. They delegate filters, sorts, parsing, and subscriptions to `@lsp-indexer/node`.
+Infinite keys include network, domain, filter, sort, and page size; the next offset advances by the
+rows actually returned and stops when `totalCount` is loaded.
+
+```tsx
+import { useV3Infinite, useV3Subscription } from '@lsp-indexer/react';
+
+const controllers = useV3Infinite('controllers', {
+  network: 'lukso-mainnet',
+  filter: { profileAddress: { eq: profileAddress } },
+  sort: [{ field: 'arrayIndex', direction: 'asc', nulls: 'last' }],
+  pageSize: 25,
+});
+
+const liveHeads = useV3Subscription(
+  'indexedHeads',
+  { network: 'lukso-mainnet', limit: 1 },
+  { invalidate: true },
+);
+```
+
+| Domain argument     | Named convenience hooks                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `blocks`            | `useBlocks`, `useInfiniteBlocks`, `useBlockSubscription`                |
+| `events`            | `useEvents`, `useInfiniteEvents`, `useEventSubscription`                |
+| `profiles`          | Use the uniform hooks or familiar profile hooks above                   |
+| `digitalAssets`     | Use the uniform hooks or familiar digital-asset hooks above             |
+| `nfts`              | Use the uniform hooks or familiar NFT hooks above                       |
+| `ownedAssets`       | Use the uniform hooks or familiar owned-asset hooks above               |
+| `ownedTokens`       | Use the uniform hooks or familiar owned-token hooks above               |
+| `followers`         | Use the uniform hooks or familiar follower hooks above                  |
+| `creators`          | Use the uniform hooks or familiar creator hooks above                   |
+| `issuedAssets`      | Use the uniform hooks or familiar issued-asset hooks above              |
+| `controllers`       | `useControllers`, `useInfiniteControllers`, `useControllerSubscription` |
+| `chillwhalesNfts`   | `useChillwhalesNfts`, infinite, and subscription variants               |
+| `dataValues`        | `useDataValues`, `useInfiniteDataValues`, `useDataValueSubscription`    |
+| `metadataRevisions` | `useMetadataRevisions`, infinite, and subscription variants             |
+| `indexedHeads`      | `useIndexedHead(s)`, `useIndexedHeadSubscription`                       |
+
+The generic return type is selected by the domain argument, so `items` and subscription `data`
+never become a union of all domain records. When `invalidate: true`, live data and reconnect events
+invalidate that exact network/domain cache by default; `invalidateKeys` can override the target.
 
 ---
 
@@ -175,6 +256,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 
 | Parameter | Type                                                          | Required | Description                              |
 | --------- | ------------------------------------------------------------- | -------- | ---------------------------------------- |
+| `network` | `string`                                                      | Yes      | Exact v3 network slug                    |
 | `pairs`   | `Array<{ followerAddress: string; followedAddress: string }>` | Yes      | Address pairs to check follow status for |
 
 ### Usage
@@ -187,7 +269,10 @@ const pairs = [
   { followerAddress: '0xFollower2', followedAddress: '0xFollowed2' },
 ];
 
-const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+const { results, isLoading, error } = useIsFollowingBatch({
+  network: 'lukso-mainnet',
+  pairs,
+});
 // Keys are lowercased — any address casing is accepted as input:
 // results.get('0xfollower1:0xfollowed1') → true | false
 // results.get('0xfollower2:0xfollowed2') → true | false
@@ -199,12 +284,13 @@ The hook is disabled when `pairs` is empty — no query is fired and `results` d
 
 ## Batch Encrypted Asset Fetch
 
-`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single Hasura query.
+`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples. It transparently pages Hasura when duplicate immutable revisions require another batch.
 
 ### Parameters
 
 | Parameter | Type                         | Required | Description                                                                  |
 | --------- | ---------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `network` | `string`                     | Yes      | Exact v3 network slug                                                        |
 | `tuples`  | `EncryptedAssetBatchTuple[]` | Yes      | Array of `{ address: string, contentId: string, revision: number }` to fetch |
 | `include` | `EncryptedAssetInclude`      | No       | Narrow which related fields are returned — full TypeScript inference         |
 
@@ -219,6 +305,7 @@ const tuples = [
 ];
 
 const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
+  network: 'lukso-mainnet',
   tuples,
   include: { encryption: true },
 });
@@ -227,7 +314,7 @@ const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
 
 The hook is disabled when `tuples` is empty — no query is fired and `encryptedAssets` defaults to `[]`.
 If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
-Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
+Address matching is case-insensitive. Duplicate tuples are coalesced, and each unique tuple returns at most its newest canonical revision in input order.
 `EncryptedAssetInclude` narrows the return type. The return shape has no `totalCount`.
 
 ---
@@ -254,6 +341,7 @@ addresses are provided.
 
 | Param      | Type             | Required | Description                    |
 | ---------- | ---------------- | -------- | ------------------------------ |
+| `network`  | `string`         | Yes      | Exact v3 network slug          |
 | `addressA` | `string`         | Yes      | First address                  |
 | `addressB` | `string`         | Yes      | Second address                 |
 | `sort`     | `ProfileSort`    | No       | Sort field, direction, nulls   |
@@ -265,6 +353,7 @@ addresses are provided.
 
 | Param           | Type             | Required | Description                    |
 | --------------- | ---------------- | -------- | ------------------------------ |
+| `network`       | `string`         | Yes      | Exact v3 network slug          |
 | `myAddress`     | `string`         | Yes      | Your address                   |
 | `targetAddress` | `string`         | Yes      | Target profile address         |
 | `sort`          | `ProfileSort`    | No       | Sort field, direction, nulls   |
@@ -280,13 +369,14 @@ Infinite variants (`useInfiniteMutualFollows`, etc.) replace `limit`/`offset` wi
 import { useMutualFollows } from '@lsp-indexer/react';
 import type { ProfileInclude } from '@lsp-indexer/types';
 
-const include: ProfileInclude = { ownedAssets: true, tags: true };
+const include: ProfileInclude = { name: true, tags: true };
 
 function MutualFollows({ addressA, addressB }: { addressA: string; addressB: string }) {
   const { profiles, totalCount, isLoading, error } = useMutualFollows({
+    network: 'lukso-mainnet',
     addressA,
     addressB,
-    sort: { field: 'name', direction: 'asc' },
+    sort: { field: 'newest', direction: 'desc' },
     limit: 10,
     include,
   });
@@ -300,7 +390,7 @@ function MutualFollows({ addressA, addressB }: { addressA: string; addressB: str
       {profiles?.map((p) => (
         <div key={p.address}>
           {p.name}
-          {/* p.ownedAssets is typed — include narrowing works */}
+          {/* p.tags is typed — include narrowing works */}
         </div>
       ))}
     </div>
@@ -313,7 +403,12 @@ function MutualFollows({ addressA, addressB }: { addressA: string; addressB: str
 ```tsx
 import { useFollowedByMyFollows } from '@lsp-indexer/react';
 
-const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 20 });
+const { profiles } = useFollowedByMyFollows({
+  network: 'lukso-mainnet',
+  myAddress,
+  targetAddress,
+  limit: 20,
+});
 ```
 
 ---
@@ -326,6 +421,7 @@ const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 2
 
 | Parameter           | Type     | Required | Description                            |
 | ------------------- | -------- | -------- | -------------------------------------- |
+| `network`           | `string` | Yes      | Exact v3 network slug                  |
 | `collectionAddress` | `string` | Yes      | Contract address of the NFT collection |
 
 ### Return Shape
@@ -344,6 +440,7 @@ import { useCollectionAttributes } from '@lsp-indexer/react';
 
 function TraitFilter({ collectionAddress }: { collectionAddress: string }) {
   const { attributes, totalCount, isLoading, error } = useCollectionAttributes({
+    network: 'lukso-mainnet',
     collectionAddress,
   });
 
@@ -376,23 +473,27 @@ import { useProfile } from '@lsp-indexer/react';
 import type { ProfileInclude } from '@lsp-indexer/types';
 
 const include: ProfileInclude = {
-  ownedAssets: true,
+  name: true,
+  description: true,
   tags: true,
   links: true,
-  images: true,
+  profileImage: true,
 };
 
-const { profile } = useProfile({ address: '0x...', include });
-// profile.ownedAssets → OwnedAsset[] (included)
-// profile.issuedAssets → undefined (not included)
+const { profile } = useProfile({ network: 'lukso-mainnet', address: '0x...', include });
+// profile.name → string | null (included)
+// profile.avatar → undefined (not included)
 ```
 
-The TypeScript return type narrows automatically based on your include selection.
+The TypeScript return type narrows automatically based on your include selection. Omitting
+`include` returns the full familiar result; `include: {}` returns only mandatory identity and
+provenance fields. Every top-level result includes `network` and `chainId`, and projection/event
+results carry canonical block and transaction provenance.
 
 ### NFT Include Fields
 
-NFTs support granular include control for chillwhales-specific fields. These are excluded by
-default to reduce payload size — opt in only when needed:
+NFTs support granular include control for Chillwhales-specific fields. Passing an explicit include
+object opts into only the selected fields:
 
 ```tsx
 import { useNfts } from '@lsp-indexer/react';
@@ -411,6 +512,7 @@ const include: NftInclude = {
 };
 
 const { nfts } = useNfts({
+  network: 'lukso-mainnet',
   filter: { collectionAddress: '0x...' },
   include,
 });
@@ -422,6 +524,8 @@ All NFT include fields: `formattedTokenId`, `name`, `description`, `category`, `
 `links`, `attributes`, `timestamp`, `blockNumber`, `transactionIndex`, `logIndex`, `score`, `rank`,
 `chillClaimed`, `orbsClaimed`, `level`, `cooldownExpiry`, `faction`. Relations: `collection`
 (accepts `boolean | DigitalAssetInclude`), `holder` (accepts `boolean | ProfileInclude`).
+Nested holder includes retain `timestamp: string | null`; v3 currently returns `null` because the
+read model has no acquisition timestamp.
 
 ---
 
@@ -438,20 +542,30 @@ const filter: DigitalAssetFilter = {
 };
 
 const sort: DigitalAssetSort = {
-  field: 'holderCount',
+  field: 'totalSupply',
   direction: 'desc',
   nulls: 'last',
 };
 
-const { digitalAssets } = useDigitalAssets({ filter, sort, limit: 10 });
+const { digitalAssets } = useDigitalAssets({
+  network: 'lukso-mainnet',
+  filter,
+  sort,
+  limit: 10,
+});
 ```
 
-Filters support partial string matching, exact matches, and address lookups depending on the
-domain. Sort supports `asc`/`desc` direction and `first`/`last` null positioning.
+Familiar v3 text filters use exact, case-sensitive matching. Hexadecimal addresses and canonical
+hashes are validated and normalized before querying, and supplied empty hexadecimal values fail
+validation rather than disabling the filter. Digital-asset `name` and `symbol` filters use the
+projection value first and current LSP4 metadata only when that projection field is null, matching
+the returned record. Sort supports `asc`/`desc` direction and `first`/`last` null positioning;
+compatibility-only sort fields that v3 cannot represent fail with `VALIDATION_FAILED` rather than
+being ignored.
 
 ### NFT Filters and Sorting
 
-NFTs support chillwhales-specific filter fields and score-based sorting:
+NFTs support Chillwhales-specific filter fields and deterministic token sorting:
 
 ```tsx
 import type { NftFilter, NftSort } from '@lsp-indexer/types';
@@ -465,18 +579,20 @@ const filter: NftFilter = {
 };
 
 const sort: NftSort = {
-  field: 'score', // Sort by chillwhales score
-  direction: 'desc',
+  field: 'tokenId',
+  direction: 'asc',
   nulls: 'last',
 };
 
-const { nfts } = useNfts({ filter, sort, limit: 20 });
+const { nfts } = useNfts({ network: 'lukso-mainnet', filter, sort, limit: 20 });
 ```
 
 **NFT filter fields:** `collectionAddress`, `tokenId`, `formattedTokenId`, `name`, `holderAddress`,
 `isBurned`, `isMinted`, `chillClaimed`, `orbsClaimed`, `maxLevel`, `cooldownExpiryBefore`.
 
-**NFT sort fields:** `newest`, `oldest`, `tokenId`, `formattedTokenId`, `score`.
+**NFT sort fields:** `newest`, `oldest`, `tokenId`, and `formattedTokenId`. The legacy `score`
+input remains typed for migration diagnostics but v3 rejects it with a field-level
+`VALIDATION_FAILED` error because the public view cannot execute that order safely.
 `newest`/`oldest` use deterministic block-order; `direction`/`nulls` are ignored for those values.
 
 ---
@@ -494,6 +610,7 @@ Key behaviors:
 
 ```tsx
 const { data, isConnected, isSubscribed, error } = useDigitalAssetSubscription({
+  network: 'lukso-mainnet',
   filter: { tokenType: 'NFT' },
   limit: 50,
   invalidate: true, // invalidate useDigitalAssets() cache on updates

@@ -22,7 +22,7 @@ export function createUseUniversalReceiverEventSubscription(useSubscription: Use
     },
   ): UseSubscriptionReturn<UniversalReceiverEventResult<I>>;
   function useUniversalReceiverEventSubscription(
-    params?: Omit<UseUniversalReceiverEventSubscriptionParams, 'include'> & {
+    params: Omit<UseUniversalReceiverEventSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: UniversalReceiverEvent[]) => void;
     },
@@ -39,9 +39,10 @@ export function createUseUniversalReceiverEventSubscription(useSubscription: Use
   function useUniversalReceiverEventSubscription(
     params: UseUniversalReceiverEventSubscriptionParams & {
       onData?: (data: any[]) => void;
-    } = {},
+    },
   ): UseSubscriptionReturn<PartialUniversalReceiverEvent> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -54,6 +55,7 @@ export function createUseUniversalReceiverEventSubscription(useSubscription: Use
 
     const queryClient = useQueryClient();
     const config = buildUniversalReceiverEventSubscriptionConfig({
+      network,
       filter,
       sort,
       limit,
@@ -63,7 +65,7 @@ export function createUseUniversalReceiverEventSubscription(useSubscription: Use
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [universalReceiverEventKeys.all] : undefined,
+      invalidateKeys: invalidate ? [universalReceiverEventKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

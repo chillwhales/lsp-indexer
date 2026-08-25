@@ -24,7 +24,7 @@ export function createUseInfiniteOwnedTokens(
     PartialOwnedToken,
     FetchOwnedTokensResult<PartialOwnedToken>
   >({
-    queryKey: (p) => ownedTokenKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => ownedTokenKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.ownedTokens,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteOwnedTokens(
     params: UseInfiniteOwnedTokensParams & { include: I },
   ): UseInfiniteOwnedTokensReturn<OwnedTokenResult<I>>;
   function useInfiniteOwnedTokens(
-    params?: Omit<UseInfiniteOwnedTokensParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteOwnedTokensParams, 'include'> & { include?: never },
   ): UseInfiniteOwnedTokensReturn<OwnedToken>;
   function useInfiniteOwnedTokens(
     params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude },
   ): UseInfiniteOwnedTokensReturn<PartialOwnedToken>;
   function useInfiniteOwnedTokens(
-    params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude } = {},
+    params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude },
   ): UseInfiniteOwnedTokensReturn<PartialOwnedToken> {
     const { items, ...rest } = impl(params);
     return { ownedTokens: items, ...rest };

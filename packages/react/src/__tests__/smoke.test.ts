@@ -6,15 +6,25 @@ import {
   createUseInfinite,
   createUseList,
   createUseSubscription,
+  createUseV3Infinite,
+  createUseV3List,
+  IndexerProvider,
   IndexerSubscriptionProvider,
   // Subscription infrastructure
   SubscriptionClientContext,
+  useBlocks,
+  useChillwhalesNfts,
+  useChillwhalesNftSubscription,
+  useControllers,
+  useControllerSubscription,
   // Creator hooks
   useCreators,
   useCreatorSubscription,
   // Data changed event hooks
   useDataChangedEvents,
   useDataChangedEventSubscription,
+  useDataValues,
+  useDataValueSubscription,
   // Digital asset hooks
   useDigitalAsset,
   useDigitalAssets,
@@ -22,16 +32,25 @@ import {
   // Encrypted asset hooks
   useEncryptedAssets,
   useEncryptedAssetSubscription,
+  useEvents,
+  useEventSubscription,
   useFollowCount,
   useFollowerSubscription,
   // Follower hooks
   useFollows,
+  useIndexedHead,
+  useIndexedHeads,
+  useIndexedHeadSubscription,
+  useInfiniteBlocks,
   useInfiniteCreators,
   useInfiniteDataChangedEvents,
+  useInfiniteDataValues,
   useInfiniteDigitalAssets,
   useInfiniteEncryptedAssets,
+  useInfiniteEvents,
   useInfiniteFollows,
   useInfiniteIssuedAssets,
+  useInfiniteMetadataRevisions,
   useInfiniteNfts,
   useInfiniteOwnedAssets,
   useInfiniteOwnedTokens,
@@ -44,6 +63,8 @@ import {
   useIssuedAssetSubscription,
   useLatestDataChangedEvent,
   useLatestTokenIdDataChangedEvent,
+  useMetadataRevisions,
+  useMetadataRevisionSubscription,
   // NFT hooks
   useNft,
   useNfts,
@@ -68,6 +89,9 @@ import {
   // Universal receiver event hooks
   useUniversalReceiverEvents,
   useUniversalReceiverEventSubscription,
+  useV3Infinite,
+  useV3List,
+  useV3Subscription,
 } from '../index';
 
 describe('@lsp-indexer/react', () => {
@@ -90,6 +114,37 @@ describe('@lsp-indexer/react', () => {
     it('exports createUseSubscription', () => {
       expect(createUseSubscription).toBeDefined();
       expect(typeof createUseSubscription).toBe('function');
+    });
+
+    it('exports uniform v3 factories and hooks', () => {
+      expect(typeof createUseV3List).toBe('function');
+      expect(typeof createUseV3Infinite).toBe('function');
+      expect(typeof useV3List).toBe('function');
+      expect(typeof useV3Infinite).toBe('function');
+      expect(typeof useV3Subscription).toBe('function');
+    });
+  });
+
+  describe('new v3 domains', () => {
+    it('exports query conveniences for every new domain family', () => {
+      expect(typeof useBlocks).toBe('function');
+      expect(typeof useInfiniteBlocks).toBe('function');
+      expect(typeof useEvents).toBe('function');
+      expect(typeof useInfiniteEvents).toBe('function');
+      expect(typeof useControllers).toBe('function');
+      expect(typeof useControllerSubscription).toBe('function');
+      expect(typeof useChillwhalesNfts).toBe('function');
+      expect(typeof useChillwhalesNftSubscription).toBe('function');
+      expect(typeof useDataValues).toBe('function');
+      expect(typeof useInfiniteDataValues).toBe('function');
+      expect(typeof useDataValueSubscription).toBe('function');
+      expect(typeof useMetadataRevisions).toBe('function');
+      expect(typeof useInfiniteMetadataRevisions).toBe('function');
+      expect(typeof useMetadataRevisionSubscription).toBe('function');
+      expect(typeof useEventSubscription).toBe('function');
+      expect(typeof useIndexedHead).toBe('function');
+      expect(typeof useIndexedHeads).toBe('function');
+      expect(typeof useIndexedHeadSubscription).toBe('function');
     });
   });
 
@@ -209,6 +264,10 @@ describe('@lsp-indexer/react', () => {
 
     it('exports IndexerSubscriptionProvider', () => {
       expect(IndexerSubscriptionProvider).toBeDefined();
+    });
+
+    it('exports the shared v3 IndexerProvider', () => {
+      expect(IndexerProvider).toBeDefined();
     });
   });
 });

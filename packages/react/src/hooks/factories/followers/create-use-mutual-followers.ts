@@ -21,7 +21,15 @@ export function createUseMutualFollowers(
     FetchProfilesResult<PartialProfile>
   >({
     queryKey: (p) =>
-      followerKeys.mutualFollowers(p.addressA, p.addressB, p.sort, p.limit, p.offset, p.include),
+      followerKeys.mutualFollowers(
+        p.network,
+        p.addressA,
+        p.addressB,
+        p.sort,
+        p.limit,
+        p.offset,
+        p.include,
+      ),
     queryFn,
     extractItems: (r) => r.profiles,
     enabled: (p) => Boolean(p.addressA) && Boolean(p.addressB),

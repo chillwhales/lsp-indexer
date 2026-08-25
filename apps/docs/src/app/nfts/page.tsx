@@ -51,6 +51,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 
@@ -215,6 +216,7 @@ function IncludeSections({
 }
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useNft } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [tokenId, setTokenId] = useState('');
@@ -231,6 +233,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   });
 
   const { nft, isLoading, error, isFetching } = useNft({
+    network,
     address: queryAddress,
     tokenId: queryTokenId || undefined,
     formattedTokenId: queryFormattedTokenId || undefined,
@@ -356,11 +359,13 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useNfts } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { nfts, totalCount, isLoading, error, isFetching } = useNfts({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -404,11 +409,13 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useInfiniteNfts } = useHooks(mode);
   const state = useListState();
 
   const { nfts, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteNfts({
+      network,
       filter: state.filter,
       sort: state.sort,
       pageSize: 10,
@@ -450,12 +457,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const network = useIndexerNetwork(mode);
   const { useNftSubscription } = useHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useNftSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

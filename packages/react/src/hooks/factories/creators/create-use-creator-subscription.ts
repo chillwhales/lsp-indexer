@@ -19,7 +19,7 @@ export function createUseCreatorSubscription(useSubscription: UseSubscriptionFn)
     },
   ): UseSubscriptionReturn<CreatorResult<I>>;
   function useCreatorSubscription(
-    params?: Omit<UseCreatorSubscriptionParams, 'include'> & {
+    params: Omit<UseCreatorSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: Creator[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseCreatorSubscription(useSubscription: UseSubscriptionFn)
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useCreatorSubscription(
-    params: UseCreatorSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseCreatorSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialCreator> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseCreatorSubscription(useSubscription: UseSubscriptionFn)
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildCreatorSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildCreatorSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [creatorKeys.all] : undefined,
+      invalidateKeys: invalidate ? [creatorKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

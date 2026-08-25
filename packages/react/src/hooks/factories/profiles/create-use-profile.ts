@@ -16,7 +16,7 @@ export function createUseProfile(
   queryFn: (params: ProfileDetailParams) => Promise<PartialProfile | null>,
 ) {
   const impl = createUseDetail<ProfileDetailParams, PartialProfile>({
-    queryKey: (p) => profileKeys.detail(p.address, p.include),
+    queryKey: (p) => profileKeys.detail(p.network, p.address, p.include),
     queryFn,
     enabled: (p) => Boolean(p.address),
   });

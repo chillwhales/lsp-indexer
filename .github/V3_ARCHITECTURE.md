@@ -1,0 +1,492 @@
+# LSP Indexer v3 architecture
+
+Status: implemented on the v3 integration branch; production evidence remains in
+[#389](https://github.com/chillwhales/lsp-indexer/issues/389)
+
+This document records the architecture boundary for a from-scratch, multi-chain LSP Indexer v3.
+Detailed tables belong to #382, domain transitions belong to #384, and metadata lifecycle behavior
+belongs to #385, but those workstreams must preserve the decisions below.
+
+## Decision summary
+
+| ID   | Decision                                                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A001 | Build v3 beside v2 in `packages/indexer-v3` through the post-cutover rollback window; do not adapt the v2 pipeline.                              |
+| A002 | Run one isolated Pipes process or container per network in production.                                                                           |
+| A003 | Use one shared PostgreSQL cluster, but isolate mutable Pipes tables and rollback snapshots in a physical schema per network.                     |
+| A004 | Expose a unified, read-only `api` schema composed from cross-network PostgreSQL views and track that schema in Hasura.                           |
+| A005 | Use Drizzle for schema definitions, migrations, transactions, and the official Pipes PostgreSQL target. Do not build a custom target by default. |
+| A006 | Use stable EIP-155 chain IDs plus stable network keys everywhere; never infer a network from an address.                                         |
+| A007 | Use deterministic event and projection IDs. V3 does not create random IDs for replayable chain data.                                             |
+| A008 | Keep raw event facts separate from mutable current-state projections.                                                                            |
+| A009 | Bind RPC reads to the triggering block identity and reject results if the provider cannot verify that exact hash.                                |
+| A010 | Queue immutable metadata revisions transactionally, but fetch outside Pipes only after the source block is finalized.                            |
+| A011 | Keep Hasura as the query and subscription runtime while replacing the old Squid and TypeORM stack.                                               |
+| A012 | Preserve familiar high-level package APIs, but make network scope explicit and version all breaking contracts as v3.                             |
+
+Changing one of these decisions requires updating this document, the compatibility contract, the
+acceptance gates, and the affected goal issue in the same pull request.
+
+## Verified SDK baseline
+
+The implementation pins exact versions rather than floating prerelease tags:
+
+| Component                     | Baseline         | Reason                                 |
+| ----------------------------- | ---------------- | -------------------------------------- |
+| Node.js                       | `22.15.0`        | Exact minimum and production image     |
+| `@subsquid/pipes`             | `1.0.0-alpha.22` | Official release with EVM RPC/fallback |
+| `@subsquid/evm-normalization` | `0.0.2`          | Exact alpha.22-tested RPC peer         |
+| `@subsquid/evm-rpc`           | `0.0.2`          | Exact alpha.22-tested RPC peer         |
+| `@subsquid/http-client`       | `1.8.1`          | Exact alpha.22-tested HTTP peer        |
+| `@subsquid/rpc-client`        | `4.16.0`         | Exact alpha.22-tested JSON-RPC peer    |
+| `drizzle-orm`                 | `0.44.7`         | Pipes target peer                      |
+| `pg`                          | `8.16.3`         | PostgreSQL driver                      |
+
+The baseline is evidence for the architecture, not permission to ship an outdated prerelease. Every
+runtime or SDK upgrade is reviewed explicitly, and production uses an exact version. Primary
+references:
+
+- [Pipes v1.0.0-alpha.22 release](https://github.com/subsquid/pipes-sdk/releases/tag/pipes-v1.0.0-alpha.22)
+- [Official RPC/fallback implementation](https://github.com/subsquid/pipes-sdk/pull/156)
+- [Pipes quickstart](https://docs.sqd.dev/en/sdk/pipes-sdk/evm/quickstart)
+- [Drizzle PostgreSQL target](https://docs.sqd.dev/en/sdk/pipes-sdk/evm/guides/basic-development/targets/postgres-drizzle)
+- [Released runner guidance](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-alpha.22/packages/pipes/src/runtime/node/runner.ts)
+- [Released rollback tracker](https://github.com/subsquid/pipes-sdk/blob/pipes-v1.0.0-alpha.22/packages/pipes/src/targets/drizzle/node-postgres/drizzle-tracker.ts)
+
+## Target topology
+
+```mermaid
+flowchart LR
+  PortalA[Portal or official RPC source] --> PipeA[One Pipes process: network A]
+  PortalB[Portal or official RPC source] --> PipeB[One Pipes process: network B]
+  PipeA --> SchemaA[(chain_a schema)]
+  PipeB --> SchemaB[(chain_b schema)]
+  SchemaA --> Views[(api union views)]
+  SchemaB --> Views
+  PipeA --> Jobs[(finalized metadata jobs)]
+  PipeB --> Jobs
+  Jobs --> Workers[Metadata workers]
+  Workers --> SchemaA
+  Workers --> SchemaB
+  Views --> Hasura[Hasura queries and subscriptions]
+  Hasura --> NodeSDK[@lsp-indexer/node v3]
+  NodeSDK --> ReactSDK[@lsp-indexer/react v3]
+  NodeSDK --> NextSDK[@lsp-indexer/next v3]
+```
+
+The database migration job and Hasura metadata job are separate from every indexer process. A
+network process never races another process to apply migrations.
+
+## Multi-chain runtime
+
+### Production isolation
+
+The Pipes `devRunner` documentation explicitly limits its multi-pipe runner to local development
+because pipes share one JavaScript thread and process fate. Production therefore runs one identical
+artifact per network. Each deployment receives one `INDEXER_NETWORK` key, one RPC endpoint, and one
+stable pipe ID.
+
+The stable pipe ID format is:
+
+```text
+lsp-indexer:v3:eip155:<chainId>
+```
+
+It is never derived from a pod name, deployment revision, hostname, or database schema. This ID is
+the Pipes cursor key and must survive restarts and infrastructure replacement.
+
+### Network configuration contract
+
+Static, non-secret capabilities live in a typed registry. URLs and credentials can be overridden or
+injected through validated environment variables.
+
+```typescript
+interface NetworkConfig {
+  key: string;
+  chainId: number;
+  displayName: string;
+  startBlock: number;
+  portalDataset?: string;
+  rpcUrlEnv: string;
+  finalityConfirmations: number;
+  multicall: { address: string; fromBlock: number };
+  ipfsGateway: string;
+  contracts: {
+    lsp23Factory?: { address: string; fromBlock: number };
+    lsp26FollowerSystem?: { address: string; fromBlock: number };
+  };
+  extensions: readonly string[];
+}
+```
+
+An absent contract is represented by `undefined`, never the zero address. Domain capabilities are
+selected from configuration rather than scattering `supportedChains` arrays through every event or
+projection module.
+
+### Initial validation catalog
+
+The earlier multi-chain work in [PR #366](https://github.com/chillwhales/lsp-indexer/pull/366)
+established the intended first catalog. V3 reimplements it rather than merging its v2 architecture:
+
+| Network key        | EIP-155 chain ID | Portal status on 2026-08-20 | Initial role                               |
+| ------------------ | ---------------: | --------------------------- | ------------------------------------------ |
+| `lukso-mainnet`    |               42 | Historical, not real-time   | Full parity and historical backfill        |
+| `ethereum-mainnet` |                1 | Real-time                   | Multi-chain and live-ingestion validation  |
+| `ethereum-sepolia` |         11155111 | Real-time                   | Test deployments and controlled validation |
+
+The catalog is extensible without changing domain code. A network is enabled only when its source,
+RPC, Multicall3, start height, finality, and deployed contract capabilities are validated.
+
+## Source and decoding boundary
+
+Each network builds one EVM source with named decoder outputs. The source selects only required
+block, transaction, and log fields. It still requests every block header, including blocks without
+a selected log, so persisted canonical history and indexed-head identities remain continuous.
+Decoded events always retain:
+
+- Network key and EIP-155 chain ID
+- Block number, block hash, parent hash, and timestamp
+- Transaction hash and transaction index
+- Log index, emitting address, topics, and data
+
+The released event decoder already provides block hash, timestamp, transaction hash, transaction
+index, and log index. V3 must not throw that provenance away when producing domain facts.
+
+RPC calls used for `supportsInterface`, decimals, ownership, or other state reads carry the
+triggering block number and hash. Every direct call and Multicall3 aggregate uses an EIP-1898
+`{ blockHash, requireCanonical: true }` selector, so the state read itself is bound to the Portal
+block even when an RPC endpoint load-balances across backends. The provider's number-to-hash mapping
+is also checked immediately before and after each read. A mismatch on either side rejects the result
+instead of mixing state from two forks. Reads run in a transform before the database transaction so
+a slow provider does not hold database locks. Provider transport failures, lack of EIP-1898 support,
+and block-identity mismatches abort the batch; because the cursor has not committed, retry starts
+from the same canonical position.
+
+Deterministic contract-level failures are isolated per call. A revert, unsupported selector, or
+invalid return value records an invalid or unknown verification result, preserves the raw fact, and
+does not abort the batch or any other call. A failed verification result cannot create a typed
+relationship or projection. This prevents a malicious or nonconforming emitter from indefinitely
+stalling one network's cursor.
+
+### Current source boundary
+
+- The `lukso-mainnet` Portal remains historical (`real_time: false`) and is treated as a finalized
+  first source, never as a live head.
+- Pipes alpha.22 officially publishes the EVM RPC/fallback implementation from
+  [subsquid/pipes-sdk#156](https://github.com/subsquid/pipes-sdk/pull/156). LUKSO uses the historical
+  Portal followed by the live RPC source; Ethereum networks use the same configurable boundary.
+- Direct LUKSO RPC and a forced Portal-to-RPC handoff have passed bounded live probes. Production
+  still requires same-height parity, multi-network soak, source failure, restart, and recovery
+  evidence from #389.
+- V3 does not copy the old processor into a fallback adapter or maintain a custom source.
+
+## PostgreSQL and rollback boundary
+
+### Why physical per-network isolation is required
+
+Pipes persists cursor state by pipe ID, but the released Drizzle snapshot tracker cleans and rolls
+back snapshot rows using block number alone. It does not include the pipe ID in snapshot rows or
+rollback predicates. Two networks at different heights writing the same physical tables could
+therefore clean or restore each other's rollback history.
+
+V3 prevents that class of corruption structurally:
+
+- Every network owns a PostgreSQL schema such as `chain_lukso_mainnet`.
+- Each indexer connection uses only its network schema for mutable chain tables, snapshot tables,
+  rollback functions, and Pipes cursor state.
+- The fixed runtime search path is `chain_<network>,lsp_v3,public`; `lsp_v3` contains only immutable
+  enum types shared so cross-network union views have compatible PostgreSQL column types.
+- Application table names remain identical across network schemas so one Drizzle definition and one
+  migration series can be applied repeatedly.
+- Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles
+  with no direct or transitive memberships in other roles.
+- The migrator inventories the reverse membership graph for every writer role. Only the migration
+  admin and configured runtime login may reach it; credential rotation requires revoking the old
+  login's membership before rerunning migrations. Runtime membership must carry `SET OPTION` and
+  cannot carry `ADMIN OPTION`.
+- Only the current migration admin may reach the API owner role. Rotating the admin credential
+  requires revoking the retired login before rerunning migrations.
+- Every runtime login is unique to one network. Migration and startup check the underlying
+  `session_user` for superuser status, any reachable role other than its assigned writer, direct
+  ACLs, ownership, default ACLs or policy references beyond non-grantable database connection
+  access, and direct or inherited foreign write access. The assumed role is not treated as a sandbox
+  because a session can execute `RESET ROLE`.
+- Migration and startup inventory the assumed writer role too. Ownership, ACLs, default privileges,
+  and policy references are confined to its assigned chain schema; only non-grantable `USAGE` on
+  `lsp_v3` and its four canonical enums is allowed outside it. Read-only cross-chain grants,
+  shared-schema `CREATE`, and grant options fail the boundary check.
+- No indexer credential receives write access to another network schema.
+- The migration test must prove the target's unqualified trigger SQL stays inside the configured
+  connection `search_path`; otherwise #382 must select separate databases instead.
+
+The shared `api` schema contains read-only `UNION ALL` views over enabled network schemas. Each view
+includes `network` and `chain_id`, and every relationship maps `chain_id` as its stable EIP-155
+identity. Hasura
+supports exposing PostgreSQL views to both queries and subscriptions:
+[Hasura view documentation](https://github.com/hasura/graphql-engine/blob/master/docs/docs/schema/postgres/views.mdx).
+The migrator rejects unexpected tables, views, functions, or procedures in this schema and grants
+the API reader schema access and `SELECT` only after that inventory check, limited to the enumerated
+public views. It also rejects reader ownership or ACLs outside that exact boundary. Existing shared
+enums must match the canonical labels and ordering exactly, and the `lsp_v3` namespace may contain
+only those enums and their generated array types before any chain migration proceeds. Reader checks
+include effective `PUBLIC` grants and implicit default ACLs on reachable user-defined objects;
+public type usage is removed from API view types and shared enums, and a publicly executable custom
+routine aborts migration.
+
+Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
+constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not
+a runtime `CREATE TABLE` side effect. Exported migration entry points reject duplicate keys, chain
+IDs, schemas, roles, and runtime logins before connecting. Each schema and writer role must also
+match its deterministic network mapping and cannot collide with reserved schemas or roles. Existing
+schemas are rejected before seeding unless `network_config` is empty or contains exactly the
+configured singleton identity.
+
+Drizzle Kit emits `public` qualifiers for unqualified schemas. The checked-in migration generation
+step removes enum DDL (the immutable catalog is bootstrapped once in `lsp_v3`) and normalizes other
+references to schema-relative SQL. CI rejects any remaining `public` qualifier. Migration history
+stores and verifies each normalized SQL hash, so editing an applied migration is detected as drift.
+
+### Data conventions
+
+- Network keys use lowercase kebab case and never change after publication.
+- Addresses are stored as canonical lowercase `0x` strings with database validation; equality is
+  exact rather than case-insensitive pattern matching.
+- Chain IDs and block heights use PostgreSQL `bigint` and are validated as safe integers at the SDK
+  boundary.
+- Token IDs remain canonical bytes32 hex strings; they are not coerced into decimal numbers.
+- EVM unsigned integer values use lossless PostgreSQL numeric values and strings in public JSON.
+- Timestamps are UTC and serialized as ISO 8601 strings.
+- Every mutable table has a declared primary key and is registered with the Drizzle target.
+- Foreign keys use natural chain-scoped keys; nullable relationships never decide whether a raw
+  fact is retained.
+
+### Deterministic identities
+
+Raw log identity is the tuple:
+
+```text
+(chain_id, block_number, transaction_index, log_index)
+```
+
+The public `id` is a deterministic encoding of that tuple. Block hash and transaction hash are
+stored as provenance and checked during replay. Current-state natural keys are:
+
+| Projection        | Natural key                                                 |
+| ----------------- | ----------------------------------------------------------- |
+| Universal Profile | `(chain_id, address)`                                       |
+| Digital asset     | `(chain_id, address)`                                       |
+| NFT               | `(chain_id, address, token_id)`                             |
+| Owned asset       | `(chain_id, owner_address, asset_address)`                  |
+| Owned token       | `(chain_id, owner_address, asset_address, token_id)`        |
+| Follower edge     | `(chain_id, follower_address, followed_address)`            |
+| Metadata revision | `(chain_id, address, token_id?, data_key, source_revision)` |
+
+Random UUIDs are allowed only for genuinely off-chain operational records that have no deterministic
+natural key.
+
+### Transaction flow
+
+For each batch:
+
+1. Narrow Pipes topic/address/range queries fetch selected events; Pipes-native ABI codecs decode
+   known payloads while retaining a known-topic raw fact when payload decoding fails.
+2. Pure transforms normalize facts and derive block-pinned RPC read requests.
+3. RPC reads complete at the triggering block; failure leaves the cursor unchanged.
+4. The Drizzle target opens a serializable transaction and acquires the Pipes advisory lock.
+5. Raw facts are inserted idempotently.
+6. Current-state projections are reduced in canonical block, transaction, and log order.
+7. Metadata jobs and indexed-head visibility are updated. The head must reference the exact stored
+   block identity, and its finalized watermark can only advance during forward processing. A
+   conflicting hash at an unchanged finalized height aborts the batch.
+8. Pipes commits data, rollback snapshots, finalized watermark, and cursor atomically.
+
+Domain logic may read existing state inside step 6. It must not keep an unversioned in-memory mirror.
+Any future stateful transform must implement and test the Pipes rollback hook.
+The Pipes target receives rollback retention from the validated network database configuration;
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION` has no independent construction-time fallback. A fork may
+move the finalized watermark backwards only by restoring its tracked snapshot.
+
+The #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs, owned
+assets and tokens, follower edges, creators, issued assets, controllers, ERC725Y values, and
+network-gated product extensions; metadata revisions and durable jobs; indexed-head visibility;
+network identity; and the Pipes cursor. #383 supplies stable raw event decoding and #384 supplies
+the verification, reduction, and atomic projection writer.
+
+### Schema evolution gates
+
+The released target does not reconcile snapshot tables after tracked columns are added:
+[subsquid/pipes-sdk#150](https://github.com/subsquid/pipes-sdk/issues/150). During the alpha, destructive
+fresh-database rebuilds are acceptable. Production migrations cannot add or change tracked columns
+until the released SDK safely reconciles snapshots or an owner-approved migration procedure proves
+that rollback data is preserved.
+
+The migration runner enforces that rule for ordinary migrations: if a pending migration exists and
+any rollback snapshot table exists, even when empty, it fails before executing the migration. The
+projection rollout is the sole marked alpha rebuild exception. With every v3 process stopped, its
+cross-network transaction drops old rollback artifacts, clears mutable rows and cursors, preserves
+network identity and migration history, and forces a complete replay. Pipes recreates the 16
+snapshot tables, functions, and triggers from the current tracked schema on restart. With no cursor,
+startup requires the configured network start block; with a cursor, it rejects a source range that
+would leave a gap after the latest committed block. PostgreSQL integration tests cover both generic
+refusal and the marked reset with non-empty old snapshots.
+
+The bounded-finality fix is also still a draft:
+[subsquid/pipes-sdk#143](https://github.com/subsquid/pipes-sdk/pull/143). Backfill completion evidence
+must verify that the requested finalized tail was actually committed rather than trusting process
+exit alone.
+
+## Facts, projections, and extensions
+
+V3 stores three categories deliberately:
+
+1. **Raw facts:** decoded chain events required by public history APIs, auditability, replay, or
+   projection rebuilding.
+2. **Core projections:** profiles, digital assets, NFTs, ownership, followers, creators, issued
+   assets, metadata, supply, permissions, and related current state.
+3. **Optional extensions:** Chillwhales-specific and future product modules enabled only on networks
+   with the required contracts.
+
+A raw fact is retained even if later verification says its address does not implement an expected
+interface. Verification affects typed relationships and projections, not historical truth. This
+preserves the useful v2 behavior without porting its enrichment queue implementation.
+
+The reducer receives only event IDs inserted by the current transaction. It loads the smallest
+existing state scope needed by those facts through bounded lookup chunks, applies them in canonical
+order, deletes stale registry or zero-balance rows, and upserts the resulting current state. A
+transfer affects typed state only when its decoded LSP7/LSP8 domain matches the asset's verified
+standard. The canonical empty ERC725Y array-length value is length zero; malformed non-empty lengths
+do not mutate current arrays. Creator rows are reverse-scoped by every reverified profile so their
+derived verification flag cannot drift from current LSP0 support. Exact replay can validate an
+existing fact but cannot apply it twice.
+
+Interface verification is planned per exact `(block number, block hash, category, address)` and
+supports current and legacy LSP0, LSP7, and LSP8 IDs. Before the selected network's recorded
+Multicall3 deployment block, bounded direct `eth_call` reads are used; from the deployment block
+onward, calls use bounded sequential Multicall requests. Both paths bind the actual `eth_call` to
+the triggering hash with EIP-1898 and require canonical membership; the provider's block hash is
+also checked before and after each path. Transport or response-shape failures fail the batch.
+Individual contract-call failures classify that candidate as invalid; they do not delete its raw
+event or ERC725Y value. A later invalid result marks an existing core row invalid and prevents
+subsequent typed reduction until verification succeeds again. Decimals are accepted only for a
+verified LSP7 asset.
+
+Successful re-verification also owns standard-transition cleanup. When an asset moves away from
+LSP8, the writer clears its token-ID format, reference contract, base URI, NFT rows, token ownership,
+and collection extension rows before writing the new standard, while raw facts and ERC725Y values
+remain immutable. Controller array membership is not ownership of its permission maps: clearing an
+array slot nulls the index and keeps the controller while any permission, allowed-call, or
+allowed-data-key mapping remains. The row is deleted only after every independent mapping is empty.
+
+The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
+updates use the same deterministic reducer. Empty or malformed packed Orb level data clears the
+derived level and cooldown together without changing faction. Each available Portal head checks at most 250
+unresolved CHILL and ORBS claim rows, prioritizing new mints. Successful false results wait 720
+blocks and individual call failures wait 30 blocks before becoming due again. Reads are pinned to
+the head's exact number and hash, and flags move monotonically from false to true. Other networks do
+not query or populate the extension.
+
+## Metadata subsystem
+
+The #385 implementation writes durable, deterministic metadata jobs from verified LSP3/LSP4
+VerifiableURIs, LSP29 array entries and LSP31 backends, and LSP8 token locations. Each job contains
+the source natural key, source block, data key, URI, declared verification digest when present,
+immutable source revision, and status. The projection transaction replaces the affected source
+scope and writes the job alongside the canonical projections. Work is chunked to keep large event
+batches bounded, and IPFS and HTTP side effects never run inside the Pipes database transaction.
+
+One independent worker process selects one network and claims only jobs whose source block is at or
+below `indexed_heads.finalized_block_number`. Claims use bounded concurrency,
+`FOR UPDATE SKIP LOCKED`, an attempt count, and an expiring lease so replicas can share a queue and
+crashed work becomes claimable again. Retryable failures use persisted next-attempt timestamps and
+bounded deterministic jitter; malformed content and exhausted attempts are terminal.
+
+Requests enforce public HTTP(S) targets, per-request timeouts, bounded redirects and response size,
+valid UTF-8 and JSON, kind-specific LSP parsing, and LSP2/LSP31 keccak verification where the chain
+source supplies it. Workers reload the exact source before requesting it and lock/reload it again
+inside a serializable settlement transaction. Publication succeeds only while the claim token,
+natural key, URI, content hash, and source revision still match. Otherwise the job is cancelled and
+the response cannot replace newer canonical state. Token publication additionally requires both a
+currently verified NFT and a currently verified LSP8 parent collection.
+
+V3 metrics expose claims and throughput, outcomes, categorized failures, retries, backlog by
+status, oldest backlog age, maximum and settlement attempts, queue latency, fetch latency, and
+response bytes. The worker requires only its network-scoped database role and can restart or scale
+without Portal or RPC connectivity.
+
+Metadata locations are untrusted contract input. The worker uses a closed scheme allowlist: bounded
+`data:` content, `ipfs:` through an operator-configured gateway, `https:`, and `http:` only when the
+owner explicitly enables it. Every network request normalizes IP literals, resolves all DNS A and
+AAAA answers, and rejects loopback, link-local, private, carrier-grade NAT, multicast, reserved, and
+other non-public destinations before opening a connection. The client connects only to the validated
+address, preserves the validated hostname for TLS, caps redirects, and repeats scheme and address
+validation for every redirect. Production egress policy independently blocks the same destinations.
+
+Workers retain the exact fetched bytes until verification finishes. When the source declares a
+VerifiableURI method and digest, the worker computes that method over those bytes before parsing or
+publishing them. A digest mismatch or unsupported method may use the bounded retry policy but can
+never update a metadata projection; its terminal state and reason remain observable. Content without
+a declared digest is explicitly unverified and is never presented as verified chain state.
+
+Each source revision has an immutable deterministic job identity, and job state is registered with
+the Pipes rollback target. If unfinalized revision B supersedes a processing job for finalized
+revision A, B snapshots A before cancelling it. Settlement by A's old claim writes nothing. Rolling
+B back removes B and restores A's prior job and lease; normal expired-lease recovery then reclaims A
+and can publish its immutable revision. The #385 PostgreSQL suite executes this exact A → B →
+rollback → A recovery sequence.
+
+## Query and package boundary
+
+Hasura tracks the `api` views, their manually configured relationships, permissions, and live-query
+subscriptions. Internal chain schemas, snapshot tables, cursor tables, and metadata job tables are
+not part of the public GraphQL schema.
+
+The generated metadata grants the `public` role only select, aggregate, and live-query subscription
+access. List queries that omit a chain filter span every enabled network. Pagination appends
+`chain_id` plus the view's deterministic identity, and public mutations are absent. The exact roots,
+relationships, operator credentials, and subscription semantics are defined in
+[V3_API.md](./V3_API.md).
+
+`@lsp-indexer/types` defines the public contract first. `@lsp-indexer/node` owns transport,
+documents, parsing, query keys, and subscriptions. React and Next remain thin integrations over the
+Node contract. All cache keys and subscriptions include network identity.
+
+The detailed preservation and breaking-change rules are in
+[V3_COMPATIBILITY.md](./V3_COMPATIBILITY.md).
+The implemented PostgreSQL object and rollback contract is in [V3_SCHEMA.md](./V3_SCHEMA.md).
+
+## Development and cutover layout
+
+During development:
+
+```text
+packages/indexer/       # deployable v2 reference through the rollback window
+packages/indexer-v3/    # clean Pipes implementation
+```
+
+V3 uses a new database or database cluster for backfill and shadow validation. It never points at
+the production v2 tables. The comparison tool compares v2 and v3 endpoints at a shared finalized
+height.
+
+The final integration PR stays draft throughout production validation and the rollback window. The
+cutover sequence is:
+
+1. Stop v3 schema changes and complete a final clean replay or verified migration.
+2. Run v2 and v3 in parallel through the agreed finalized height.
+3. Cut production and consumers to the reviewed v3 candidate during the documented window while
+   retaining the deployable v2 source, artifacts, database, and endpoint.
+4. Exercise and retain the tested v2 rollback path for the full owner-approved rollback window.
+5. Only after that window closes with owner sign-off, delete the v2 runtime and rename
+   `packages/indexer-v3` to `packages/indexer` on `lsp-indexer-v3`; then rerun the final build,
+   replay, package, parity, and recovery gates.
+6. Only the repository owner may mark PR #391 ready and merge `lsp-indexer-v3` to `main`.
+
+## Explicit non-goals
+
+- Porting `BatchContext`, the enrichment queue, the plugin registry, or TypeORM entity classes
+- Sharing mutable rollback-tracked tables between network pipes
+- Using the Pipes local `devRunner` as the production supervisor
+- Treating Portal availability as equivalent to live availability
+- Calling current-state RPC methods at `latest` during historical replay
+- Performing HTTP or IPFS requests while a database transaction is open
+- Preserving undocumented v2 database details as public v3 contracts
+- Merging the v3 integration PR before shadow-production acceptance is complete

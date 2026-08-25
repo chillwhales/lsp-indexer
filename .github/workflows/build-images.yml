@@ -2,9 +2,9 @@ name: Build images
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, lsp-indexer-v3]
   push:
-    branches: [main]
+    branches: [main, lsp-indexer-v3]
 
 concurrency:
   group: build-images-${{ github.ref }}

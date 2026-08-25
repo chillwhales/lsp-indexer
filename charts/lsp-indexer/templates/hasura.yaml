@@ -31,8 +31,6 @@ spec:
           args:
             - |
               {{- include "lsp-indexer.databaseUrlScript" . | nindent 14 }}
-              export PG_DATABASE_URL="${database_url}"
-              export HASURA_GRAPHQL_DATABASE_URL="${database_url}"
               export HASURA_GRAPHQL_METADATA_DATABASE_URL="${database_url}"
               exec graphql-engine serve
           ports:
@@ -54,8 +52,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingSecret }}
                   key: {{ .Values.secrets.keys.hasuraAdminSecret }}
-            - name: HASURA_GRAPHQL_METADATA_DEFAULTS
-              value: {{ include "lsp-indexer.hasuraMetadataDefaults" . | quote }}
+            - name: HASURA_GRAPHQL_V3_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.databaseApiUrl }}
             {{- range $name, $value := .Values.hasura.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}

@@ -4,10 +4,16 @@
 #
 # Metrics received via remote write from Alloy (--web.enable-remote-write-receiver flag in compose)
 #
-# No scrape_configs needed — Alloy handles all scraping and pushes via remote write.
+# Alloy handles scraping and pushes samples via remote write. Prometheus evaluates
+# the same v3 alert rules used by the Helm deployment.
 #
 # ==============================================================================
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs: []
