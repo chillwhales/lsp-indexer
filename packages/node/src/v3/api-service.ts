@@ -875,10 +875,9 @@ export function fetchV3Domain<Domain extends V3Domain>(
 ): Promise<V3ListResult<V3DomainResultMap[Domain]>> {
   // `v3Api` is exhaustive, but TypeScript loses the correlation between a generic
   // indexed key and that function's parameter/result types. Reflect.apply keeps the
-  // runtime dispatch centralized; this cast restores the proven public correlation.
-  return Reflect.apply(v3Api[domain], undefined, [url, params]) as Promise<
-    V3ListResult<V3DomainResultMap[Domain]>
-  >;
+  // runtime dispatch centralized while the explicit return signature preserves the
+  // proven public correlation.
+  return Reflect.apply(v3Api[domain], undefined, [url, params]);
 }
 
 /** Short names for v3 domains that did not exist in the v2 package surface. */
