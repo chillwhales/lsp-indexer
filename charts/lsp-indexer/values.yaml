@@ -5,52 +5,48 @@ nameOverride: ''
 fullnameOverride: ''
 
 secrets:
-  # Existing Secret read by indexer and Hasura for non-database runtime secrets.
-  # Expected keys by default:
-  # - HASURA_GRAPHQL_ADMIN_SECRET
-  # - RPC_URL
-  # Optional keys:
-  # - SQD_API_KEY, when secrets.keys.sqdApiKey is non-empty
-  existingSecret: lsp-indexer-secrets
+  # Existing Secret. Full PostgreSQL URLs keep each runtime on a distinct login role.
+  existingSecret: lsp-indexer-v3-secrets
   keys:
     hasuraAdminSecret: HASURA_GRAPHQL_ADMIN_SECRET
-    rpcUrl: RPC_URL
-    sqdApiKey: ''
+    databaseAdminUrl: DATABASE_ADMIN_URL
+    databaseApiUrl: HASURA_GRAPHQL_V3_DATABASE_URL
 
 cnpg:
   enabled: true
   instances: 2
   imageName: ''
   bootstrap:
-    database: lsp_indexer
-    owner: lsp_indexer
-    # Existing kubernetes.io/basic-auth Secret for CNPG initdb.
-    # It must contain `username` and `password`.
-    secretName: lsp-indexer-db
+    database: lsp_indexer_v3
+    owner: lsp_v3_admin
+    secretName: lsp-indexer-v3-db
   storage:
-    size: 20Gi
+    size: 100Gi
     storageClass: longhorn
   walStorage:
-    enabled: false
-    size: 10Gi
+    enabled: true
+    size: 20Gi
     storageClass: longhorn
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 500m
+      memory: 1Gi
     limits:
-      memory: 2Gi
+      memory: 4Gi
   postgresql:
     parameters:
-      max_wal_size: 2GB
-      shared_buffers: 512MB
+      max_wal_size: 4GB
+      shared_buffers: 1GB
       checkpoint_timeout: 15min
-      work_mem: 64MB
+      work_mem: 32MB
       log_min_duration_statement: '500'
   backup:
     enabled: false
+    schedule: '0 0 2 * * *'
+    immediate: true
+    retentionPolicy: 30d
     existingSecret: cnpg-minio-credentials
-    destinationPath: s3://cnpg-backups/lsp-indexer
+    destinationPath: s3://cnpg-backups/lsp-indexer-v3
     endpointURL: http://minio.infrastructure.svc.cluster.local:9000
     accessKeyIdKey: ACCESS_KEY_ID
     secretAccessKeyKey: SECRET_ACCESS_KEY
@@ -59,50 +55,102 @@ cnpg:
       sourceNamespace: infrastructure
 
 postgres:
-  # Defaults to `<release-fullname>-rw` when empty.
   host: ''
   port: 5432
-  database: lsp_indexer
-  user: lsp_indexer
-  # Defaults to the CNPG bootstrap secret so app runtime credentials cannot
-  # drift from the database owner password.
+  database: lsp_indexer_v3
+  user: lsp_v3_admin
   passwordSecret:
     name: ''
     userKey: username
     key: password
 
 indexer:
-  replicaCount: 1
+  enabled: true
   image:
     repository: ghcr.io/chillwhales/lsp-indexer
     tag: sha-operator-required
     pullPolicy: IfNotPresent
-  env:
-    SQD_GATEWAY: https://v2.archive.subsquid.io/network/lukso-mainnet
-    RPC_RATE_LIMIT: '10'
-    FINALITY_CONFIRMATION: '75'
-    IPFS_GATEWAY: https://api.universalprofile.cloud/ipfs/
-    FETCH_LIMIT: '10000'
-    FETCH_BATCH_SIZE: '1000'
-    FETCH_RETRY_COUNT: '5'
-    METADATA_WORKER_POOL_SIZE: '4'
-    NODE_ENV: production
-    LOG_LEVEL: info
-    LOG_DIR: /app/packages/indexer/logs
-    INDEXER_ENABLE_FILE_LOGGER: 'false'
-  resources:
+  migration:
+    enabled: true
+    backoffLimit: 12
+    activeDeadlineSeconds: 1800
+    ttlSecondsAfterFinished: 86400
+    apiLogin: lsp_v3_hasura
+  source:
+    retries: 2
+    stallTimeoutMs: 30000
+    maxLagBlocks: 10
+    allDownTimeoutMs: 300000
+  database:
+    poolMax: 10
+    statementTimeoutMs: 60000
+    lockTimeoutMs: 10000
+    unfinalizedBlocksRetention: 1000
+  metadata:
+    concurrency: 8
+    pollIntervalMs: 1000
+    requestTimeoutMs: 15000
+    maxResponseBytes: '2097152'
+    maxRedirects: 3
+    maxAttempts: 6
+    retryBaseMs: 5000
+    retryMaxMs: '1800000'
+    leaseTimeoutMs: 300000
+    allowHttp: false
+  indexerResources:
     requests:
       cpu: 500m
       memory: 1Gi
     limits:
+      cpu: '2'
       memory: 4Gi
-  logs:
-    enabled: false
-    size: 2Gi
-    storageClass: longhorn
+  metadataResources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: '1'
+      memory: 2Gi
+  networks:
+    - key: lukso-mainnet
+      enabled: true
+      runtimeLogin: lsp_v3_lukso_mainnet
+      databaseSecretKey: DATABASE_URL_LUKSO_MAINNET
+      rpcSecretKey: RPC_URL_LUKSO_MAINNET
+      portalUrl: https://portal.sqd.dev/datasets/lukso-mainnet
+      sourceMode: fallback
+      rpcRateLimit: 10
+      fromBlock: '0'
+      metricsPort: 9090
+      metadataMetricsPort: 9091
+      ipfsGateways: https://api.universalprofile.cloud/ipfs/
+    - key: ethereum-mainnet
+      enabled: true
+      runtimeLogin: lsp_v3_ethereum_mainnet
+      databaseSecretKey: DATABASE_URL_ETHEREUM_MAINNET
+      rpcSecretKey: RPC_URL_ETHEREUM_MAINNET
+      portalUrl: https://portal.sqd.dev/datasets/ethereum-mainnet
+      sourceMode: fallback
+      rpcRateLimit: 10
+      fromBlock: '0'
+      metricsPort: 9090
+      metadataMetricsPort: 9091
+      ipfsGateways: https://ipfs.io/ipfs/
+    - key: ethereum-sepolia
+      enabled: false
+      runtimeLogin: lsp_v3_ethereum_sepolia
+      databaseSecretKey: DATABASE_URL_ETHEREUM_SEPOLIA
+      rpcSecretKey: RPC_URL_ETHEREUM_SEPOLIA
+      portalUrl: https://portal.sqd.dev/datasets/ethereum-sepolia
+      sourceMode: fallback
+      rpcRateLimit: 10
+      fromBlock: '0'
+      metricsPort: 9090
+      metadataMetricsPort: 9091
+      ipfsGateways: https://ipfs.io/ipfs/
 
 hasura:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: hasura/graphql-engine
     tag: v2.46.0
@@ -114,38 +162,17 @@ hasura:
     HASURA_GRAPHQL_DEV_MODE: 'false'
     HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log,query-log
     HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
-  metadataDefaults:
-    dataConnectors:
-      athena: athena
-      mariadb: mariadb
-      mysql8: mysql
-      oracle: oracle
-      snowflake: snowflake
+    HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
   resources:
     requests:
       cpu: 100m
       memory: 256Mi
     limits:
+      cpu: '1'
       memory: 1Gi
-
-dataConnector:
-  replicaCount: 1
-  image:
-    repository: hasura/graphql-data-connector
-    tag: v2.46.0
-    pullPolicy: IfNotPresent
-  service:
-    port: 8081
-  healthPath: /api/v1/athena/health
-  env:
-    QUARKUS_LOG_LEVEL: ERROR
-    QUARKUS_OPENTELEMETRY_ENABLED: 'false'
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      memory: 512Mi
+  metadataApply:
+    enabled: true
+    backoffLimit: 3
 
 docs:
   replicaCount: 2
@@ -163,6 +190,7 @@ docs:
     INDEXER_URL: https://indexer.chillwhales.dev/v1/graphql
     INDEXER_WS_URL: wss://indexer.chillwhales.dev/v1/graphql
     INDEXER_ALLOWED_ORIGINS: https://indexer.chillwhales.dev
+    INDEXER_NETWORK: lukso-mainnet
   resources:
     requests:
       cpu: 100m
@@ -179,14 +207,34 @@ ingress:
     secretName: chillwhales-wildcard-tls
   docs:
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+      nginx.ingress.kubernetes.io/ssl-redirect: 'true'
   graphql:
     path: /v1/graphql
     pathType: Prefix
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+      nginx.ingress.kubernetes.io/ssl-redirect: 'true'
       nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
       nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+
+monitoring:
+  enabled: false
+  serviceMonitor:
+    interval: 30s
+    scrapeTimeout: 10s
+  alerts:
+    lagSeconds: 120
+    metadataOldestAgeSeconds: 900
+  dashboard:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: '1'
+
+networkPolicy:
+  enabled: true
+  publicInternet:
+    enabled: true
+  # Add explicit rules here for private RPC, Portal, or IPFS endpoints.
+  additionalEgress: []
 
 pdb:
   enabled: true

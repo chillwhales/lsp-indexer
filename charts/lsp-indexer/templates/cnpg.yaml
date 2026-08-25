@@ -5,6 +5,8 @@ metadata:
   name: {{ include "lsp-indexer.fullname" . }}
   labels:
     {{- include "lsp-indexer.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   instances: {{ .Values.cnpg.instances }}
   {{- if .Values.cnpg.imageName }}
@@ -49,6 +51,6 @@ spec:
         secretAccessKey:
           name: {{ .Values.cnpg.backup.existingSecret }}
           key: {{ .Values.cnpg.backup.secretAccessKeyKey }}
-    retentionPolicy: 30d
+    retentionPolicy: {{ .Values.cnpg.backup.retentionPolicy | quote }}
   {{- end }}
 {{- end }}

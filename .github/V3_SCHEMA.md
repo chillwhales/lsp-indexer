@@ -242,7 +242,7 @@ paginated domain root has the stable suffix `chain_id, id`; `indexed_head` uses
 `chain_id, network`. The complete root, relationship, scalar, and subscription contract is in
 [V3_API.md](./V3_API.md).
 
-Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. An ordinary
+Pipes `1.0.0-alpha.22` does not reconcile a snapshot table after a tracked column changes. An ordinary
 pending migration therefore fails before execution whenever any snapshot table exists, even if
 retention has emptied it. The projection rollout is the sole marked alpha exception: with all v3
 indexers stopped, one transaction drops obsolete rollback artifacts and truncates all mutable

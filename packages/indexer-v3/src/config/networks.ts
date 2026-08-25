@@ -15,6 +15,7 @@ export interface PortalConfig {
 export interface RpcConfig {
   readonly environmentVariable: string;
   readonly defaultUrl: string;
+  readonly rateLimit: number;
   readonly batchSize: number;
   readonly batchWaitMs: number;
 }
@@ -77,6 +78,7 @@ const NETWORK_DEFINITIONS = {
     rpc: {
       environmentVariable: 'RPC_URL_LUKSO_MAINNET',
       defaultUrl: 'https://rpc.mainnet.lukso.network',
+      rateLimit: 10,
       batchSize: 100,
       batchWaitMs: 20,
     },
@@ -116,6 +118,7 @@ const NETWORK_DEFINITIONS = {
     rpc: {
       environmentVariable: 'RPC_URL_ETHEREUM_MAINNET',
       defaultUrl: 'https://ethereum-rpc.publicnode.com',
+      rateLimit: 10,
       batchSize: 100,
       batchWaitMs: 20,
     },
@@ -155,6 +158,7 @@ const NETWORK_DEFINITIONS = {
     rpc: {
       environmentVariable: 'RPC_URL_ETHEREUM_SEPOLIA',
       defaultUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
+      rateLimit: 10,
       batchSize: 100,
       batchWaitMs: 20,
     },

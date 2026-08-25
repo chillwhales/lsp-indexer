@@ -1,0 +1,15 @@
+{{- if and .Values.cnpg.enabled .Values.cnpg.backup.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database-backup
+spec:
+  schedule: {{ .Values.cnpg.backup.schedule | quote }}
+  immediate: {{ .Values.cnpg.backup.immediate }}
+  backupOwnerReference: self
+  cluster:
+    name: {{ include "lsp-indexer.fullname" . }}
+{{- end }}

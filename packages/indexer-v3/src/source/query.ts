@@ -32,7 +32,7 @@ class RuntimeProbeQueryBuilder extends EvmQueryBuilder<RuntimeProbeFields> {
 }
 
 function preserveZeroEndBlock(range: PortalRange): PortalRange {
-  // Pipes beta.3 treats numeric zero as an absent `to` value. A string survives its parser.
+  // Pipes alpha.22 treats numeric zero as an absent `to` value. A string survives its parser.
   return range.to === 0 ? { ...range, to: '0' } : range;
 }
 

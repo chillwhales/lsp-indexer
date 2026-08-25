@@ -52,6 +52,32 @@ describe('network runner', () => {
     expect(receivedContext?.rpc).toBe(rpc);
   });
 
+  it('runs RPC-only when fallback Portal readiness is unusable', async () => {
+    const env = { INDEXER_NETWORK: 'lukso-mainnet' };
+    const runtime = loadRuntimeConfig(env);
+    const rpc = createNetworkRpcClient(runtime);
+    vi.spyOn(rpc, 'getChainId').mockResolvedValue(42);
+    vi.spyOn(rpc, 'getCode').mockResolvedValue('0x01');
+    const fetchImplementation = vi.fn(() =>
+      Promise.resolve(
+        createJsonResponse({ dataset: 'ethereum-mainnet', real_time: true, start_block: 0 }),
+      ),
+    );
+    let receivedContext: NetworkProgramContext | undefined;
+
+    await runNetworkProgram(
+      (context): Promise<void> => {
+        receivedContext = context;
+        return Promise.resolve();
+      },
+      { env, fetchImplementation, rpc },
+    );
+
+    expect(receivedContext?.readiness.sourceMode).toBe('rpc');
+    expect(receivedContext?.readiness.portal).toBeUndefined();
+    expect(receivedContext?.runtime.sourceMode).toBe('rpc');
+  });
+
   it('builds unique local development definitions', () => {
     const definitions = createDevelopmentPipeDefinitions(
       ['ethereum-mainnet', 'ethereum-sepolia'],

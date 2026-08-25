@@ -5,7 +5,7 @@
 // Single collector pipeline:
 //   1. Discover Docker containers
 //   2. Collect stdout/stderr logs → push to Loki
-//   3. Scrape cAdvisor metrics → push to Prometheus via remote write
+//   3. Scrape v3 and cAdvisor metrics → push to Prometheus via remote write
 //
 // =============================================================================
 
@@ -48,8 +48,36 @@ loki.write "default" {
 }
 
 // ---------------------------------------------------------------------------
-// cAdvisor metric scraping → Prometheus
+// v3 and cAdvisor metric scraping → Prometheus
 // ---------------------------------------------------------------------------
+
+prometheus.scrape "lsp_indexer_v3" {
+  targets = [
+    {
+      __address__        = "indexer-lukso:9090",
+      component          = "indexer",
+      deployment_network = "lukso-mainnet",
+    },
+    {
+      __address__        = "metadata-lukso:9091",
+      component          = "metadata-worker",
+      deployment_network = "lukso-mainnet",
+    },
+    {
+      __address__        = "indexer-ethereum:9090",
+      component          = "indexer",
+      deployment_network = "ethereum-mainnet",
+    },
+    {
+      __address__        = "metadata-ethereum:9091",
+      component          = "metadata-worker",
+      deployment_network = "ethereum-mainnet",
+    },
+  ]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
 
 prometheus.scrape "cadvisor" {
   targets = [{

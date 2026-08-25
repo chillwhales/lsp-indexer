@@ -1,460 +1,58 @@
-# ==============================================================================
-# Docker Compose for indexer — Production Deployment
-# ==============================================================================
-#
-# Uses the pre-built Docker image from GitHub Container Registry.
-# No source code required — just configure environment variables and run.
-#
-# Features:
-# - Pre-built image from ghcr.io (no local build needed)
-# - PostgreSQL with persistent volume (port NOT exposed)
-# - Hasura GraphQL API (console and dev mode disabled by default)
-# - Grafana monitoring (dashboards, logs, metrics)
-# - Comprehensive logging (both file and stdout)
-# - Health checks for all services
-# - Auto-restart policies
-# - Proper service dependencies and startup ordering
-#
-# Usage:
-#   cd docker
-#   cp .env.prod.example ../.env.prod
-#   nano ../.env.prod  # Set REQUIRED variables
-#   docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
-#   docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs -f indexer
-#   docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
-#
-# Required environment variables (must be set in .env.prod):
-#   POSTGRES_PASSWORD    — Strong password for PostgreSQL
-#   HASURA_GRAPHQL_ADMIN_SECRET — Strong secret for Hasura admin access
-#   RPC_URL              — LUKSO RPC endpoint
-#
-# ==============================================================================
+# Production override. Always combine this file with docker-compose.yml.
+
+x-v3-production-image: &v3-production-image
+  image: ghcr.io/chillwhales/lsp-indexer:${INDEXER_VERSION:?Pin INDEXER_VERSION to an immutable v3 image tag}
+  build: !reset null
 
 services:
-  # ----------------------------------------------------------------------------
-  # PostgreSQL Database
-  # ----------------------------------------------------------------------------
   postgres:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-postgres
-    image: postgres:17-alpine
-    restart: unless-stopped
-
-    # Health check to ensure DB is ready before starting indexer
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-    # Persistent volume for database data
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-    # PostgreSQL tuning for high-write workload (blockchain indexing)
-    command:
-      - postgres
-      - -c
-      - max_wal_size=2GB
-      - -c
-      - shared_buffers=512MB
-      - -c
-      - checkpoint_timeout=15min
-      - -c
-      - work_mem=64MB
-      - -c
-      - log_min_duration_statement=500
-
-    # Database credentials from .env.prod (POSTGRES_PASSWORD required — no default)
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
 
-    # No ports exposed in production — access via internal Docker network only
-
-    # Resource limits (adjust based on your server)
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 512M
-
-  # ----------------------------------------------------------------------------
-  # Indexer — LUKSO Blockchain Indexer
-  # ----------------------------------------------------------------------------
-  indexer:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer
-    image: ghcr.io/chillwhales/lsp-indexer:${INDEXER_VERSION:-latest}
-    restart: unless-stopped
-
-    # Wait for PostgreSQL to be healthy before starting
-    # Note: Hasura/data-connector start in parallel but indexer doesn't wait
-    # (entrypoint script waits for Hasura to be ready before configuring)
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    # Health check - verify indexer process is running
-    healthcheck:
-      test: ['CMD', 'pgrep', '-f', 'ts-node.*lib/app/index.js']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-    # Mount logs directory for persistent storage
-    volumes:
-      - indexer-logs:/app/packages/indexer/logs
-
-    # Environment variables (configured via your env file, e.g. .env.prod)
+  database-logins:
     environment:
-      # Database connection (POSTGRES_PASSWORD required — no default)
-      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET: ${DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET:?Set DATABASE_RUNTIME_PASSWORD_LUKSO_MAINNET}
+      DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET: ${DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET:?Set DATABASE_RUNTIME_PASSWORD_ETHEREUM_MAINNET}
+      DATABASE_RUNTIME_PASSWORD_ETHEREUM_SEPOLIA: ${DATABASE_RUNTIME_PASSWORD_ETHEREUM_SEPOLIA:-}
+      DATABASE_API_PASSWORD: ${DATABASE_API_PASSWORD:?Set DATABASE_API_PASSWORD}
 
-      # Blockchain data sources (RPC_URL required — no default)
-      SQD_GATEWAY: ${SQD_GATEWAY:-https://v2.archive.subsquid.io/network/lukso-mainnet}
-      SQD_API_KEY: ${SQD_API_KEY:?Set SQD_API_KEY in .env.prod}
-      RPC_URL: ${RPC_URL:?Set RPC_URL in .env.prod}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
+  migration:
+    <<: *v3-production-image
 
-      # IPFS & Metadata
-      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
-      FETCH_LIMIT: ${FETCH_LIMIT:-10000}
-      FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
-      FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}
-      METADATA_WORKER_POOL_SIZE: ${METADATA_WORKER_POOL_SIZE:-4}
+  indexer-lukso:
+    <<: *v3-production-image
+    restart: unless-stopped
+    environment:
+      INDEXER_TO_BLOCK: !reset null
+      RPC_URL_LUKSO_MAINNET: ${RPC_URL_LUKSO_MAINNET:?Set RPC_URL_LUKSO_MAINNET}
 
-      # Logging
-      NODE_ENV: ${NODE_ENV:-production}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_DIR: /app/packages/indexer/logs
-      INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
+  metadata-lukso:
+    <<: *v3-production-image
 
-      # Hasura configuration (for entrypoint script)
-      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set (no default)}
+  indexer-ethereum:
+    <<: *v3-production-image
+    restart: unless-stopped
+    environment:
+      INDEXER_TO_BLOCK: !reset null
+      RPC_URL_ETHEREUM_MAINNET: ${RPC_URL_ETHEREUM_MAINNET:?Set RPC_URL_ETHEREUM_MAINNET}
 
-    # Logging configuration for Docker
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '100m'
-        max-file: '10'
-        compress: 'true'
+  metadata-ethereum:
+    <<: *v3-production-image
 
-    # Resource limits (adjust based on your server)
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 1G
-
-  # ----------------------------------------------------------------------------
-  # Hasura GraphQL Engine
-  # Automatically configured on startup with all tables and relationships
-  # ----------------------------------------------------------------------------
   hasura:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-hasura
-    image: hasura/graphql-engine:v2.46.0
-    restart: unless-stopped
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-      data-connector-agent:
-        condition: service_healthy
-
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
-      interval: 5s
-      timeout: 10s
-      retries: 5
-      start_period: 5s
-
-    ports:
-      - '${HASURA_GRAPHQL_PORT:-8080}:8080'
-
     environment:
-      PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_V3_DATABASE_URL: ${HASURA_GRAPHQL_V3_DATABASE_URL:-}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set (no default)}
-      HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-false}
-      HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-false}
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}
-      HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}'
-      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-public}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?Set HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'false'
+      HASURA_GRAPHQL_DEV_MODE: 'false'
 
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
-
-  # ----------------------------------------------------------------------------
-  # Hasura Data Connector Agent
-  # Required dependency for Hasura GraphQL Engine
-  # ----------------------------------------------------------------------------
-  data-connector-agent:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-data-connector-agent
-    image: hasura/graphql-data-connector:v2.46.0
-    restart: unless-stopped
-
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
-      interval: 5s
-      timeout: 10s
-      retries: 5
-      start_period: 5s
-
+  hasura-apply:
+    <<: *v3-production-image
     environment:
-      QUARKUS_LOG_LEVEL: ERROR
-      QUARKUS_OPENTELEMETRY_ENABLED: 'false'
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?Set HASURA_GRAPHQL_ADMIN_SECRET}
 
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-  # ----------------------------------------------------------------------------
-  # Loki — Log Aggregation
-  # Receives logs from Alloy and stores them on local filesystem
-  # ----------------------------------------------------------------------------
-  loki:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-loki
-    image: grafana/loki:3.4
-    restart: unless-stopped
-
-    command: -config.file=/etc/loki/config.yaml
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:3100/ready || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-    volumes:
-      - loki-data:/loki
-      - ./loki/config.yaml:/etc/loki/config.yaml:ro
-
-    # 1GB limit — Loki needs headroom for concurrent LogQL queries with JSON
-    # parsing and unwrap aggregations from the Grafana dashboard (20+ panels,
-    # 30s refresh).  512MB caused intermittent OOM kills → "No data" panels.
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
-
-  # ----------------------------------------------------------------------------
-  # Prometheus — Metrics Storage
-  # Receives metrics from Alloy via remote write
-  # ----------------------------------------------------------------------------
-  prometheus:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-prometheus
-    image: prom/prometheus:v3.2.0
-    restart: unless-stopped
-
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --web.enable-remote-write-receiver
-      - --storage.tsdb.retention.time=14d
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:9090/-/healthy || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-    volumes:
-      - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-  # ----------------------------------------------------------------------------
-  # Grafana Alloy — Unified Log & Metric Collector
-  # Collects Docker logs → Loki, scrapes cAdvisor metrics → Prometheus
-  # ----------------------------------------------------------------------------
-  alloy:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-alloy
-    image: grafana/alloy:v1.14.0
-    restart: unless-stopped
-
-    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
-
-    depends_on:
-      loki:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:12345/-/healthy || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
-    volumes:
-      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 64M
-
-  # ----------------------------------------------------------------------------
-  # cAdvisor — Container Resource Metrics
-  # Provides per-container CPU, memory, network, and disk I/O metrics
-  # ----------------------------------------------------------------------------
-  cadvisor:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-cadvisor
-    image: gcr.io/cadvisor/cadvisor:v0.51.0
-    restart: unless-stopped
-    privileged: true
-
-    command: --housekeeping_interval=30s --docker_only=true
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:8080/healthz || exit 1',
-        ]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 64M
-
-  # ----------------------------------------------------------------------------
-  # Grafana — Dashboard & Visualization
-  # Pre-provisioned with Loki and Prometheus datasources + dashboard JSON files
-  # ----------------------------------------------------------------------------
   grafana:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-grafana
-    image: grafana/grafana:11.4.0
-    restart: unless-stopped
-
-    depends_on:
-      loki:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --output-document=- http://localhost:3000/api/health || exit 1',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
-    ports:
-      - '${GRAFANA_PORT:-3000}:3000'
-
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
-
     environment:
-      GF_AUTH_ANONYMOUS_ENABLED: 'true'
-      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?Set GRAFANA_ADMIN_USER in .env.prod}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env.prod}
-
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 128M
-
-# ==============================================================================
-# Persistent Volumes
-# ==============================================================================
-volumes:
-  # PostgreSQL data — persists across container restarts
-  postgres-data:
-    driver: local
-    # Optional: use a specific host path instead of Docker volume
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ${POSTGRES_VOLUME_PATH:-./data/postgres}
-
-  # Indexer logs — accessible from host for analysis
-  indexer-logs:
-    driver: local
-    # Optional: use a specific host path for easier access
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ${LOG_DIR:-./logs}
-
-  # Grafana dashboard data — operator edits persist across restarts
-  grafana-data:
-    driver: local
-
-  # Loki log data — stores collected container logs
-  loki-data:
-    driver: local
-
-  # Prometheus metric data — stores scraped time-series metrics
-  prometheus-data:
-    driver: local
-# ==============================================================================
-# Networks (optional)
-# ==============================================================================
-# Uncomment to create a custom network for service isolation
-# networks:
-#   lsp-indexer-net:
-#     driver: bridge
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?Set GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD}

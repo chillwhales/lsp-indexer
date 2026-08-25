@@ -7,44 +7,47 @@ and using the consumer packages in your React or Next.js app.
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22.15+
 - Docker & Docker Compose (for the indexer)
-- A LUKSO RPC endpoint (public: `https://rpc.lukso.sigmacore.io`)
-
-> This production quickstart continues to use the v2 indexer while v3 is developed and validated
-> in parallel. V3 requires Node.js 22.15 or newer and must use separate runtime and database state.
+- LUKSO and Ethereum RPC endpoints for a production deployment
 
 ---
 
 ## 1. Run the Indexer
 
-The indexer processes LUKSO blockchain events into a PostgreSQL database, exposed via Hasura GraphQL.
+The indexer processes LUKSO and Ethereum events in isolated Pipes processes, writes chain-scoped
+PostgreSQL schemas, and exposes reviewed multi-chain views through Hasura GraphQL.
 
 ```bash
 # Clone the repo
 git clone https://github.com/chillwhales/lsp-indexer.git
 cd lsp-indexer
 
-# Copy and configure environment
+# Copy and configure a bounded local run
 cp .env.example .env
-# Edit .env — set HASURA_GRAPHQL_ADMIN_SECRET at minimum
+# Set INDEXER_TO_BLOCK_LUKSO_MAINNET and INDEXER_TO_BLOCK_ETHEREUM_MAINNET
+# before starting if you do not want a complete backfill.
 
-# Start all services (PostgreSQL, Indexer, Hasura, Grafana)
+# Start PostgreSQL, two isolated v3 indexers and metadata workers,
+# deterministic migrations/Hasura metadata, and monitoring.
 cd docker
-docker compose --env-file ../.env up -d
+./manage.sh config
+./manage.sh start
 
-# Watch indexer logs
-docker compose --env-file ../.env logs -f indexer
+# Verify and watch one network
+./manage.sh health
+./manage.sh logs indexer-lukso
 ```
 
 Once running, your Hasura GraphQL endpoint is at `http://localhost:8080/v1/graphql`.
 
 See the [Indexer documentation](/docs/indexer) for detailed configuration and architecture.
 
-### Try the v3 Pipes source foundation
+### Run source-only diagnostics
 
-V3 is not production-ready yet, but contributors can validate a configured Portal and RPC pair and
-run a small bounded source probe:
+The v3 runtime has an official Portal/RPC fallback path. Public cutover still waits on recorded
+shadow-production evidence and owner approval. Validate a source without writing data by using a
+small bounded probe:
 
 ```bash
 # Requires Node.js >=22.15
@@ -56,6 +59,13 @@ INDEXER_NETWORK=ethereum-mainnet \
 INDEXER_NETWORK=ethereum-mainnet \
 INDEXER_FROM_BLOCK=22000000 \
 INDEXER_TO_BLOCK=22000010 \
+  pnpm --filter @chillwhales/indexer-v3 probe:network
+
+# LUKSO defaults to historical Portal followed by the live official RPC source.
+INDEXER_NETWORK=lukso-mainnet \
+INDEXER_SOURCE_MODE=fallback \
+INDEXER_FROM_BLOCK=<portal-boundary> \
+INDEXER_TO_BLOCK=<portal-boundary-plus-2> \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
@@ -92,10 +102,16 @@ HASURA_GRAPHQL_ADMIN_SECRET=operator-secret \
   pnpm --filter @chillwhales/indexer-v3 hasura:apply
 ```
 
-The v3 database variables are:
+The v3 source and database variables are:
 
 | Variable                                | Scope and default                                                 |
 | --------------------------------------- | ----------------------------------------------------------------- |
+| `INDEXER_SOURCE_MODE`                   | `portal`, `rpc`, or `fallback`; LUKSO defaults to fallback        |
+| `INDEXER_RPC_RATE_LIMIT`                | Official RPC rate limit; catalog default is `10`                  |
+| `INDEXER_SOURCE_RETRIES`                | Per-source retries; defaults to `2`                               |
+| `INDEXER_SOURCE_STALL_TIMEOUT_MS`       | Source stall threshold; defaults to `30000` milliseconds          |
+| `INDEXER_SOURCE_MAX_LAG_BLOCKS`         | Active source lag budget; defaults to `10` blocks                 |
+| `INDEXER_SOURCE_ALL_DOWN_TIMEOUT_MS`    | All-source failure threshold; defaults to `300000` milliseconds   |
 | `DATABASE_URL`                          | Generic runtime PostgreSQL URL                                    |
 | `DATABASE_URL_<NETWORK>`                | Per-network override; takes priority over `DATABASE_URL`          |
 | `DATABASE_ADMIN_URL`                    | Separate admin URL used only by `db:migrate`                      |
@@ -125,15 +141,28 @@ The v3 database variables are:
 Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscores, such as
 `DATABASE_URL_ETHEREUM_MAINNET` or `DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET`.
 
+Before production cutover, operators must run the repository's mapped parity comparison against
+frozen v2/v3 shadow endpoints and the multi-network soak observer against real metrics endpoints:
+
+```bash
+pnpm --filter @chillwhales/indexer-v3 acceptance:parity
+pnpm --filter @chillwhales/indexer-v3 acceptance:soak
+```
+
+These commands require the `V2_GRAPHQL_*`, `V3_GRAPHQL_*`, and `ACCEPTANCE_*` variables documented
+under [Indexer v3 release candidate](/docs/indexer#indexer-v3-release-candidate). The root and docs
+app `.env.example` files contain every variable, and the shadow-production acceptance runbook
+defines the required evidence. A short soak is a diagnostic probe, not production acceptance.
+
 This creates isolated chain schemas and unified read-only API views. Metadata jobs are committed
 with their chain projections and drained only after finality, with durable retries and stale-result
-protection. The v3 alpha also persists the LUKSO Mainnet-only `chillwhales_nfts` domain for
+protection. V3 also persists the LUKSO Mainnet-only `chillwhales_nfts` domain for
 CHILL/ORBS claims and Orb state. The v3 Hasura API exposes multi-chain queries, aggregates,
 relationships, and live subscriptions without mutations. A query without `chain_id` spans all
 enabled networks. The v3 Node, types, React, and Next.js packages now expose explicit
 network-scoped services, hooks, actions, subscriptions, and indexed-head status for every public
 domain. See
-[Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
+[Indexer v3 release candidate](/docs/indexer#indexer-v3-release-candidate) for the schema model, safety
 checks, and environment variables.
 
 ---

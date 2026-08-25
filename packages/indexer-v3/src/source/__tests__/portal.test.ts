@@ -86,7 +86,10 @@ describe('Portal readiness', () => {
   });
 
   it('accepts an explicitly approved unbounded historical source', () => {
-    const runtime = createRuntime({ INDEXER_ALLOW_HISTORICAL_SOURCE: 'true' });
+    const runtime = createRuntime({
+      INDEXER_SOURCE_MODE: 'portal',
+      INDEXER_ALLOW_HISTORICAL_SOURCE: 'true',
+    });
 
     expect(assertPortalReadiness(runtime, createMetadata()).bounded).toBe(false);
   });
@@ -98,7 +101,7 @@ describe('Portal readiness', () => {
   });
 
   it('rejects mismatched, incomplete, and unsafe historical datasets', () => {
-    const runtime = createRuntime({ INDEXER_FROM_BLOCK: '10' });
+    const runtime = createRuntime({ INDEXER_FROM_BLOCK: '10', INDEXER_SOURCE_MODE: 'portal' });
 
     expect(() =>
       assertPortalReadiness(runtime, createMetadata({ dataset: 'ethereum-mainnet' })),
@@ -107,5 +110,15 @@ describe('Portal readiness', () => {
       'starts at block 11',
     );
     expect(() => assertPortalReadiness(runtime, createMetadata())).toThrow('is not real-time');
+  });
+
+  it('accepts a historical Portal when a live RPC fallback is configured', () => {
+    const runtime = createRuntime({ INDEXER_SOURCE_MODE: 'fallback' });
+
+    expect(assertPortalReadiness(runtime, createMetadata())).toEqual({
+      dataset: 'lukso-mainnet',
+      realTime: false,
+      bounded: false,
+    });
   });
 });

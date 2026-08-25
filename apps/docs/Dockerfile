@@ -93,6 +93,8 @@ COPY packages/types ./packages/types
 COPY packages/node ./packages/node
 COPY packages/react ./packages/react
 COPY packages/next ./packages/next
+# Node SDK codegen consumes the canonical v3 Hasura schema during the package build.
+COPY packages/indexer-v3/hasura/schema.graphql ./packages/indexer-v3/hasura/schema.graphql
 
 # Copy full source for the test app
 COPY apps/docs ./apps/docs

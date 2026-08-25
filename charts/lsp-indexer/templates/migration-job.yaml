@@ -1,0 +1,71 @@
+{{- if and .Values.indexer.enabled .Values.indexer.migration.enabled }}
+{{- $enabledNetworks := list -}}
+{{- range $network := .Values.indexer.networks -}}
+{{- if $network.enabled -}}
+{{- $enabledNetworks = append $enabledNetworks $network.key -}}
+{{- end -}}
+{{- end -}}
+{{- $migrationRevision := (dict "chartVersion" .Chart.Version "global" .Values.global "image" .Values.indexer.image "migration" .Values.indexer.migration "networks" .Values.indexer.networks "secrets" .Values.secrets | toJson | sha256sum | trunc 10) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-v3-migrate-%s" (include "lsp-indexer.fullname" .) $migrationRevision | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  backoffLimit: {{ .Values.indexer.migration.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.indexer.migration.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.indexer.migration.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "lsp-indexer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: "{{ .Values.indexer.image.repository }}:{{ .Values.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.indexer.image.pullPolicy }}
+          args: [migrate]
+          env:
+            - name: DATABASE_ADMIN_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.databaseAdminUrl }}
+            - name: DATABASE_API_LOGIN
+              value: {{ .Values.indexer.migration.apiLogin | quote }}
+            - name: DATABASE_MIGRATION_NETWORKS
+              value: {{ join "," $enabledNetworks | quote }}
+            {{- range $network := .Values.indexer.networks }}
+            {{- if $network.enabled }}
+            - name: {{ printf "DATABASE_RUNTIME_LOGIN_%s" ($network.key | upper | replace "-" "_") }}
+              value: {{ $network.runtimeLogin | quote }}
+            {{- end }}
+            {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+{{- end }}

@@ -187,3 +187,65 @@ jobs:
       kubeconform-schema-locations: |
         default
         https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+
+  # ---------------------------------------------------------------------------
+  # Production-only Helm resources (monitoring, dashboard, and backups)
+  # ---------------------------------------------------------------------------
+  helm-production:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.16.4
+      - name: Lint and render the complete production chart
+        run: |
+          helm lint --strict charts/lsp-indexer \
+            --set monitoring.enabled=true \
+            --set cnpg.backup.enabled=true \
+            --set cnpg.backup.reflector.enabled=true
+          helm template lsp-indexer charts/lsp-indexer \
+            --namespace lsp-indexer \
+            --set monitoring.enabled=true \
+            --set cnpg.backup.enabled=true \
+            --set cnpg.backup.reflector.enabled=true \
+            > /tmp/lsp-indexer-production.yaml
+      - name: Assert production rollout and alert semantics
+        run: |
+          grep --fixed-strings --quiet 'argocd.argoproj.io/sync-wave: "-3"' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: helm_release' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: kubernetes_namespace' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'absent(up{component="indexer", deployment_network="lukso-mainnet", helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"})' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'increase(sqd_fallback_switches{helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"}[15m])' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for lukso-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for ethereum-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_LUKSO_MAINNET' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_ETHEREUM_MAINNET' /tmp/lsp-indexer-production.yaml
+          if grep --fixed-strings --quiet 'delta(sqd_fallback_switches' /tmp/lsp-indexer-production.yaml; then
+            echo 'Source-switch alerts must use counter-aware increase()' >&2
+            exit 1
+          fi
+      - name: Install kubeconform
+        env:
+          KUBECONFORM_VERSION: v0.6.7
+        run: |
+          archive=kubeconform-linux-amd64.tar.gz
+          base=https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}
+          validation_dir=$(mktemp -d)
+          curl --fail --silent --show-error --location --output "$validation_dir/$archive" "$base/$archive"
+          curl --fail --silent --show-error --location --output "$validation_dir/CHECKSUMS" "$base/CHECKSUMS"
+          grep " $archive$" "$validation_dir/CHECKSUMS" \
+            | (cd "$validation_dir" && sha256sum --check -)
+          tar --extract --gzip --directory "$validation_dir" --file "$validation_dir/$archive" kubeconform
+          sudo install --mode 0755 "$validation_dir/kubeconform" /usr/local/bin/kubeconform
+      - name: Validate the complete production render
+        run: |
+          kubeconform \
+            -kubernetes-version 1.30.0 \
+            -strict \
+            -summary \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            /tmp/lsp-indexer-production.yaml
