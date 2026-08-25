@@ -254,6 +254,7 @@ const fixtures: Array<{ name: string; schema: RuntimeSchema; value: Record<strin
       contentLength: null,
       content: { LSP3Profile: { name: 'Alice' } },
       fetchedAt: TIMESTAMP,
+      isCurrent: true,
     },
   },
   {
@@ -291,8 +292,10 @@ describe('@lsp-indexer/types v3', () => {
 
   it('retains nullable v3 fields without weakening required provenance', () => {
     const asset = V3DigitalAssetSchema.parse(fixtures[3]?.value);
+    const controller = V3ControllerSchema.parse({ ...fixtures[10]?.value, arrayIndex: null });
     expect(asset.tokenIdReferenceContract).toBeNull();
     expect(asset.totalSupply).toBe(9_007_199_254_740_993n);
+    expect(controller.arrayIndex).toBeNull();
     expect(
       V3UniversalProfileSchema.safeParse({ ...fixtures[2]?.value, chainId: null }).success,
     ).toBe(false);

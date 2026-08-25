@@ -284,7 +284,7 @@ export function parseV3Controller(value: unknown): V3Controller {
     id: requiredString(raw.id, 'id'),
     profileAddress: requiredString(raw.profileAddress, 'profileAddress'),
     controllerAddress: requiredString(raw.controllerAddress, 'controllerAddress'),
-    arrayIndex: losslessBigInt(raw.arrayIndex, 'arrayIndex'),
+    arrayIndex: nullableBigInt(raw.arrayIndex, 'arrayIndex'),
     permissions: nullableString(raw.permissions, 'permissions'),
     allowedCalls: raw.allowedCalls ?? null,
     allowedDataKeys: raw.allowedDataKeys ?? null,
@@ -335,6 +335,7 @@ export function parseV3MetadataRevision(value: unknown): V3MetadataRevision {
     contentLength: nullableSafeInteger(raw.contentLength, 'contentLength'),
     content: raw.content,
     fetchedAt: timestamp(raw.fetchedAt, 'fetchedAt'),
+    isCurrent: requiredBoolean(raw.isCurrent, 'isCurrent'),
   });
 }
 

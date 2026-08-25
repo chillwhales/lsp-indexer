@@ -429,7 +429,12 @@ array length. Length changes rescan the affected profile in bounded pages, cance
 and are checked again by the worker before fetching and publishing.
 Published deterministic revisions are immutable, so a later fetch for the same chain source cannot
 replace their bytes or provenance. A revision records the storage location that actually returned
-the validated content, while its durable job remains keyed by the primary chain source.
+the validated content, while its durable job remains keyed by the primary chain source. The unified
+`api.metadata_revisions` view adds `is_current`: it is `true` only while that exact source remains
+the canonical non-cancelled job for its scope. Superseded immutable revisions remain queryable with
+`is_current = false`, so history is preserved without allowing current-state relationship filters
+to match stale names or categories. The API view owner receives column-level read access only to the
+job ID and status needed to derive this marker; metadata jobs remain outside the public API.
 
 Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker

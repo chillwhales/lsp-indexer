@@ -574,6 +574,22 @@ describe.sequential('PostgreSQL persistence', () => {
     );
     expect(Number(views.rows[0]?.count)).toBe(15);
 
+    const metadataJobPrivileges = await testAdminPool.query<{
+      contentUri: boolean;
+      id: boolean;
+      status: boolean;
+      table: boolean;
+    }>(
+      `SELECT has_table_privilege($1, $2, 'SELECT') AS table,
+              has_column_privilege($1, $2, 'id', 'SELECT') AS id,
+              has_column_privilege($1, $2, 'status', 'SELECT') AS status,
+              has_column_privilege($1, $2, 'content_uri', 'SELECT') AS "contentUri"`,
+      [API_OWNER_ROLE, 'chain_ethereum_mainnet.metadata_jobs'],
+    );
+    expect(metadataJobPrivileges.rows).toEqual([
+      { table: false, id: true, status: true, contentUri: false },
+    ]);
+
     const enums = await testAdminPool.query<{ schema: string; count: string }>(`
       SELECT n.nspname AS schema, count(*) AS count
       FROM pg_type t
@@ -4380,6 +4396,11 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     const firstFetchedAt = firstPublishedRevisions[0]?.fetchedAt;
     if (firstFetchedAt == null) throw new Error('Expected a PostgreSQL fetch timestamp');
     expect(firstFetchedAt).toBeInstanceOf(Date);
+    const currentApiRevision = await testAdminPool.query<{ id: string; isCurrent: boolean }>(
+      `SELECT id, is_current AS "isCurrent" FROM api.metadata_revisions WHERE id = $1`,
+      [firstSource.id],
+    );
+    expect(currentApiRevision.rows).toEqual([{ id: firstSource.id, isCurrent: true }]);
 
     const repeatedAt = new Date(retryAt.getTime() + 1);
     await ethereumDb.transaction((tx) =>
@@ -4448,6 +4469,11 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       now: secondClaimedAt,
     });
     if (secondClaim == null) throw new Error('Expected second metadata claim');
+    const supersededApiRevision = await testAdminPool.query<{ id: string; isCurrent: boolean }>(
+      `SELECT id, is_current AS "isCurrent" FROM api.metadata_revisions WHERE id = $1`,
+      [firstSource.id],
+    );
+    expect(supersededApiRevision.rows).toEqual([{ id: firstSource.id, isCurrent: false }]);
 
     const thirdValue = encodeVerifiableUri(
       { LSP3Profile: { name: 'Third profile revision' } },

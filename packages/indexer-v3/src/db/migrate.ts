@@ -18,6 +18,7 @@ import {
   SHARED_SCHEMA,
 } from './names.js';
 import {
+  API_VIEW_DEPENDENCY_COLUMNS,
   createChainAclBoundaryQuery,
   createChainObjectOwnershipQuery,
   createWriterRoleBoundaryQuery,
@@ -1297,6 +1298,11 @@ async function migrateNetwork(
   await client.query(
     `GRANT SELECT ON ${publicTableList} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
   );
+  for (const { columns, table } of API_VIEW_DEPENDENCY_COLUMNS) {
+    await client.query(
+      `GRANT SELECT (${columns.map(quotePostgresIdentifier).join(', ')}) ON ${quotePostgresIdentifier(table)} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+    );
+  }
   await ensureChainAclBoundary(client, network.role, network.schema);
   await verifyMigrationHistory(client, network.schema, migrationsDirectory);
   await client.query('RESET ROLE');
@@ -1311,6 +1317,23 @@ async function dropApiViews(client: PoolClient): Promise<void> {
     );
   }
   await client.query('RESET ROLE');
+}
+
+function createApiViewSelection(network: DatabaseMigrationNetwork, viewName: string): string {
+  const schemaName = quotePostgresIdentifier(network.schema);
+  const tableName = quotePostgresIdentifier(viewName);
+  if (viewName !== 'metadata_revisions') {
+    return `SELECT * FROM ${schemaName}.${tableName}`;
+  }
+
+  return `SELECT revision.*,
+                 EXISTS (
+                   SELECT 1
+                   FROM ${schemaName}.${quotePostgresIdentifier('metadata_jobs')} current_job
+                   WHERE current_job.id = revision.id
+                     AND current_job.status <> 'cancelled'
+                 ) AS is_current
+          FROM ${schemaName}.${tableName} revision`;
 }
 
 async function rebuildApiViews(
@@ -1330,10 +1353,7 @@ async function rebuildApiViews(
   for (const viewName of viewNames) {
     const view = quotePostgresIdentifier(viewName);
     const selections = networks
-      .map(
-        (network) =>
-          `SELECT * FROM ${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier(viewName)}`,
-      )
+      .map((network) => createApiViewSelection(network, viewName))
       .join(' UNION ALL ');
     await client.query(
       `CREATE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,

@@ -365,15 +365,25 @@ function baseVariables(
   });
 }
 
+function currentMetadataFilter(
+  kind: 'lsp3_profile' | 'lsp4_asset' | 'lsp4_token',
+  content: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    is_current: { _eq: true },
+    kind: { _eq: kind },
+    content: { _contains: content },
+  };
+}
+
 function profileVariables(params: UseProfilesParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
   if (params.filter?.name) {
     conditions.push({
-      metadataRevisions: {
-        kind: { _eq: 'lsp3_profile' },
-        content: { _contains: { LSP3Profile: { name: params.filter.name } } },
-      },
+      metadataRevisions: currentMetadataFilter('lsp3_profile', {
+        LSP3Profile: { name: params.filter.name },
+      }),
     });
   }
   if (params.filter?.followedBy) {
@@ -483,10 +493,9 @@ function digitalAssetVariables(params: UseDigitalAssetsParams): Record<string, u
   }
   if (params.filter?.category) {
     conditions.push({
-      metadataRevisions: {
-        kind: { _eq: 'lsp4_asset' },
-        content: { _contains: { LSP4Metadata: { category: params.filter.category } } },
-      },
+      metadataRevisions: currentMetadataFilter('lsp4_asset', {
+        LSP4Metadata: { category: params.filter.category },
+      }),
     });
   }
   let sort: PackageSort[] | undefined;
@@ -575,10 +584,9 @@ function nftVariables(params: UseNftsParams): Record<string, unknown> {
   if (params.filter?.isMinted != null) filter.isMinted = { eq: params.filter.isMinted };
   if (params.filter?.name) {
     conditions.push({
-      metadataRevisions: {
-        kind: { _eq: 'lsp4_token' },
-        content: { _contains: { LSP4Metadata: { name: params.filter.name } } },
-      },
+      metadataRevisions: currentMetadataFilter('lsp4_token', {
+        LSP4Metadata: { name: params.filter.name },
+      }),
     });
   }
   const extension: Record<string, unknown> = {};
@@ -705,10 +713,9 @@ function ownedAssetVariables(params: UseOwnedAssetsParams): Record<string, unkno
   if (params.filter?.holderName) {
     conditions.push({
       universalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.holderName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.holderName },
+        }),
       },
     });
   }
@@ -769,10 +776,9 @@ function ownedTokenVariables(params: UseOwnedTokensParams): Record<string, unkno
   if (params.filter?.holderName) {
     conditions.push({
       universalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.holderName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.holderName },
+        }),
       },
     });
   }
@@ -782,10 +788,9 @@ function ownedTokenVariables(params: UseOwnedTokensParams): Record<string, unkno
   if (params.filter?.tokenName) {
     conditions.push({
       nft: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp4_token' },
-          content: { _contains: { LSP4Metadata: { name: params.filter.tokenName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp4_token', {
+          LSP4Metadata: { name: params.filter.tokenName },
+        }),
       },
     });
   }
@@ -850,20 +855,18 @@ function followerVariables(params: UseFollowsParams): Record<string, unknown> {
   if (params.filter?.followerName) {
     conditions.push({
       followerUniversalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.followerName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.followerName },
+        }),
       },
     });
   }
   if (params.filter?.followedName) {
     conditions.push({
       followedUniversalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.followedName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.followedName },
+        }),
       },
     });
   }
@@ -1019,10 +1022,9 @@ function creatorVariables(params: UseCreatorsParams): Record<string, unknown> {
   if (params.filter?.creatorName) {
     conditions.push({
       creatorProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.creatorName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.creatorName },
+        }),
       },
     });
   }
@@ -1095,10 +1097,9 @@ function issuedAssetVariables(params: UseIssuedAssetsParams): Record<string, unk
   if (params.filter?.issuerName) {
     conditions.push({
       universalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: params.filter.issuerName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.issuerName },
+        }),
       },
     });
   }
@@ -1239,10 +1240,9 @@ function eventVariables(
   if (filter && 'universalProfileName' in filter && filter.universalProfileName) {
     conditions.push({
       universalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: { _contains: { LSP3Profile: { name: filter.universalProfileName } } },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: filter.universalProfileName },
+        }),
       },
     });
   }
@@ -1401,12 +1401,9 @@ function encryptedAssetVariables(params: UseEncryptedAssetsParams): Record<strin
   if (params.filter?.universalProfileName) {
     conditions.push({
       universalProfile: {
-        metadataRevisions: {
-          kind: { _eq: 'lsp3_profile' },
-          content: {
-            _contains: { LSP3Profile: { name: params.filter.universalProfileName } },
-          },
-        },
+        metadataRevisions: currentMetadataFilter('lsp3_profile', {
+          LSP3Profile: { name: params.filter.universalProfileName },
+        }),
       },
     });
   }

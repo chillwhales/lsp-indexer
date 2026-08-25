@@ -91,7 +91,14 @@ Null relationships remain `null`; the client never invents a related entity.
 Familiar v3 text filters are exact and case-sensitive. V2's substring `_ilike` behavior is not
 available for metadata stored in v3 JSON revisions. Address and canonical-hash inputs are still
 case-insensitive at the boundary because the client validates and normalizes hexadecimal values
-before querying.
+before querying. Metadata-backed familiar filters consider only revisions whose `isCurrent` marker
+is true; superseded immutable names and categories remain available through the uniform metadata
+revision domain but cannot match current-state profile, asset, NFT, holder, issuer, creator, or event
+queries.
+
+Uniform `V3MetadataRevision` records add `isCurrent`. Uniform `V3Controller.arrayIndex` is nullable:
+an address removed from the LSP6 controller array remains a controller while any independent
+permission, allowed-call, or allowed-data-key mapping still exists.
 
 ### Familiar fields without a v3 source
 

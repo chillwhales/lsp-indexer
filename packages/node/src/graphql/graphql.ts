@@ -3571,6 +3571,7 @@ export type Metadata_Revision = {
   digitalAsset?: Maybe<Digital_Asset>;
   fetched_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  is_current?: Maybe<Scalars['Boolean']['output']>;
   kind?: Maybe<Scalars['metadata_kind']['output']>;
   last_block_hash?: Maybe<Scalars['String']['output']>;
   last_block_number?: Maybe<Scalars['bigint']['output']>;
@@ -3600,7 +3601,23 @@ export type Metadata_Revision_Aggregate = {
 };
 
 export type Metadata_Revision_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Metadata_Revision_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Metadata_Revision_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<Metadata_Revision_Aggregate_Bool_Exp_Count>;
+};
+
+export type Metadata_Revision_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Metadata_Revision_Select_Column_Metadata_Revision_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<Metadata_Revision_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Metadata_Revision_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Metadata_Revision_Select_Column_Metadata_Revision_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<Metadata_Revision_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type Metadata_Revision_Aggregate_Bool_Exp_Count = {
@@ -3683,6 +3700,7 @@ export type Metadata_Revision_Bool_Exp = {
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   fetched_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  is_current?: InputMaybe<Boolean_Comparison_Exp>;
   kind?: InputMaybe<Metadata_Kind_Comparison_Exp>;
   last_block_hash?: InputMaybe<String_Comparison_Exp>;
   last_block_number?: InputMaybe<Bigint_Comparison_Exp>;
@@ -3799,6 +3817,7 @@ export type Metadata_Revision_Order_By = {
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   fetched_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  is_current?: InputMaybe<Order_By>;
   kind?: InputMaybe<Order_By>;
   last_block_hash?: InputMaybe<Order_By>;
   last_block_number?: InputMaybe<Order_By>;
@@ -3835,6 +3854,8 @@ export type Metadata_Revision_Select_Column =
   /** column name */
   | 'id'
   /** column name */
+  | 'is_current'
+  /** column name */
   | 'kind'
   /** column name */
   | 'last_block_hash'
@@ -3852,6 +3873,16 @@ export type Metadata_Revision_Select_Column =
   | 'source_revision'
   /** column name */
   | 'token_id';
+
+/** select "metadata_revision_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api.metadata_revisions" */
+export type Metadata_Revision_Select_Column_Metadata_Revision_Aggregate_Bool_Exp_Bool_And_Arguments_Columns =
+  /** column name */
+  | 'is_current';
+
+/** select "metadata_revision_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api.metadata_revisions" */
+export type Metadata_Revision_Select_Column_Metadata_Revision_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns =
+  /** column name */
+  | 'is_current';
 
 /** aggregate stddev on columns */
 export type Metadata_Revision_Stddev_Fields = {
@@ -6298,7 +6329,7 @@ export type V3DataValueFieldsFragment = { __typename?: 'data_value', id?: string
     & { ' $fragmentRefs'?: { 'V3NftFieldsFragment': V3NftFieldsFragment } }
   ) | null } & { ' $fragmentName'?: 'V3DataValueFieldsFragment' };
 
-export type V3MetadataRevisionFieldsFragment = { __typename?: 'metadata_revision', id?: string | null, network?: string | null, address?: string | null, kind?: any | null, content?: unknown | null, chainId?: string | null, tokenId?: string | null, dataKey?: string | null, sourceRevision?: string | null, contentUri?: string | null, contentHash?: string | null, contentType?: string | null, contentLength?: number | null, fetchedAt?: string | null, lastBlockNumber?: string | null, lastBlockHash?: string | null, lastTransactionHash?: string | null, lastTransactionIndex?: number | null, lastLogIndex?: number | null, universalProfile?: (
+export type V3MetadataRevisionFieldsFragment = { __typename?: 'metadata_revision', id?: string | null, network?: string | null, address?: string | null, kind?: any | null, content?: unknown | null, chainId?: string | null, tokenId?: string | null, dataKey?: string | null, sourceRevision?: string | null, contentUri?: string | null, contentHash?: string | null, contentType?: string | null, contentLength?: number | null, fetchedAt?: string | null, isCurrent?: boolean | null, lastBlockNumber?: string | null, lastBlockHash?: string | null, lastTransactionHash?: string | null, lastTransactionIndex?: number | null, lastLogIndex?: number | null, universalProfile?: (
     { __typename?: 'universal_profile' }
     & { ' $fragmentRefs'?: { 'V3ProfileFieldsFragment': V3ProfileFieldsFragment } }
   ) | null, digitalAsset?: (
@@ -7839,6 +7870,7 @@ export const V3MetadataRevisionFieldsFragmentDoc = new TypedDocumentString(`
   contentLength: content_length
   content
   fetchedAt: fetched_at
+  isCurrent: is_current
   lastBlockNumber: last_block_number
   lastBlockHash: last_block_hash
   lastTransactionHash: last_transaction_hash
@@ -10626,6 +10658,7 @@ fragment V3MetadataRevisionFields on metadata_revision {
   contentLength: content_length
   content
   fetchedAt: fetched_at
+  isCurrent: is_current
   lastBlockNumber: last_block_number
   lastBlockHash: last_block_hash
   lastTransactionHash: last_transaction_hash
@@ -10778,6 +10811,7 @@ fragment V3MetadataRevisionFields on metadata_revision {
   contentLength: content_length
   content
   fetchedAt: fetched_at
+  isCurrent: is_current
   lastBlockNumber: last_block_number
   lastBlockHash: last_block_hash
   lastTransactionHash: last_transaction_hash

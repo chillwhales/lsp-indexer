@@ -253,6 +253,7 @@ const METADATA_REVISION_FIELDS = {
   contentType: 'content_type',
   contentLength: 'content_length',
   fetchedAt: 'fetched_at',
+  isCurrent: 'is_current',
 } as const;
 
 const INDEXED_HEAD_FIELDS = {
@@ -314,7 +315,6 @@ const BIGINT_FIELDS = new Set([
   'blockNumber',
   'chainId',
   'claimCheckAfterBlock',
-  'contentLength',
   'cooldownExpiry',
   'finalizedBlockNumber',
   'lastBlockNumber',
@@ -322,6 +322,7 @@ const BIGINT_FIELDS = new Set([
   'totalSupply',
 ]);
 const INTEGER_FIELDS = new Set([
+  'contentLength',
   'decimals',
   'lastLogIndex',
   'lastTransactionIndex',
@@ -334,6 +335,7 @@ const INTEGER_FIELDS = new Set([
 const BOOLEAN_FIELDS = new Set([
   'chillClaimed',
   'isBurned',
+  'isCurrent',
   'isFollowing',
   'isMinted',
   'orbsClaimed',

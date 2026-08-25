@@ -194,7 +194,8 @@ export const V3ControllerSchema = ProjectionRefSchema.extend({
   id: IdSchema,
   profileAddress: AddressSchema,
   controllerAddress: AddressSchema,
-  arrayIndex: z.bigint().nonnegative(),
+  /** Null when only permission mappings retain a controller outside the current LSP6 array. */
+  arrayIndex: z.bigint().nonnegative().nullable(),
   permissions: HexSchema.nullable(),
   allowedCalls: z.unknown().nullable(),
   allowedDataKeys: z.unknown().nullable(),
@@ -242,6 +243,8 @@ export const V3MetadataRevisionSchema = ProjectionRefSchema.extend({
   contentLength: z.number().int().nonnegative().safe().nullable(),
   content: z.unknown(),
   fetchedAt: TimestampSchema,
+  /** Whether this immutable revision still corresponds to the canonical chain source. */
+  isCurrent: z.boolean(),
 });
 
 export const V3IndexedHeadSchema = NetworkRefSchema.extend({

@@ -156,7 +156,10 @@ for the exact disposition.
 
 Familiar text filters use exact, case-sensitive matching in v3. Address, token ID, data-key, and
 type-ID inputs are validated and normalized before querying. This replaces v2's substring `_ilike`
-behavior and prevents malformed hexadecimal input from silently broadening a request.
+behavior and prevents malformed hexadecimal input from silently broadening a request. Familiar
+name and category filters also require the related metadata revision's `isCurrent` marker, so an
+immutable superseded revision cannot match current profile, asset, NFT, holder, issuer, creator, or
+event results.
 
 Some nullable compatibility fields have no v3.0 read-model source and therefore remain `null`,
 including projection `timestamp` values, digital-asset `owner`, NFT `score`/`rank`, token-event
@@ -201,7 +204,10 @@ subscriptions plus the shared socket.
 `BlockRef`, `EventRef`, and `ProjectionRef`. Transport decimal strings become `bigint` for balances,
 supplies, values, and array indexes. Safe-integer fields reject lossy numbers. Every top-level
 record contains `network` and `chainId`; projections/events also contain their canonical block and
-transaction provenance. Metadata source revisions are canonical 32-byte hashes.
+transaction provenance. Metadata source revisions are canonical 32-byte hashes, and
+`V3MetadataRevision.isCurrent` distinguishes the canonical source from preserved history. A
+controller's `arrayIndex` is nullable because a controller removed from the LSP6 address array can
+remain current through independent permission, allowed-call, or allowed-data-key mappings.
 
 All public failures use `IndexerError` categories: `CONFIGURATION`, `VALIDATION`, `NETWORK`, `HTTP`,
 `GRAPHQL`, and `PARSE`. Inspect `category`, `code`, `validationErrors`, and `statusCode` rather than

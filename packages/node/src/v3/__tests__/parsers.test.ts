@@ -100,6 +100,9 @@ describe('v3 transport parsers', () => {
     expect(() =>
       parseV3OwnedAsset({ ...ownedAssetRow, balance: Number.MAX_SAFE_INTEGER + 1 }),
     ).toThrow(/lossless/);
+    expect(parseV3Controller({ ...directRows.controllers, arrayIndex: null })).toMatchObject({
+      arrayIndex: null,
+    });
   });
 
   it('parses row arrays and rejects non-array envelopes', () => {

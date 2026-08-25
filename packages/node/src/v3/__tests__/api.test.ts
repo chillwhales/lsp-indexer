@@ -118,6 +118,20 @@ describe('v3 API variables', () => {
     });
   });
 
+  it('encodes metadata content length as a GraphQL Int and exposes current revisions', () => {
+    expect(
+      buildV3DomainVariables('metadataRevisions', {
+        network: NETWORK,
+        filter: { contentLength: { gte: 123 }, isCurrent: { eq: true } },
+      }).where,
+    ).toEqual({
+      _and: [
+        { network: { _eq: NETWORK } },
+        { content_length: { _gte: 123 }, is_current: { _eq: true } },
+      ],
+    });
+  });
+
   it.each(invalidVariableCases)(
     'returns typed validation errors for invalid controls',
     (params, path) => {

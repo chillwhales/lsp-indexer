@@ -205,6 +205,7 @@ export const metadataRevisionRow = {
   contentHash: null,
   contentType: 'application/json',
   contentLength: '123',
+  isCurrent: true,
   content: {
     LSP29EncryptedAsset: {
       id: 'content',

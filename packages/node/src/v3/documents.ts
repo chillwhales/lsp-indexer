@@ -384,6 +384,7 @@ export const V3MetadataRevisionFields = graphql(`
     contentLength: content_length
     content
     fetchedAt: fetched_at
+    isCurrent: is_current
     lastBlockNumber: last_block_number
     lastBlockHash: last_block_hash
     lastTransactionHash: last_transaction_hash

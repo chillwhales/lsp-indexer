@@ -1,7 +1,9 @@
 import type { Profile, ProfileResult } from '@lsp-indexer/types';
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 
-const { executeMock } = vi.hoisted(() => ({ executeMock: vi.fn() }));
+type Execute = (url: unknown, document: unknown, variables: unknown) => Promise<unknown>;
+
+const { executeMock } = vi.hoisted(() => ({ executeMock: vi.fn<Execute>() }));
 
 vi.mock('../../client/execute', () => ({ execute: executeMock }));
 
@@ -104,6 +106,14 @@ function envelope(row: unknown, totalCount = 1): Record<string, unknown> {
   return { items: [row], total: { aggregate: { count: totalCount } } };
 }
 
+function isUnknownArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+function isUnknownRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function queryResponse(_url: unknown, document: unknown, variables: unknown): Promise<unknown> {
   const source = String(document);
   const input = JSON.stringify(variables);
@@ -131,12 +141,53 @@ function queryResponse(_url: unknown, document: unknown, variables: unknown): Pr
   return Promise.reject(new Error(`Unexpected query: ${source.slice(0, 80)}`));
 }
 
+function collectMetadataFilters(value: unknown): unknown[] {
+  if (isUnknownArray(value)) return value.flatMap(collectMetadataFilters);
+  if (!isUnknownRecord(value)) return [];
+  return Object.entries(value).flatMap(([key, nested]) =>
+    key === 'metadataRevisions' ? [nested] : collectMetadataFilters(nested),
+  );
+}
+
 beforeEach(() => {
   executeMock.mockReset();
   executeMock.mockImplementation(queryResponse);
 });
 
 describe('familiar v3 detail and list services', () => {
+  it('restricts every metadata-backed relationship filter to the current revision', async () => {
+    await fetchProfiles(URL, { network: NETWORK, filter: { name: 'Alice' } });
+    await fetchDigitalAssets(URL, { network: NETWORK, filter: { category: 'Collectible' } });
+    await fetchNfts(URL, { network: NETWORK, filter: { name: 'NFT' } });
+    await fetchOwnedAssets(URL, { network: NETWORK, filter: { holderName: 'Alice' } });
+    await fetchOwnedTokens(URL, {
+      network: NETWORK,
+      filter: { holderName: 'Alice', tokenName: 'NFT' },
+    });
+    await fetchFollows(URL, {
+      network: NETWORK,
+      filter: { followerName: 'Alice', followedName: 'Bob' },
+    });
+    await fetchCreators(URL, { network: NETWORK, filter: { creatorName: 'Alice' } });
+    await fetchIssuedAssets(URL, { network: NETWORK, filter: { issuerName: 'Alice' } });
+    await fetchDataChangedEvents(URL, {
+      network: NETWORK,
+      filter: { universalProfileName: 'Alice' },
+    });
+    await fetchEncryptedAssets(URL, {
+      network: NETWORK,
+      filter: { universalProfileName: 'Alice' },
+    });
+
+    const metadataFilters = executeMock.mock.calls.flatMap((call) =>
+      collectMetadataFilters(call[2]),
+    );
+    expect(metadataFilters).toHaveLength(12);
+    for (const metadataFilter of metadataFilters) {
+      expect(metadataFilter).toEqual(expect.objectContaining({ is_current: { _eq: true } }));
+    }
+  });
+
   it('queries full profile and digital-asset results when include is omitted', async () => {
     const fullProfile = fetchProfile(URL, { network: NETWORK, address: ADDRESS });
     expectTypeOf(fullProfile).toEqualTypeOf<Promise<Profile | null>>();

@@ -7,7 +7,7 @@ import {
   SHARED_SCHEMA,
   assertPostgresIdentifier,
 } from './names.js';
-import { networkConfig, publicTables, rollbackTables, sqdCursor } from './schema.js';
+import { metadataJobs, networkConfig, publicTables, rollbackTables, sqdCursor } from './schema.js';
 
 const EXPECTED_CHAIN_OBJECTS = [
   { name: MIGRATIONS_TABLE, type: 'table', requiredBeforeLatest: true },
@@ -19,6 +19,11 @@ const EXPECTED_CHAIN_OBJECTS = [
   ].map((name) => ({ name, type: 'table', requiredBeforeLatest: false })),
 ].sort((left, right) => left.name.localeCompare(right.name));
 const PUBLIC_CHAIN_TABLE_NAMES = publicTables.map(getTableName);
+
+/** Least-privilege chain columns required to build the cross-network API views. */
+export const API_VIEW_DEPENDENCY_COLUMNS = [
+  { table: getTableName(metadataJobs), columns: ['id', 'status'] },
+];
 
 /** A missing or incorrectly owned object from a chain schema's storage inventory. */
 export interface ChainObjectOwnershipRow extends Record<string, unknown> {
@@ -183,11 +188,29 @@ export function createChainAclBoundaryQuery(role: string, networkSchema: string)
       JOIN pg_class relation ON relation.oid = attribute.attrelid
       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
       CROSS JOIN writer_role
+      CROSS JOIN api_owner_role
       CROSS JOIN LATERAL aclexplode(attribute.attacl) acl
       WHERE namespace.nspname = ${validatedSchema}
         AND attribute.attnum > 0
         AND NOT attribute.attisdropped
         AND acl.grantee <> writer_role.oid
+        AND NOT (
+          acl.grantee = api_owner_role.oid
+          AND acl.privilege_type = 'SELECT'
+          AND NOT acl.is_grantable
+          AND (
+            ${sql.join(
+              API_VIEW_DEPENDENCY_COLUMNS.map(
+                ({ columns, table }) =>
+                  sql`(relation.relname = ${table} AND attribute.attname IN (${sql.join(
+                    columns.map((column) => sql`${column}`),
+                    sql`, `,
+                  )}))`,
+              ),
+              sql` OR `,
+            )}
+          )
+        )
       UNION ALL
       SELECT 'routine' AS kind,
              format(
