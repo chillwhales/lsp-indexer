@@ -6248,7 +6248,7 @@ export type V3ProfileFieldsFragment = { __typename?: 'universal_profile', id?: s
 
 export type V3DigitalAssetFieldsFragment = { __typename?: 'digital_asset', id?: string | null, network?: string | null, address?: string | null, standard?: any | null, name?: string | null, symbol?: string | null, decimals?: number | null, verification?: any | null, chainId?: string | null, ownerAddress?: string | null, tokenType?: number | null, totalSupply?: string | null, tokenIdFormat?: number | null, tokenIdReferenceContract?: string | null, baseUri?: string | null, lastBlockNumber?: string | null, lastBlockHash?: string | null, lastTransactionHash?: string | null, lastTransactionIndex?: number | null, lastLogIndex?: number | null, metadataRevisions: Array<{ __typename?: 'metadata_revision', content?: unknown | null }>, holderCount: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, creatorCount: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null } } & { ' $fragmentName'?: 'V3DigitalAssetFieldsFragment' };
 
-export type V3NftFieldsFragment = { __typename?: 'nft', id?: string | null, network?: string | null, address?: string | null, verification?: any | null, chainId?: string | null, tokenId?: string | null, formattedTokenId?: string | null, isMinted?: boolean | null, isBurned?: boolean | null, ownerAddress?: string | null, tokenUri?: string | null, lastBlockNumber?: string | null, lastBlockHash?: string | null, lastTransactionHash?: string | null, lastTransactionIndex?: number | null, lastLogIndex?: number | null, metadataRevisions: Array<{ __typename?: 'metadata_revision', content?: unknown | null }>, digitalAsset?: (
+export type V3NftFieldsFragment = { __typename?: 'nft', id?: string | null, network?: string | null, address?: string | null, verification?: any | null, chainId?: string | null, tokenId?: string | null, formattedTokenId?: string | null, isMinted?: boolean | null, isBurned?: boolean | null, ownerAddress?: string | null, tokenUri?: string | null, lastBlockNumber?: string | null, lastBlockHash?: string | null, lastTransactionHash?: string | null, lastTransactionIndex?: number | null, lastLogIndex?: number | null, metadataRevisions: Array<{ __typename?: 'metadata_revision', content?: unknown | null, dataKey?: string | null }>, digitalAsset?: (
     { __typename?: 'digital_asset' }
     & { ' $fragmentRefs'?: { 'V3DigitalAssetFieldsFragment': V3DigitalAssetFieldsFragment } }
   ) | null, ownedToken?: { __typename?: 'owned_token', ownerAddress?: string | null, lastBlockNumber?: string | null, universalProfile?: (
@@ -6948,10 +6948,11 @@ export const V3NftFieldsFragmentDoc = new TypedDocumentString(`
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -7249,10 +7250,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -7695,10 +7697,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -7830,10 +7833,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -7973,10 +7977,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -8549,10 +8554,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -8666,10 +8672,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -9006,10 +9013,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -9178,10 +9186,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10027,10 +10036,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10173,10 +10183,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10324,10 +10335,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10469,10 +10481,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10619,10 +10632,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {
@@ -10772,10 +10786,11 @@ fragment V3NftFields on nft {
   lastTransactionIndex: last_transaction_index
   lastLogIndex: last_log_index
   metadataRevisions(
-    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}}
+    where: {is_current: {_eq: true}, kind: {_eq: lsp4_token}, data_key: {_in: ["0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e", "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"]}}
     order_by: [{last_block_number: desc}, {chain_id: asc}, {id: asc}]
-    limit: 1
+    limit: 2
   ) {
+    dataKey: data_key
     content
   }
   digitalAsset {

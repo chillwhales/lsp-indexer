@@ -118,6 +118,8 @@ export const V3DigitalAssetFields = graphql(`
   }
 `);
 
+// The data-key literals stay static for GraphQL code generation and mirror metadata-keys.ts.
+// Selecting both candidates lets the familiar parser enforce direct metadata before base URI.
 export const V3NftFields = graphql(`
   fragment V3NftFields on nft {
     id
@@ -137,10 +139,20 @@ export const V3NftFields = graphql(`
     lastTransactionIndex: last_transaction_index
     lastLogIndex: last_log_index
     metadataRevisions(
-      where: { is_current: { _eq: true }, kind: { _eq: lsp4_token } }
+      where: {
+        is_current: { _eq: true }
+        kind: { _eq: lsp4_token }
+        data_key: {
+          _in: [
+            "0x9afb95cacc9f95858ec44aa8c3b685511002e30ae54415823f406128b85b238e"
+            "0x1a7628600c3bac7101f53697f48df381ddc36b9015e7d7c9c5633d1252aa2843"
+          ]
+        }
+      }
       order_by: [{ last_block_number: desc }, { chain_id: asc }, { id: asc }]
-      limit: 1
+      limit: 2
     ) {
+      dataKey: data_key
       content
     }
     digitalAsset {

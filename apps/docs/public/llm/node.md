@@ -164,6 +164,10 @@ name and category filters also require the related metadata revision's `isCurren
 immutable superseded revision cannot match current profile, asset, NFT, holder, issuer, creator, or
 event results.
 
+NFT results, name filters, and collection attribute facets use only current token metadata. When
+both direct LSP4 metadata and base-URI-derived metadata are available, direct metadata takes
+precedence and the base URI remains a fallback regardless of which source changed most recently.
+
 Some nullable compatibility fields have no v3.0 read-model source and therefore remain `null`,
 including projection `timestamp` values, digital-asset `owner`, NFT `score`/`rank`, token-event
 `nft`, universal-receiver sender relations, and encrypted-asset `arrayIndex`. The migration guide

@@ -119,7 +119,9 @@ import {
   fetchV3MetadataRevisions,
   fetchV3Nfts,
   type V3DomainFieldMap,
+  type V3DomainListParams,
 } from './api-service';
+import { LSP4_METADATA_DATA_KEY, LSP8_METADATA_BASE_URI_DATA_KEY } from './metadata-keys';
 import {
   V3CreatorsDocument,
   V3CreatorsSubscriptionDocument,
@@ -366,13 +368,44 @@ function baseVariables(
 }
 
 function currentMetadataFilter(
-  kind: 'lsp3_profile' | 'lsp4_asset' | 'lsp4_token',
+  kind: 'lsp3_profile' | 'lsp4_asset',
   content: Record<string, unknown>,
 ): Record<string, unknown> {
   return {
     is_current: { _eq: true },
     kind: { _eq: kind },
     content: { _contains: content },
+  };
+}
+
+function currentTokenMetadataSource(
+  dataKey: string,
+  content?: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    is_current: { _eq: true },
+    kind: { _eq: 'lsp4_token' },
+    data_key: { _eq: dataKey },
+    ...(content == null ? {} : { content: { _contains: content } }),
+  };
+}
+
+function currentNftMetadataCondition(content: Record<string, unknown>): Record<string, unknown> {
+  const directSource = currentTokenMetadataSource(LSP4_METADATA_DATA_KEY);
+  return {
+    _or: [
+      {
+        metadataRevisions: currentTokenMetadataSource(LSP4_METADATA_DATA_KEY, content),
+      },
+      {
+        _and: [
+          { _not: { metadataRevisions: directSource } },
+          {
+            metadataRevisions: currentTokenMetadataSource(LSP8_METADATA_BASE_URI_DATA_KEY, content),
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -583,11 +616,11 @@ function nftVariables(params: UseNftsParams): Record<string, unknown> {
   if (params.filter?.isBurned != null) filter.isBurned = { eq: params.filter.isBurned };
   if (params.filter?.isMinted != null) filter.isMinted = { eq: params.filter.isMinted };
   if (params.filter?.name) {
-    conditions.push({
-      metadataRevisions: currentMetadataFilter('lsp4_token', {
+    conditions.push(
+      currentNftMetadataCondition({
         LSP4Metadata: { name: params.filter.name },
       }),
-    });
+    );
   }
   const extension: Record<string, unknown> = {};
   if (params.filter?.chillClaimed != null) {
@@ -787,11 +820,9 @@ function ownedTokenVariables(params: UseOwnedTokensParams): Record<string, unkno
   }
   if (params.filter?.tokenName) {
     conditions.push({
-      nft: {
-        metadataRevisions: currentMetadataFilter('lsp4_token', {
-          LSP4Metadata: { name: params.filter.tokenName },
-        }),
-      },
+      nft: currentNftMetadataCondition({
+        LSP4Metadata: { name: params.filter.tokenName },
+      }),
     });
   }
   return addConditions(
@@ -1518,44 +1549,48 @@ export async function fetchCollectionAttributes(
   url: string,
   params: UseCollectionAttributesParams,
 ): Promise<CollectionAttributesResult> {
+  const revisionParams: V3DomainListParams<'metadataRevisions'> = {
+    network: params.network,
+    filter: {
+      address: { eq: address(params.collectionAddress) },
+      kind: { eq: 'lsp4_token' },
+      isCurrent: { eq: true },
+      dataKey: { in: [LSP4_METADATA_DATA_KEY, LSP8_METADATA_BASE_URI_DATA_KEY] },
+    },
+    limit: 100,
+  };
   const [nfts, firstRevisions] = await Promise.all([
     fetchV3Nfts(url, {
       network: params.network,
       filter: { address: { eq: address(params.collectionAddress) } },
       limit: 1,
     }),
-    fetchV3MetadataRevisions(url, {
-      network: params.network,
-      filter: {
-        address: { eq: address(params.collectionAddress) },
-        kind: { eq: 'lsp4_token' },
-      },
-      limit: 100,
-    }),
+    fetchV3MetadataRevisions(url, revisionParams),
   ]);
   const revisions = [...firstRevisions.items];
   for (let offset = revisions.length; offset < firstRevisions.totalCount; offset += 100) {
     const page = await fetchV3MetadataRevisions(url, {
-      network: params.network,
-      filter: {
-        address: { eq: address(params.collectionAddress) },
-        kind: { eq: 'lsp4_token' },
-      },
-      limit: 100,
+      ...revisionParams,
       offset,
     });
     revisions.push(...page.items);
   }
-  // Revisions arrive newest-first. Match the NFT parser by considering only the
-  // latest metadata document for each token, otherwise obsolete traits leak into
-  // collection filters forever.
-  const latestByToken = new Map<string, (typeof revisions)[number]>();
+  // Current revisions arrive newest-first, but direct token metadata takes precedence over the
+  // base-URI fallback even when the fallback was updated in a later block.
+  const metadataByToken = new Map<string, (typeof revisions)[number]>();
   for (const revision of revisions) {
+    if (!revision.isCurrent) continue;
     const identity = `${revision.address}\u0000${revision.tokenId ?? ''}`;
-    if (!latestByToken.has(identity)) latestByToken.set(identity, revision);
+    const selected = metadataByToken.get(identity);
+    if (
+      selected == null ||
+      (revision.dataKey === LSP4_METADATA_DATA_KEY && selected.dataKey !== LSP4_METADATA_DATA_KEY)
+    ) {
+      metadataByToken.set(identity, revision);
+    }
   }
   const distinct = new Map<string, CollectionAttribute>();
-  for (const revision of latestByToken.values()) {
+  for (const revision of metadataByToken.values()) {
     for (const attribute of collectMetadataAttributes(revision.content)) {
       distinct.set(
         `${attribute.key}\u0000${attribute.value}\u0000${attribute.type ?? ''}`,

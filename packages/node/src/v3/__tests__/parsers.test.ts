@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { LSP4_METADATA_DATA_KEY, LSP8_METADATA_BASE_URI_DATA_KEY } from '../metadata-keys';
 import {
   parseV3Block,
   parseV3ChillwhalesNft,
@@ -139,6 +140,22 @@ describe('familiar v3 parsers', () => {
       contentId: 'content',
       file: { name: 'secret.txt', size: 123 },
     });
+  });
+
+  it('prefers direct NFT metadata over the base-URI fallback', () => {
+    const direct = {
+      dataKey: LSP4_METADATA_DATA_KEY,
+      content: { LSP4Metadata: { name: 'Direct metadata' } },
+    };
+    const baseUri = {
+      dataKey: LSP8_METADATA_BASE_URI_DATA_KEY,
+      content: { LSP4Metadata: { name: 'Base URI metadata' } },
+    };
+
+    expect(parseNft({ ...nftRow, metadataRevisions: [baseUri, direct] }).name).toBe(
+      'Direct metadata',
+    );
+    expect(parseNft({ ...nftRow, metadataRevisions: [baseUri] }).name).toBe('Base URI metadata');
   });
 
   it('strips excluded scalar and nested fields at runtime', () => {

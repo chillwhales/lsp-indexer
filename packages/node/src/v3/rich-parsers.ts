@@ -54,6 +54,7 @@ import {
   type UniversalReceiverEvent,
   type UniversalReceiverEventInclude,
 } from '@lsp-indexer/types';
+import { LSP4_METADATA_DATA_KEY, LSP8_METADATA_BASE_URI_DATA_KEY } from './metadata-keys';
 import {
   nullableRelation,
   parseV3Creator,
@@ -232,14 +233,27 @@ function optionalBoolean(value: unknown): boolean | null {
   return typeof value === 'boolean' ? value : null;
 }
 
+function metadataRevisionEnvelope(revision: unknown, key: string): Record<string, unknown> | null {
+  const content = optionalRecord(optionalRecord(revision)?.content);
+  return optionalRecord(content?.[key]);
+}
+
 function metadataEnvelope(
   raw: Record<string, unknown>,
   key: string,
 ): Record<string, unknown> | null {
-  const revisions = optionalArray(raw.metadataRevisions);
-  const revision = revisions?.[0] == null ? null : optionalRecord(revisions[0]);
-  const content = optionalRecord(revision?.content);
-  return optionalRecord(content?.[key]);
+  return metadataRevisionEnvelope(optionalArray(raw.metadataRevisions)?.[0], key);
+}
+
+function nftMetadataEnvelope(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const revisions = optionalArray(raw.metadataRevisions) ?? [];
+  const direct = revisions.find(
+    (revision) => optionalRecord(revision)?.dataKey === LSP4_METADATA_DATA_KEY,
+  );
+  const baseUri = revisions.find(
+    (revision) => optionalRecord(revision)?.dataKey === LSP8_METADATA_BASE_URI_DATA_KEY,
+  );
+  return metadataRevisionEnvelope(direct ?? baseUri, 'LSP4Metadata');
 }
 
 function verification(value: unknown): { method: string; data: string } | null {
@@ -447,7 +461,7 @@ export function parseDigitalAssets(
 function nftFromRaw(value: unknown): Nft {
   const raw = rawRecord(value);
   const base = parseV3Nft(raw);
-  const metadata = metadataEnvelope(raw, 'LSP4Metadata');
+  const metadata = nftMetadataEnvelope(raw);
   const ownedToken = nullableRelation(raw.ownedToken, 'ownedToken');
   const holderProfile = nullableRelation(
     ownedToken?.universalProfile,

@@ -8,6 +8,7 @@ const { executeMock } = vi.hoisted(() => ({ executeMock: vi.fn<Execute>() }));
 vi.mock('../../client/execute', () => ({ execute: executeMock }));
 
 import { IndexerError } from '../../errors';
+import { LSP4_METADATA_DATA_KEY, LSP8_METADATA_BASE_URI_DATA_KEY } from '../metadata-keys';
 import {
   buildCreatorSubscriptionConfig,
   buildDataChangedEventSubscriptionConfig,
@@ -90,6 +91,7 @@ const receiverEventRow = {
 const attributeRevisionRow = {
   ...metadataRevisionRow,
   tokenId: TOKEN_ID,
+  dataKey: LSP4_METADATA_DATA_KEY,
   kind: 'lsp4_token',
   content: {
     LSP4Metadata: {
@@ -121,6 +123,15 @@ function containsDecodedNonNullCondition(value: unknown): boolean {
   const decoded = value.decoded;
   if (isUnknownRecord(decoded) && decoded._is_null === false) return true;
   return Object.values(value).some(containsDecodedNonNullCondition);
+}
+
+function containsCurrentRevisionCondition(value: unknown): boolean {
+  if (isUnknownArray(value)) return value.some(containsCurrentRevisionCondition);
+  if (!isUnknownRecord(value)) return false;
+
+  const isCurrent = value.is_current;
+  if (isUnknownRecord(isCurrent) && isCurrent._eq === true) return true;
+  return Object.values(value).some(containsCurrentRevisionCondition);
 }
 
 function queryResponse(_url: unknown, document: unknown, variables: unknown): Promise<unknown> {
@@ -191,10 +202,50 @@ describe('familiar v3 detail and list services', () => {
     const metadataFilters = executeMock.mock.calls.flatMap((call) =>
       collectMetadataFilters(call[2]),
     );
-    expect(metadataFilters).toHaveLength(12);
+    expect(metadataFilters).toHaveLength(16);
     for (const metadataFilter of metadataFilters) {
       expect(metadataFilter).toEqual(expect.objectContaining({ is_current: { _eq: true } }));
     }
+  });
+
+  it('enforces direct metadata precedence in NFT name filters', async () => {
+    await fetchNfts(URL, { network: NETWORK, filter: { name: 'Direct metadata' } });
+
+    const variables = executeMock.mock.calls[0]?.[2];
+    const where = isUnknownRecord(variables) ? variables.where : undefined;
+    const directSource = {
+      is_current: { _eq: true },
+      kind: { _eq: 'lsp4_token' },
+      data_key: { _eq: LSP4_METADATA_DATA_KEY },
+    };
+    expect(where).toEqual({
+      _and: [
+        { network: { _eq: NETWORK } },
+        {
+          _or: [
+            {
+              metadataRevisions: {
+                ...directSource,
+                content: { _contains: { LSP4Metadata: { name: 'Direct metadata' } } },
+              },
+            },
+            {
+              _and: [
+                { _not: { metadataRevisions: directSource } },
+                {
+                  metadataRevisions: {
+                    is_current: { _eq: true },
+                    kind: { _eq: 'lsp4_token' },
+                    data_key: { _eq: LSP8_METADATA_BASE_URI_DATA_KEY },
+                    content: { _contains: { LSP4Metadata: { name: 'Direct metadata' } } },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it('queries full profile and digital-asset results when include is omitted', async () => {
@@ -531,10 +582,22 @@ describe('familiar v3 event and metadata services', () => {
     });
   });
 
-  it('derives collection facets from only the latest revision of each token', async () => {
+  it('derives collection facets from current metadata with direct-source precedence', async () => {
+    const baseUriRevision = {
+      ...attributeRevisionRow,
+      id: '42:metadata-base-uri',
+      dataKey: LSP8_METADATA_BASE_URI_DATA_KEY,
+      lastBlockNumber: '130',
+      content: {
+        LSP4Metadata: {
+          attributes: [{ key: 'color', value: 'red', type: 'string' }],
+        },
+      },
+    };
     const staleRevision = {
       ...attributeRevisionRow,
       id: '42:metadata-stale',
+      isCurrent: false,
       lastBlockNumber: '100',
       content: {
         LSP4Metadata: {
@@ -559,8 +622,8 @@ describe('familiar v3 event and metadata services', () => {
       if (source.includes('V3Nfts')) return Promise.resolve(envelope(nftRow, 2));
       if (source.includes('V3MetadataRevisions')) {
         return Promise.resolve({
-          items: [attributeRevisionRow, secondTokenRevision, staleRevision],
-          total: { aggregate: { count: 3 } },
+          items: [baseUriRevision, attributeRevisionRow, secondTokenRevision, staleRevision],
+          total: { aggregate: { count: 4 } },
         });
       }
       return Promise.reject(new Error(`Unexpected query: ${source.slice(0, 80)}`));
@@ -578,6 +641,14 @@ describe('familiar v3 event and metadata services', () => {
       ],
       totalCount: 2,
     });
+
+    const metadataCalls = executeMock.mock.calls.filter((call) =>
+      String(call[1]).includes('V3MetadataRevisions'),
+    );
+    expect(metadataCalls.length).toBeGreaterThan(0);
+    for (const call of metadataCalls) {
+      expect(containsCurrentRevisionCondition(call[2])).toBe(true);
+    }
   });
 });
 

@@ -1,3 +1,5 @@
+import { LSP4_METADATA_DATA_KEY } from '../metadata-keys';
+
 export const ADDRESS = `0x${'11'.repeat(20)}`;
 export const OTHER_ADDRESS = `0x${'22'.repeat(20)}`;
 export const HASH = `0x${'33'.repeat(32)}`;
@@ -88,6 +90,7 @@ export const nftRow = {
   verification: 'verified',
   metadataRevisions: [
     {
+      dataKey: LSP4_METADATA_DATA_KEY,
       content: {
         LSP4Metadata: {
           name: 'NFT',
