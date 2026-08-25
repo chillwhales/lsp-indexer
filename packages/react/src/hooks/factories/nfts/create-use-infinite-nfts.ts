@@ -18,7 +18,7 @@ export function createUseInfiniteNfts(
   ) => Promise<FetchNftsResult<PartialNft>>,
 ) {
   const impl = createUseInfinite<NftInfiniteParams, PartialNft, FetchNftsResult<PartialNft>>({
-    queryKey: (p) => nftKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => nftKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.nfts,
   });
@@ -27,13 +27,13 @@ export function createUseInfiniteNfts(
     params: UseInfiniteNftsParams & { include: I },
   ): UseInfiniteNftsReturn<NftResult<I>>;
   function useInfiniteNfts(
-    params?: Omit<UseInfiniteNftsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteNftsParams, 'include'> & { include?: never },
   ): UseInfiniteNftsReturn<Nft>;
   function useInfiniteNfts(
     params: UseInfiniteNftsParams & { include?: NftInclude },
   ): UseInfiniteNftsReturn<PartialNft>;
   function useInfiniteNfts(
-    params: UseInfiniteNftsParams & { include?: NftInclude } = {},
+    params: UseInfiniteNftsParams & { include?: NftInclude },
   ): UseInfiniteNftsReturn<PartialNft> {
     const { items, ...rest } = impl(params);
     return { nfts: items, ...rest };

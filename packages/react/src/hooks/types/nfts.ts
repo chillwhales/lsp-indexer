@@ -32,6 +32,8 @@ export type UseInfiniteNftsReturn<F> = {
  * - Widest   → `onData(data: PartialNft[])`
  */
 export interface UseNftSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all NFTs) */
   filter?: NftFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

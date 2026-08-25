@@ -50,6 +50,8 @@ export type UseIsFollowingBatchReturn = {
  * - Widest   → `onData(data: PartialFollower[])`
  */
 export interface UseFollowerSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all followers) */
   filter?: FollowerFilter;
   /** Sort order (optional — defaults to block-order desc) */

@@ -3,7 +3,7 @@ import 'server-only';
 /**
  * Server-only env availability detection.
  *
- * Exposes **boolean flags only** — never actual env var values.
+ * Exposes URL-availability flags plus non-secret network slugs—never endpoint values.
  * Called in the RSC root layout to produce props for the client-side
  * `EnvProvider` without leaking server secrets to the browser.
  */
@@ -14,10 +14,14 @@ import 'server-only';
 
 /** Boolean flags indicating which env vars are configured. */
 export interface EnvAvailability {
-  /** `NEXT_PUBLIC_INDEXER_URL` is set (client-side HTTP). */
+  /** Client URL and network are both configured. */
   hasClientUrl: boolean;
-  /** `INDEXER_URL` is set explicitly (server-side HTTP). */
+  /** Server URL and network are both configured. */
   hasServerUrl: boolean;
+  /** Explicit browser-visible network slug. */
+  clientNetwork: string | null;
+  /** Explicit server network slug, falling back only to the public selection. */
+  serverNetwork: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -27,12 +31,17 @@ export interface EnvAvailability {
 /**
  * Detect which indexer env vars are available at runtime.
  *
- * CRITICAL: Returns booleans only — never exposes actual values.
- * Safe to pass as serialisable props from RSC → client components.
+ * URL values remain server-side. Network slugs are public request identity and are safe to pass
+ * from RSC to client components.
  */
 export function getEnvAvailability(): EnvAvailability {
+  const clientNetwork = process.env.NEXT_PUBLIC_INDEXER_NETWORK ?? null;
+  const serverNetwork = process.env.INDEXER_NETWORK ?? clientNetwork;
+  const serverUrl = process.env.INDEXER_URL ?? process.env.NEXT_PUBLIC_INDEXER_URL;
   return {
-    hasClientUrl: Boolean(process.env.NEXT_PUBLIC_INDEXER_URL),
-    hasServerUrl: Boolean(process.env.INDEXER_URL),
+    hasClientUrl: Boolean(process.env.NEXT_PUBLIC_INDEXER_URL && clientNetwork),
+    hasServerUrl: Boolean(serverUrl && serverNetwork),
+    clientNetwork,
+    serverNetwork,
   };
 }

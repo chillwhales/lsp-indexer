@@ -28,7 +28,7 @@ export function createUseUniversalReceiverEvents(
     FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>
   >({
     queryKey: (p) =>
-      universalReceiverEventKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+      universalReceiverEventKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.universalReceiverEvents,
   });
@@ -37,13 +37,13 @@ export function createUseUniversalReceiverEvents(
     params: UseUniversalReceiverEventsParams & { include: I },
   ): UseUniversalReceiverEventsReturn<UniversalReceiverEventResult<I>>;
   function useUniversalReceiverEvents(
-    params?: Omit<UseUniversalReceiverEventsParams, 'include'> & { include?: never },
+    params: Omit<UseUniversalReceiverEventsParams, 'include'> & { include?: never },
   ): UseUniversalReceiverEventsReturn<UniversalReceiverEvent>;
   function useUniversalReceiverEvents(
     params: UseUniversalReceiverEventsParams & { include?: UniversalReceiverEventInclude },
   ): UseUniversalReceiverEventsReturn<PartialUniversalReceiverEvent>;
   function useUniversalReceiverEvents(
-    params: UseUniversalReceiverEventsParams & { include?: UniversalReceiverEventInclude } = {},
+    params: UseUniversalReceiverEventsParams & { include?: UniversalReceiverEventInclude },
   ): UseUniversalReceiverEventsReturn<PartialUniversalReceiverEvent> {
     const { items, ...rest } = impl(params);
     return { universalReceiverEvents: items, ...rest };

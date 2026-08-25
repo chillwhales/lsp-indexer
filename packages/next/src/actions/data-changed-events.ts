@@ -19,54 +19,61 @@ import {
 import { validateInput } from './validate';
 
 /** Server action: fetch the most recent DataChanged event for a data key. */
-export async function getLatestDataChangedEvent(params?: {
+export async function getLatestDataChangedEvent(params: {
+  network: string;
   filter?: DataChangedEventFilter;
 }): Promise<DataChangedEvent | null>;
-export async function getLatestDataChangedEvent<const I extends DataChangedEventInclude>(params?: {
+export async function getLatestDataChangedEvent<const I extends DataChangedEventInclude>(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   include: I;
 }): Promise<DataChangedEventResult<I> | null>;
-export async function getLatestDataChangedEvent(params?: {
+export async function getLatestDataChangedEvent(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   include?: DataChangedEventInclude;
 }): Promise<PartialDataChangedEvent | null>;
-export async function getLatestDataChangedEvent(params?: {
+export async function getLatestDataChangedEvent(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   include?: DataChangedEventInclude;
 }): Promise<PartialDataChangedEvent | null> {
-  if (params)
-    validateInput(UseLatestDataChangedEventParamsSchema, params, 'getLatestDataChangedEvent');
+  validateInput(UseLatestDataChangedEventParamsSchema, params, 'getLatestDataChangedEvent');
   return await fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of DataChanged events. */
-export async function getDataChangedEvents(params?: {
+export async function getDataChangedEvents(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchDataChangedEventsResult>;
-export async function getDataChangedEvents<const I extends DataChangedEventInclude>(params?: {
+export async function getDataChangedEvents<const I extends DataChangedEventInclude>(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchDataChangedEventsResult<DataChangedEventResult<I>>>;
-export async function getDataChangedEvents(params?: {
+export async function getDataChangedEvents(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;
   limit?: number;
   offset?: number;
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>>;
-export async function getDataChangedEvents(params?: {
+export async function getDataChangedEvents(params: {
+  network: string;
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;
   limit?: number;
   offset?: number;
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
-  if (params) validateInput(UseDataChangedEventsParamsSchema, params, 'getDataChangedEvents');
+  validateInput(UseDataChangedEventsParamsSchema, params, 'getDataChangedEvents');
   return await fetchDataChangedEvents(getServerUrl(), params);
 }

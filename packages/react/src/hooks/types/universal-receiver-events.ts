@@ -33,6 +33,8 @@ export type UseInfiniteUniversalReceiverEventsReturn<F> = {
  * - Widest   → `onData(data: PartialUniversalReceiverEvent[])`
  */
 export interface UseUniversalReceiverEventSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all events) */
   filter?: UniversalReceiverEventFilter;
   /** Sort order (optional — defaults to block-order desc) */

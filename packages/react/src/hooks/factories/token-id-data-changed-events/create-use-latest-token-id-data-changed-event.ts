@@ -21,7 +21,7 @@ export function createUseLatestTokenIdDataChangedEvent(
 ) {
   const impl = createUseDetail<LatestTokenIdDataChangedEventParams, PartialTokenIdDataChangedEvent>(
     {
-      queryKey: (p) => tokenIdDataChangedEventKeys.latest(p.filter, p.include),
+      queryKey: (p) => tokenIdDataChangedEventKeys.latest(p.network, p.filter, p.include),
       queryFn,
       enabled: () => true,
     },
@@ -31,7 +31,7 @@ export function createUseLatestTokenIdDataChangedEvent(
     params: UseLatestTokenIdDataChangedEventParams & { include: I },
   ): UseLatestTokenIdDataChangedEventReturn<TokenIdDataChangedEventResult<I>>;
   function useLatestTokenIdDataChangedEvent(
-    params?: Omit<UseLatestTokenIdDataChangedEventParams, 'include'> & { include?: never },
+    params: Omit<UseLatestTokenIdDataChangedEventParams, 'include'> & { include?: never },
   ): UseLatestTokenIdDataChangedEventReturn<TokenIdDataChangedEvent>;
   function useLatestTokenIdDataChangedEvent(
     params: UseLatestTokenIdDataChangedEventParams & {
@@ -41,7 +41,7 @@ export function createUseLatestTokenIdDataChangedEvent(
   function useLatestTokenIdDataChangedEvent(
     params: UseLatestTokenIdDataChangedEventParams & {
       include?: TokenIdDataChangedEventInclude;
-    } = {},
+    },
   ): UseLatestTokenIdDataChangedEventReturn<PartialTokenIdDataChangedEvent> {
     const { data, ...rest } = impl(params);
     return { tokenIdDataChangedEvent: data, ...rest };

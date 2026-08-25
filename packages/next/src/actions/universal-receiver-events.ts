@@ -16,7 +16,8 @@ import {
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of universal receiver events. */
-export async function getUniversalReceiverEvents(params?: {
+export async function getUniversalReceiverEvents(params: {
+  network: string;
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
@@ -24,28 +25,30 @@ export async function getUniversalReceiverEvents(params?: {
 }): Promise<FetchUniversalReceiverEventsResult>;
 export async function getUniversalReceiverEvents<
   const I extends UniversalReceiverEventInclude,
->(params?: {
+>(params: {
+  network: string;
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchUniversalReceiverEventsResult<UniversalReceiverEventResult<I>>>;
-export async function getUniversalReceiverEvents(params?: {
+export async function getUniversalReceiverEvents(params: {
+  network: string;
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
   offset?: number;
   include?: UniversalReceiverEventInclude;
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>>;
-export async function getUniversalReceiverEvents(params?: {
+export async function getUniversalReceiverEvents(params: {
+  network: string;
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
   offset?: number;
   include?: UniversalReceiverEventInclude;
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
-  if (params)
-    validateInput(UseUniversalReceiverEventsParamsSchema, params, 'getUniversalReceiverEvents');
+  validateInput(UseUniversalReceiverEventsParamsSchema, params, 'getUniversalReceiverEvents');
   return await fetchUniversalReceiverEvents(getServerUrl(), params);
 }

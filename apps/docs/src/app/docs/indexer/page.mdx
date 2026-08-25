@@ -27,12 +27,13 @@ production validation are complete. The current alpha foundation includes:
 - Generated Hasura metadata, public schema snapshot, chain-scoped relationships, and live queries
 - A local-only multi-network runner for source development
 
-It does **not** yet include the v3 consumer package contracts or production acceptance. Those land
-in subsequent v3 goals and the v2 implementation remains the production path meanwhile.
+The v3 runtime schemas and Node package contract now cover all 15 public API roots. Dedicated React
+and Next.js additions plus production acceptance land in subsequent v3 goals; the v2 implementation
+remains the production path meanwhile.
 
-The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 alpha projection. It
-stores CHILL/ORBS claim flags and Orb level, cooldown, and faction state; Node, React, and Next.js
-consumer APIs are deliberately deferred to the v3 package-contract goal.
+The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 projection. It stores
+CHILL/ORBS claim flags and Orb level, cooldown, and faction state. The Node v3 client exposes it;
+dedicated React and Next.js hooks/actions are part of the next package goal.
 
 ### Multi-chain process model
 
@@ -290,8 +291,8 @@ aggregates, nested cross-chain isolation, mutation denial, and a public WebSocke
 Applying metadata replaces only the `v3` source, preserves unrelated Hasura metadata, and uses
 resource-version concurrency protection. A concurrent metadata update therefore fails instead of
 being overwritten.
-The raw schema is the input to the upcoming v3 package code generation; the public v2 packages do
-not consume it yet.
+The checked-in raw schema is the input to v3 Node code generation. Stable runtime types and Zod
+parsers—not Hasura-generated names—form the public package boundary.
 
 ### V3 raw event ingestion
 
@@ -425,7 +426,15 @@ array length. Length changes rescan the affected profile in bounded pages, cance
 and are checked again by the worker before fetching and publishing.
 Published deterministic revisions are immutable, so a later fetch for the same chain source cannot
 replace their bytes or provenance. A revision records the storage location that actually returned
-the validated content, while its durable job remains keyed by the primary chain source.
+the validated content, while its durable job remains keyed by the primary chain source. The unified
+`api.metadata_revisions` view adds `is_current`: it is `true` only while that exact source remains
+the canonical non-cancelled job for its scope. Superseded immutable revisions remain queryable with
+`is_current = false`, so history is preserved without allowing current-state relationship filters
+to match stale names or categories. The API view owner receives column-level read access only to the
+job ID and status needed to derive this marker; metadata jobs remain outside the public API.
+The unified digital-asset view also exposes projection-first `name` and `symbol` values: a direct
+projection value wins, otherwise the newest current LSP4 metadata string is used. Filtering,
+sorting, pagination, and returned package records therefore observe the same display value.
 
 Requests accept bounded `data:` content, IPFS through an ordered gateway list, HTTPS, and public
 plain HTTP only with `METADATA_ALLOW_HTTP=true`. Before every connection and redirect, the worker

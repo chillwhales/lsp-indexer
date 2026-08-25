@@ -1,3 +1,4 @@
+import { createIndexerClient, type IndexerClient } from '@lsp-indexer/node';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { Pool, type PoolClient } from 'pg';
@@ -356,6 +357,50 @@ async function firstSubscriptionResult(query: string): Promise<unknown> {
   });
 }
 
+async function firstSdkBlock(client: IndexerClient): Promise<{
+  network: string;
+  chainId: number;
+  number: number;
+}> {
+  return await new Promise((resolve, reject) => {
+    let settled = false;
+    let unsubscribe: () => void = () => undefined;
+    const subscription = client.subscribe('blocks', {
+      filter: { number: { eq: blockNumber } },
+      limit: 1,
+    });
+    const timeout = setTimeout(
+      () => finish(new Error('Timed out waiting for the Node SDK subscription')),
+      10_000,
+    );
+    unsubscribe = subscription.subscribe(() => {
+      if (subscription.error != null) {
+        finish(
+          subscription.error instanceof Error
+            ? subscription.error
+            : new Error('Node SDK subscription failed with a non-Error value'),
+        );
+        return;
+      }
+      const block = subscription.data?.[0];
+      if (block != null) finish(undefined, block);
+    });
+
+    function finish(
+      error?: Error,
+      block?: { network: string; chainId: number; number: number },
+    ): void {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      unsubscribe();
+      subscription.dispose();
+      if (error == null && block != null) resolve(block);
+      else reject(error ?? new Error('Node SDK subscription completed without a block'));
+    }
+  });
+}
+
 beforeAll(async (): Promise<void> => {
   adminPool = new Pool({ connectionString: databaseUrl, max: 1 });
   await withTransaction(adminPool, async (client): Promise<void> => {
@@ -463,6 +508,49 @@ describe.sequential('Hasura v3 public API', () => {
         })),
       },
     });
+  });
+
+  it('serves network-scoped HTTP and WebSocket results through the public Node SDK', async () => {
+    const clients = networks.map((network) =>
+      createIndexerClient({ url: graphqlEndpoint, network: network.network }),
+    );
+    try {
+      const results = await Promise.all(
+        clients.map((client) =>
+          client.profiles({
+            filter: { address: { eq: profileAddress } },
+            limit: 1,
+          }),
+        ),
+      );
+      expect(results).toEqual(
+        networks.map((network) => ({
+          items: [
+            expect.objectContaining({
+              network: network.network,
+              chainId: network.chainId,
+              address: profileAddress,
+              ownerAddress: network.ownerAddress,
+            }),
+          ],
+          totalCount: 1,
+        })),
+      );
+
+      const luksoClient = clients[1];
+      if (luksoClient == null) throw new Error('Missing LUKSO SDK test client');
+      await expect(firstSdkBlock(luksoClient)).resolves.toMatchObject({
+        network: 'lukso-mainnet',
+        chainId: 42,
+        number: blockNumber,
+        id: seedId('block', 42),
+        hash: hashFor(2_042),
+        parentHash: hashFor(2_041),
+        timestamp: '2026-01-01T00:00:00.000Z',
+      });
+    } finally {
+      for (const client of clients) client.dispose();
+    }
   });
 
   it('delivers public live-query subscriptions over WebSocket', async () => {

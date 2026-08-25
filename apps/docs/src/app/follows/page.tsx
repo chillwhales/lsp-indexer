@@ -76,6 +76,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
@@ -272,10 +273,12 @@ function IncludeSections({
 
 function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { follows, totalCount, isLoading, error, isFetching } = useFollows({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -333,10 +336,12 @@ function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const { follows, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteFollows({
+      network,
       filter: state.filter,
       sort: state.sort,
       pageSize: 10,
@@ -392,9 +397,13 @@ function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowCount } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const [address, setAddress] = useState('');
 
-  const { followerCount, followingCount, isLoading, error } = useFollowCount({ address });
+  const { followerCount, followingCount, isLoading, error } = useFollowCount({
+    network,
+    address,
+  });
 
   return (
     <div className="space-y-4">
@@ -444,10 +453,12 @@ function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useIsFollowing } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const [followerAddress, setFollowerAddress] = useState('');
   const [followedAddress, setFollowedAddress] = useState('');
 
   const { isFollowing, isLoading, error } = useIsFollowing({
+    network,
     followerAddress,
     followedAddress,
   });
@@ -512,6 +523,7 @@ function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useIsFollowingBatch } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const [input, setInput] = useState('');
   const [pairs, setPairs] = useState<Array<{ followerAddress: string; followedAddress: string }>>(
     [],
@@ -532,7 +544,7 @@ function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
     setPairs(parsed);
   }
 
-  const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+  const { results, isLoading, error } = useIsFollowingBatch({ network, pairs });
 
   return (
     <div className="space-y-4">
@@ -612,11 +624,13 @@ function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowerSubscription } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useFollowerSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -814,12 +828,14 @@ function AddressPairInputs({
 
 function MutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useMutualFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [addressA, setAddressA] = useState('');
   const [addressB, setAddressB] = useState('');
   const [limit, setLimit] = useState(10);
 
   const { profiles, totalCount, isLoading, error, isFetching } = useMutualFollows({
+    network,
     addressA,
     addressB,
     sort: state.sort,
@@ -862,12 +878,14 @@ function MutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteMutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteMutualFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [addressA, setAddressA] = useState('');
   const [addressB, setAddressB] = useState('');
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteMutualFollows({
+      network,
       addressA,
       addressB,
       sort: state.sort,
@@ -910,12 +928,14 @@ function InfiniteMutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode
 
 function MutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useMutualFollowers } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [addressA, setAddressA] = useState('');
   const [addressB, setAddressB] = useState('');
   const [limit, setLimit] = useState(10);
 
   const { profiles, totalCount, isLoading, error, isFetching } = useMutualFollowers({
+    network,
     addressA,
     addressB,
     sort: state.sort,
@@ -958,12 +978,14 @@ function MutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteMutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteMutualFollowers } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [addressA, setAddressA] = useState('');
   const [addressB, setAddressB] = useState('');
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteMutualFollowers({
+      network,
       addressA,
       addressB,
       sort: state.sort,
@@ -1006,12 +1028,14 @@ function InfiniteMutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNo
 
 function FollowedByMyFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowedByMyFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [myAddress, setMyAddress] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
   const [limit, setLimit] = useState(10);
 
   const { profiles, totalCount, isLoading, error, isFetching } = useFollowedByMyFollows({
+    network,
     myAddress,
     targetAddress,
     sort: state.sort,
@@ -1054,12 +1078,14 @@ function FollowedByMyFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteFollowedByMyFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteFollowedByMyFollows } = useFollowerHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useProfileListState();
   const [myAddress, setMyAddress] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteFollowedByMyFollows({
+      network,
       myAddress,
       targetAddress,
       sort: state.sort,

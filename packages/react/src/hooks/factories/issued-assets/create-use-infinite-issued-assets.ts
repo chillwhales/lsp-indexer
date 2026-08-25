@@ -24,7 +24,7 @@ export function createUseInfiniteIssuedAssets(
     PartialIssuedAsset,
     FetchIssuedAssetsResult<PartialIssuedAsset>
   >({
-    queryKey: (p) => issuedAssetKeys.infinite(p.filter, p.sort, p.include),
+    queryKey: (p) => issuedAssetKeys.infinite(p.network, p.filter, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.issuedAssets,
   });
@@ -33,13 +33,13 @@ export function createUseInfiniteIssuedAssets(
     params: UseInfiniteIssuedAssetsParams & { include: I },
   ): UseInfiniteIssuedAssetsReturn<IssuedAssetResult<I>>;
   function useInfiniteIssuedAssets(
-    params?: Omit<UseInfiniteIssuedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseInfiniteIssuedAssetsParams, 'include'> & { include?: never },
   ): UseInfiniteIssuedAssetsReturn<IssuedAsset>;
   function useInfiniteIssuedAssets(
     params: UseInfiniteIssuedAssetsParams & { include?: IssuedAssetInclude },
   ): UseInfiniteIssuedAssetsReturn<PartialIssuedAsset>;
   function useInfiniteIssuedAssets(
-    params: UseInfiniteIssuedAssetsParams & { include?: IssuedAssetInclude } = {},
+    params: UseInfiniteIssuedAssetsParams & { include?: IssuedAssetInclude },
   ): UseInfiniteIssuedAssetsReturn<PartialIssuedAsset> {
     const { items, ...rest } = impl(params);
     return { issuedAssets: items, ...rest };

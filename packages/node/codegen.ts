@@ -1,11 +1,10 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
-// schema.graphql is auto-generated from Hasura introspection via `pnpm schema:dump`.
-// It contains the full Hasura schema (all types, filters, aggregates, ordering).
-// To refresh it: HASURA_GRAPHQL_ENDPOINT=http://... pnpm schema:dump
+// The v3 Hasura snapshot is frozen and drift-checked by the indexer-v3 package.
+// Keeping one source of truth prevents the SDK from silently generating against v2.
 const config: CodegenConfig = {
-  schema: 'schema.graphql',
-  documents: ['src/documents/**/*.ts'],
+  schema: '../indexer-v3/hasura/schema.graphql',
+  documents: ['src/v3/documents.ts', 'src/v3/operations.ts'],
   ignoreNoDocuments: true,
   generates: {
     './src/graphql/': {
@@ -15,9 +14,10 @@ const config: CodegenConfig = {
         useTypeImports: true,
         enumsAsTypes: true,
         scalars: {
-          DateTime: 'string',
-          BigInt: 'string',
+          bigint: 'string',
+          timestamptz: 'string',
           numeric: 'string',
+          jsonb: 'unknown',
         },
       },
     },

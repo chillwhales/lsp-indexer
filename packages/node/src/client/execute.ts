@@ -6,17 +6,27 @@ import type { TypedDocumentString } from '../graphql/graphql';
  * Execute a typed GraphQL query against a Hasura endpoint.
  * Uses graphql-request under the hood. All error cases throw `IndexerError`.
  */
-export async function execute<TResult, TVariables>(
+export function execute<TResult, TVariables extends Record<string, unknown>>(
   url: string,
   document: TypedDocumentString<TResult, TVariables>,
-  ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
+  variables: TVariables,
+): Promise<TResult>;
+export function execute<TResult>(
+  url: string,
+  document: TypedDocumentString<TResult, Record<string, never>>,
+): Promise<TResult>;
+export async function execute<TResult, TVariables extends Record<string, unknown>>(
+  url: string,
+  document: TypedDocumentString<TResult, TVariables>,
+  variables?: TVariables,
 ): Promise<TResult> {
   const client = new GraphQLClient(url, {
     headers: { Accept: 'application/graphql-response+json' },
   });
 
   try {
-    return await client.request(document.toString(), variables ?? undefined);
+    const response = await client.rawRequest<TResult, TVariables>(document.toString(), variables);
+    return response.data;
   } catch (error) {
     if (error instanceof ClientError) {
       // GraphQL-level errors (permission denied, validation, etc.)

@@ -16,7 +16,7 @@ export function createUseOwnedAsset(
   queryFn: (params: OwnedAssetDetailParams) => Promise<PartialOwnedAsset | null>,
 ) {
   const impl = createUseDetail<OwnedAssetDetailParams, PartialOwnedAsset>({
-    queryKey: (p) => ownedAssetKeys.detail(p.id, p.include),
+    queryKey: (p) => ownedAssetKeys.detail(p.network, p.id, p.include),
     queryFn,
     enabled: (p) => Boolean(p.id),
   });

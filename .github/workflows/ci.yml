@@ -112,6 +112,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build the public v3 package client
+        run: pnpm --filter @lsp-indexer/types build && pnpm --filter @lsp-indexer/node build
       - name: Create the least-privilege Hasura login
         run: >-
           docker run --rm --network host

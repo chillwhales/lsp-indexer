@@ -1,49 +1,63 @@
 import { z } from 'zod';
 
-import { AssetSchema, ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  AssetSchema,
+  ImageSchema,
+  NetworkInputSchema,
+  ProjectionRefSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+  VerificationStatusSchema,
+} from './common';
 import type { IncludeResult, PartialExcept } from './include-types';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-export const ProfileSchema = z.object({
-  /** The Universal Profile contract address (checksummed or lowercase hex) */
-  address: z.string(),
-  /** Display name from LSP3 metadata, or `null` if not set */
-  name: z.string().nullable(),
-  /** Profile description from LSP3 metadata, or `null` if not set */
-  description: z.string().nullable(),
-  /** Tags associated with the profile, or `null` if not included in query */
-  tags: z.array(z.string()).nullable(),
-  /** External links (social media, websites, etc.), or `null` if not included in query */
-  links: z.array(z.object({ title: z.string(), url: z.string() })).nullable(),
-  /** Avatar assets from LSP3 metadata (3D files, media — NOT images), or `null` if not included in query */
-  avatar: z.array(AssetSchema).nullable(),
-  /** Profile images (typically a square photo or icon), or `null` if not included in query */
-  profileImage: z.array(ImageSchema).nullable(),
-  /** Background/banner images, or `null` if not included in query */
-  backgroundImage: z.array(ImageSchema).nullable(),
-  /** Number of profiles following this profile */
-  followerCount: z.number(),
-  /** Number of profiles this profile follows */
-  followingCount: z.number(),
-  /** Timestamp when the profile was indexed — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Block number where the profile event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-});
+export const ProfileSchema = z
+  .object({
+    /** Deterministic projection ID. */
+    id: z.string(),
+    /** The Universal Profile contract address (checksummed or lowercase hex) */
+    address: z.string(),
+    /** Display name from LSP3 metadata, or `null` if not set */
+    name: z.string().nullable(),
+    /** Profile description from LSP3 metadata, or `null` if not set */
+    description: z.string().nullable(),
+    /** Tags associated with the profile, or `null` if not included in query */
+    tags: z.array(z.string()).nullable(),
+    /** External links (social media, websites, etc.), or `null` if not included in query */
+    links: z.array(z.object({ title: z.string(), url: z.string() })).nullable(),
+    /** Avatar assets from LSP3 metadata (3D files, media — NOT images), or `null` if not included in query */
+    avatar: z.array(AssetSchema).nullable(),
+    /** Profile images (typically a square photo or icon), or `null` if not included in query */
+    profileImage: z.array(ImageSchema).nullable(),
+    /** Background/banner images, or `null` if not included in query */
+    backgroundImage: z.array(ImageSchema).nullable(),
+    /** Number of profiles following this profile */
+    followerCount: z.number(),
+    /** Number of profiles this profile follows */
+    followingCount: z.number(),
+    /** Reserved v2 compatibility field; v3.0 returns `null` (use last-block provenance) */
+    timestamp: z.string().nullable(),
+    /** Block number where the profile event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    ownerAddress: z.string().nullable(),
+    verification: VerificationStatusSchema,
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
 export const ProfileFilterSchema = z.object({
-  /** Case-insensitive partial match on profile name */
+  /** Exact, case-sensitive match on the current profile metadata name */
   name: z.string().optional(),
   /** Return profiles that the given address follows */
   followedBy: z.string().optional(),
@@ -111,36 +125,42 @@ export const ProfileIncludeSchema = z.object({
 // Hook parameter schemas
 // ---------------------------------------------------------------------------
 
-export const UseProfileParamsSchema = z.object({
-  /** The Universal Profile contract address to fetch */
-  address: z.string(),
-  /** Control which nested data to include (omit for all data) */
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseProfileParamsSchema = z
+  .object({
+    /** The Universal Profile contract address to fetch */
+    address: z.string(),
+    /** Control which nested data to include (omit for all data) */
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
-export const UseProfilesParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: ProfileFilterSchema.optional(),
-  /** Sort order for results */
-  sort: ProfileSortSchema.optional(),
-  /** Maximum number of profiles to return */
-  limit: z.number().optional(),
-  /** Number of profiles to skip (for offset-based pagination) */
-  offset: z.number().optional(),
-  /** Control which nested data to include (omit for all data) */
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseProfilesParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: ProfileFilterSchema.optional(),
+    /** Sort order for results */
+    sort: ProfileSortSchema.optional(),
+    /** Maximum number of profiles to return */
+    limit: z.number().optional(),
+    /** Number of profiles to skip (for offset-based pagination) */
+    offset: z.number().optional(),
+    /** Control which nested data to include (omit for all data) */
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
-export const UseInfiniteProfilesParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: ProfileFilterSchema.optional(),
-  /** Sort order for results */
-  sort: ProfileSortSchema.optional(),
-  /** Number of profiles per page (default: 20) */
-  pageSize: z.number().optional(),
-  /** Control which nested data to include (omit for all data) */
-  include: ProfileIncludeSchema.optional(),
-});
+export const UseInfiniteProfilesParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: ProfileFilterSchema.optional(),
+    /** Sort order for results */
+    sort: ProfileSortSchema.optional(),
+    /** Number of profiles per page (default: 20) */
+    pageSize: z.number().optional(),
+    /** Control which nested data to include (omit for all data) */
+    include: ProfileIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -196,7 +216,17 @@ type ProfileIncludeFieldMap = {
  */
 export type ProfileResult<I extends ProfileInclude | undefined = undefined> = IncludeResult<
   Profile,
-  'address',
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'ownerAddress'
+  | 'verification'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex',
   ProfileIncludeFieldMap,
   I
 >;
@@ -207,4 +237,17 @@ export type ProfileResult<I extends ProfileInclude | undefined = undefined> = In
  *
  * Equivalent to `PartialExcept<Profile, 'address'>`.
  */
-export type PartialProfile = PartialExcept<Profile, 'address'>;
+export type PartialProfile = PartialExcept<
+  Profile,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'ownerAddress'
+  | 'verification'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

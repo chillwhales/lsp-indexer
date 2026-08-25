@@ -4,6 +4,8 @@ import {
   ImageSchema,
   LinkSchema,
   Lsp4AttributeSchema,
+  NetworkInputSchema,
+  ProjectionRefSchema,
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
@@ -32,79 +34,86 @@ import {
  */
 export const NftHolderSchema = ProfileSchema.merge(
   z.object({
-    /** When this holder acquired the token (ISO timestamp) */
-    timestamp: z.string(),
+    /** Reserved v2 acquisition timestamp; v3.0 returns `null` */
+    timestamp: z.string().nullable(),
   }),
 );
 
 /** Individual NFT token — identified by (address, tokenId). */
-export const NftSchema = z.object({
-  /** Collection contract address — always present */
-  address: z.string(),
-  /** Token ID within the collection — always present */
-  tokenId: z.string(),
-  /** Human-readable formatted token ID */
-  formattedTokenId: z.string().nullable(),
-  /** Whether the token has been burned */
-  isBurned: z.boolean(),
-  /** Whether the token has been minted */
-  isMinted: z.boolean(),
-  /** NFT's own name from lsp4Metadata.name (direct metadata first, baseUri fallback) */
-  name: z.string().nullable(),
-  /** Parent collection as full DigitalAsset (from digitalAsset relation) */
-  collection: DigitalAssetSchema.nullable(),
-  /** Current token holder (from owned_token relation) */
-  holder: NftHolderSchema.nullable(),
-  /** NFT-specific metadata description */
-  description: z.string().nullable(),
-  /** NFT-specific metadata category */
-  category: z.string().nullable(),
-  /** NFT-specific metadata icon images */
-  icons: z.array(ImageSchema).nullable(),
-  /** NFT-specific metadata images grouped by image_index */
-  images: z.array(z.array(ImageSchema)).nullable(),
-  /** NFT-specific metadata links */
-  links: z.array(LinkSchema).nullable(),
-  /** NFT-specific metadata attributes (traits) */
-  attributes: z.array(Lsp4AttributeSchema).nullable(),
-  /** Timestamp when the NFT was indexed — ISO string (null when excluded via include) */
-  timestamp: z.string().nullable(),
-  /** Block number where the NFT event was emitted (null when excluded via include) */
-  blockNumber: z.number().nullable(),
-  /** Transaction index within the block (null when excluded via include) */
-  transactionIndex: z.number().nullable(),
-  /** Log index within the transaction (null when excluded via include) */
-  logIndex: z.number().nullable(),
-  /** Chillwhales score (null when excluded via include or not a chillwhales NFT) */
-  score: z.number().nullable(),
-  /** Rank within the collection by score (null when excluded or not scored) */
-  rank: z.number().nullable(),
-  /** Whether the CHILL token has been claimed for this NFT */
-  chillClaimed: z.boolean().nullable(),
-  /** Whether the ORBS token has been claimed for this NFT */
-  orbsClaimed: z.boolean().nullable(),
-  /** Current level of the NFT (chillwhales game mechanic) */
-  level: z.number().nullable(),
-  /** Cooldown expiry timestamp as unix epoch (null when not on cooldown) */
-  cooldownExpiry: z.number().nullable(),
-  /** Faction membership (chillwhales game mechanic) */
-  faction: z.string().nullable(),
-});
+export const NftSchema = z
+  .object({
+    /** Deterministic projection ID. */
+    id: z.string(),
+    /** Collection contract address — always present */
+    address: z.string(),
+    /** Token ID within the collection — always present */
+    tokenId: z.string(),
+    /** Human-readable formatted token ID */
+    formattedTokenId: z.string().nullable(),
+    /** Whether the token has been burned */
+    isBurned: z.boolean(),
+    /** Whether the token has been minted */
+    isMinted: z.boolean(),
+    /** NFT's own name from lsp4Metadata.name (direct metadata first, baseUri fallback) */
+    name: z.string().nullable(),
+    /** Parent collection as full DigitalAsset (from digitalAsset relation) */
+    collection: DigitalAssetSchema.nullable(),
+    /** Current token holder (from owned_token relation) */
+    holder: NftHolderSchema.nullable(),
+    /** NFT-specific metadata description */
+    description: z.string().nullable(),
+    /** NFT-specific metadata category */
+    category: z.string().nullable(),
+    /** NFT-specific metadata icon images */
+    icons: z.array(ImageSchema).nullable(),
+    /** NFT-specific metadata images grouped by image_index */
+    images: z.array(z.array(ImageSchema)).nullable(),
+    /** NFT-specific metadata links */
+    links: z.array(LinkSchema).nullable(),
+    /** NFT-specific metadata attributes (traits) */
+    attributes: z.array(Lsp4AttributeSchema).nullable(),
+    /** Reserved v2 compatibility field; v3.0 returns `null` (use last-block provenance) */
+    timestamp: z.string().nullable(),
+    /** Block number where the NFT event was emitted (null when excluded via include) */
+    blockNumber: z.number().nullable(),
+    /** Transaction index within the block (null when excluded via include) */
+    transactionIndex: z.number().nullable(),
+    /** Log index within the transaction (null when excluded via include) */
+    logIndex: z.number().nullable(),
+    /** Reserved v2 score; v3.0 returns `null` */
+    score: z.number().nullable(),
+    /** Reserved v2 rank; v3.0 returns `null` */
+    rank: z.number().nullable(),
+    /** Whether the CHILL token has been claimed for this NFT */
+    chillClaimed: z.boolean().nullable(),
+    /** Whether the ORBS token has been claimed for this NFT */
+    orbsClaimed: z.boolean().nullable(),
+    /** Current level of the NFT (chillwhales game mechanic) */
+    level: z.number().nullable(),
+    /** Cooldown expiry timestamp as unix epoch (null when not on cooldown) */
+    cooldownExpiry: z.number().nullable(),
+    /** Faction membership (chillwhales game mechanic) */
+    faction: z.string().nullable(),
+    ownerAddress: z.string().nullable(),
+    tokenUri: z.string().nullable(),
+    verification: z.enum(['unknown', 'verified', 'invalid']),
+  })
+  .extend(ProjectionRefSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Filter schema
 // ---------------------------------------------------------------------------
 
 export const NftFilterSchema = z.object({
-  /** Case-insensitive match on collection contract address — key filter for useNftsByCollection */
+  /** Exact collection address; hexadecimal input is normalized to lowercase */
   collectionAddress: z.string().optional(),
-  /** Case-insensitive match on token ID */
+  /** Exact canonical 32-byte token ID */
   tokenId: z.string().optional(),
-  /** Case-insensitive match on formatted token ID */
+  /** Exact, case-sensitive formatted token ID */
   formattedTokenId: z.string().optional(),
-  /** Case-insensitive match on NFT name (searches both direct and baseUri metadata) */
+  /** Exact, case-sensitive match on the current NFT metadata name */
   name: z.string().optional(),
-  /** Case-insensitive match on current holder address */
+  /** Exact current holder address; hexadecimal input is normalized to lowercase */
   holderAddress: z.string().optional(),
   /** Filter by burned status */
   isBurned: z.boolean().optional(),
@@ -198,42 +207,48 @@ export const NftIncludeSchema = z.object({
  *
  * At least one of `tokenId` or `formattedTokenId` is required (enforced at service level).
  */
-export const UseNftParamsSchema = z.object({
-  /** Collection contract address */
-  address: z.string(),
-  /** Token ID within the collection (either this or formattedTokenId required) */
-  tokenId: z.string().optional(),
-  /** Formatted token ID (either this or tokenId required) */
-  formattedTokenId: z.string().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: NftIncludeSchema.optional(),
-});
+export const UseNftParamsSchema = z
+  .object({
+    /** Collection contract address */
+    address: z.string(),
+    /** Token ID within the collection (either this or formattedTokenId required) */
+    tokenId: z.string().optional(),
+    /** Formatted token ID (either this or tokenId required) */
+    formattedTokenId: z.string().optional(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: NftIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Parameters for useNfts — paginated list with filters and sorting */
-export const UseNftsParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: NftFilterSchema.optional(),
-  /** Sort order for results */
-  sort: NftSortSchema.optional(),
-  /** Maximum number of NFTs to return */
-  limit: z.number().optional(),
-  /** Number of NFTs to skip (for offset-based pagination) */
-  offset: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: NftIncludeSchema.optional(),
-});
+export const UseNftsParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: NftFilterSchema.optional(),
+    /** Sort order for results */
+    sort: NftSortSchema.optional(),
+    /** Maximum number of NFTs to return */
+    limit: z.number().optional(),
+    /** Number of NFTs to skip (for offset-based pagination) */
+    offset: z.number().optional(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: NftIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 /** Parameters for useInfiniteNfts — infinite scroll with filters and sorting */
-export const UseInfiniteNftsParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
-  filter: NftFilterSchema.optional(),
-  /** Sort order for results */
-  sort: NftSortSchema.optional(),
-  /** Number of NFTs per page (default: 20) */
-  pageSize: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
-  include: NftIncludeSchema.optional(),
-});
+export const UseInfiniteNftsParamsSchema = z
+  .object({
+    /** Filter criteria (all combine with AND logic) */
+    filter: NftFilterSchema.optional(),
+    /** Sort order for results */
+    sort: NftSortSchema.optional(),
+    /** Number of NFTs per page (default: 20) */
+    pageSize: z.number().optional(),
+    /** Control which nested data to include (omit for all data — inverted default) */
+    include: NftIncludeSchema.optional(),
+  })
+  .extend(NetworkInputSchema.shape);
 
 // ---------------------------------------------------------------------------
 // Inferred types
@@ -299,14 +314,14 @@ type ResolveNftCollection<I> = I extends { collection: infer C }
  * When `include` has `holder` as a `ProfileInclude` object, the holder field is
  * present with narrowed profile fields + `timestamp`. Otherwise, it's absent from the type.
  *
- * NftHolder = Profile & { timestamp: string }, so the holder type is:
- * `(ProfileResult<H> & { timestamp: string }) | null`
+ * `NftHolder = Profile & { timestamp: string | null }`, so the holder type is:
+ * `(ProfileResult<H> & { timestamp: string | null }) | null`
  */
 type ResolveNftHolder<I> = I extends { holder: infer H }
   ? H extends true
     ? { holder: NftHolder | null }
     : H extends ProfileInclude
-      ? { holder: (ProfileResult<H> & { timestamp: string }) | null }
+      ? { holder: (ProfileResult<H> & { timestamp: string | null }) | null }
       : {}
   : {};
 
@@ -330,7 +345,21 @@ export type NftResult<I extends NftInclude | undefined = undefined> = I extends 
   ? Nft
   : IncludeResult<
       Nft,
-      'address' | 'tokenId' | 'isBurned' | 'isMinted',
+      | 'id'
+      | 'network'
+      | 'chainId'
+      | 'address'
+      | 'tokenId'
+      | 'isBurned'
+      | 'isMinted'
+      | 'ownerAddress'
+      | 'tokenUri'
+      | 'verification'
+      | 'lastBlockNumber'
+      | 'lastBlockHash'
+      | 'lastTransactionHash'
+      | 'lastTransactionIndex'
+      | 'lastLogIndex',
       NftScalarIncludeFieldMap,
       I
     > &
@@ -343,4 +372,21 @@ export type NftResult<I extends NftInclude | undefined = undefined> = I extends 
  *
  * Equivalent to `PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>`.
  */
-export type PartialNft = PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
+export type PartialNft = PartialExcept<
+  Nft,
+  | 'id'
+  | 'network'
+  | 'chainId'
+  | 'address'
+  | 'tokenId'
+  | 'isBurned'
+  | 'isMinted'
+  | 'ownerAddress'
+  | 'tokenUri'
+  | 'verification'
+  | 'lastBlockNumber'
+  | 'lastBlockHash'
+  | 'lastTransactionHash'
+  | 'lastTransactionIndex'
+  | 'lastLogIndex'
+>;

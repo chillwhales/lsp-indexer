@@ -22,7 +22,8 @@ export function createUseEncryptedAssets(
     PartialEncryptedAsset,
     FetchEncryptedAssetsResult<PartialEncryptedAsset>
   >({
-    queryKey: (p) => encryptedAssetKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) =>
+      encryptedAssetKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.encryptedAssets,
   });
@@ -31,13 +32,13 @@ export function createUseEncryptedAssets(
     params: UseEncryptedAssetsParams & { include: I },
   ): UseEncryptedAssetsReturn<EncryptedAssetResult<I>>;
   function useEncryptedAssets(
-    params?: Omit<UseEncryptedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseEncryptedAssetsParams, 'include'> & { include?: never },
   ): UseEncryptedAssetsReturn<EncryptedAsset>;
   function useEncryptedAssets(
     params: UseEncryptedAssetsParams & { include?: EncryptedAssetInclude },
   ): UseEncryptedAssetsReturn<PartialEncryptedAsset>;
   function useEncryptedAssets(
-    params: UseEncryptedAssetsParams & { include?: EncryptedAssetInclude } = {},
+    params: UseEncryptedAssetsParams & { include?: EncryptedAssetInclude },
   ): UseEncryptedAssetsReturn<PartialEncryptedAsset> {
     const { items, ...rest } = impl(params);
     return { encryptedAssets: items, ...rest };

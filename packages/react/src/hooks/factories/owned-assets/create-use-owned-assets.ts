@@ -20,7 +20,7 @@ export function createUseOwnedAssets(
     PartialOwnedAsset,
     FetchOwnedAssetsResult<PartialOwnedAsset>
   >({
-    queryKey: (p) => ownedAssetKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) => ownedAssetKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.ownedAssets,
   });
@@ -29,13 +29,13 @@ export function createUseOwnedAssets(
     params: UseOwnedAssetsParams & { include: I },
   ): UseOwnedAssetsReturn<OwnedAssetResult<I>>;
   function useOwnedAssets(
-    params?: Omit<UseOwnedAssetsParams, 'include'> & { include?: never },
+    params: Omit<UseOwnedAssetsParams, 'include'> & { include?: never },
   ): UseOwnedAssetsReturn<OwnedAsset>;
   function useOwnedAssets(
     params: UseOwnedAssetsParams & { include?: OwnedAssetInclude },
   ): UseOwnedAssetsReturn<PartialOwnedAsset>;
   function useOwnedAssets(
-    params: UseOwnedAssetsParams & { include?: OwnedAssetInclude } = {},
+    params: UseOwnedAssetsParams & { include?: OwnedAssetInclude },
   ): UseOwnedAssetsReturn<PartialOwnedAsset> {
     const { items, ...rest } = impl(params);
     return { ownedAssets: items, ...rest };

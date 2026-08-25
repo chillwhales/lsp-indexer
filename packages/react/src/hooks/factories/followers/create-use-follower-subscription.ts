@@ -19,7 +19,7 @@ export function createUseFollowerSubscription(useSubscription: UseSubscriptionFn
     },
   ): UseSubscriptionReturn<FollowerResult<I>>;
   function useFollowerSubscription(
-    params?: Omit<UseFollowerSubscriptionParams, 'include'> & {
+    params: Omit<UseFollowerSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: Follower[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseFollowerSubscription(useSubscription: UseSubscriptionFn
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useFollowerSubscription(
-    params: UseFollowerSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseFollowerSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialFollower> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseFollowerSubscription(useSubscription: UseSubscriptionFn
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildFollowerSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildFollowerSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [followerKeys.all] : undefined,
+      invalidateKeys: invalidate ? [followerKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

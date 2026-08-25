@@ -44,6 +44,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 
@@ -259,10 +260,12 @@ function IncludeSections({
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssets } = useEncryptedAssetHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { encryptedAssets, totalCount, isLoading, error, isFetching } = useEncryptedAssets({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -319,6 +322,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteEncryptedAssets } = useEncryptedAssetHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const {
@@ -330,6 +334,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteEncryptedAssets({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -384,11 +389,13 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssetSubscription } = useEncryptedAssetHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useEncryptedAssetSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

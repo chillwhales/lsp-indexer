@@ -42,6 +42,7 @@ import {
   SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useIndexerNetwork,
   useSubInclude,
 } from '@/components/playground';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -285,6 +286,7 @@ function DcIncludeSections({
 
 function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useLatestDataChangedEvent } = useDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const { values, debouncedValues, setFieldValue } = useFilterFields(LATEST_FILTERS);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
     DATA_CHANGED_EVENT_INCLUDE_FIELDS,
@@ -299,6 +301,7 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   });
 
   const { dataChangedEvent, isLoading, error, isFetching } = useLatestDataChangedEvent({
+    network,
     filter,
     include,
   });
@@ -341,10 +344,12 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDataChangedEvents } = useDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { dataChangedEvents, totalCount, isLoading, error, isFetching } = useDataChangedEvents({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -390,6 +395,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteDataChangedEvents } = useDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
 
   const {
@@ -401,6 +407,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
     error,
     isFetching,
   } = useInfiniteDataChangedEvents({
+    network,
     filter: state.filter,
     sort: state.sort,
     pageSize: 10,
@@ -444,11 +451,13 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDataChangedEventSubscription } = useDataChangedHooks(mode);
+  const network = useIndexerNetwork(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useDataChangedEventSubscription({
+    network,
     filter: state.filter,
     sort: state.sort,
     limit,

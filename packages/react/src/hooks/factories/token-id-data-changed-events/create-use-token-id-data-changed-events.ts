@@ -28,7 +28,7 @@ export function createUseTokenIdDataChangedEvents(
     FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>
   >({
     queryKey: (p) =>
-      tokenIdDataChangedEventKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+      tokenIdDataChangedEventKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.tokenIdDataChangedEvents,
   });
@@ -37,13 +37,13 @@ export function createUseTokenIdDataChangedEvents(
     params: UseTokenIdDataChangedEventsParams & { include: I },
   ): UseTokenIdDataChangedEventsReturn<TokenIdDataChangedEventResult<I>>;
   function useTokenIdDataChangedEvents(
-    params?: Omit<UseTokenIdDataChangedEventsParams, 'include'> & { include?: never },
+    params: Omit<UseTokenIdDataChangedEventsParams, 'include'> & { include?: never },
   ): UseTokenIdDataChangedEventsReturn<TokenIdDataChangedEvent>;
   function useTokenIdDataChangedEvents(
     params: UseTokenIdDataChangedEventsParams & { include?: TokenIdDataChangedEventInclude },
   ): UseTokenIdDataChangedEventsReturn<PartialTokenIdDataChangedEvent>;
   function useTokenIdDataChangedEvents(
-    params: UseTokenIdDataChangedEventsParams & { include?: TokenIdDataChangedEventInclude } = {},
+    params: UseTokenIdDataChangedEventsParams & { include?: TokenIdDataChangedEventInclude },
   ): UseTokenIdDataChangedEventsReturn<PartialTokenIdDataChangedEvent> {
     const { items, ...rest } = impl(params);
     return { tokenIdDataChangedEvents: items, ...rest };

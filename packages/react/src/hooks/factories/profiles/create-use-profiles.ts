@@ -20,7 +20,7 @@ export function createUseProfiles(
     PartialProfile,
     FetchProfilesResult<PartialProfile>
   >({
-    queryKey: (p) => profileKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
+    queryKey: (p) => profileKeys.list(p.network, p.filter, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
   });
@@ -29,13 +29,13 @@ export function createUseProfiles(
     params: UseProfilesParams & { include: I },
   ): UseProfilesReturn<ProfileResult<I>>;
   function useProfiles(
-    params?: Omit<UseProfilesParams, 'include'> & { include?: never },
+    params: Omit<UseProfilesParams, 'include'> & { include?: never },
   ): UseProfilesReturn<Profile>;
   function useProfiles(
     params: UseProfilesParams & { include?: ProfileInclude },
   ): UseProfilesReturn<PartialProfile>;
   function useProfiles(
-    params: UseProfilesParams & { include?: ProfileInclude } = {},
+    params: UseProfilesParams & { include?: ProfileInclude },
   ): UseProfilesReturn<PartialProfile> {
     const { items, ...rest } = impl(params);
     return { profiles: items, ...rest };

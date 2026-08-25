@@ -29,6 +29,8 @@ export type UseInfiniteIssuedAssetsReturn<F> = {
  * - Widest   → `onData(data: PartialIssuedAsset[])`
  */
 export interface UseIssuedAssetSubscriptionParams {
+  /** Explicit network scope for this live query. */
+  network: string;
   /** Filter criteria (optional — omit for all issued assets) */
   filter?: IssuedAssetFilter;
   /** Sort order (optional — omit for Hasura default ordering) */

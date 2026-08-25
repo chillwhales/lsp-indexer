@@ -574,6 +574,22 @@ describe.sequential('PostgreSQL persistence', () => {
     );
     expect(Number(views.rows[0]?.count)).toBe(15);
 
+    const metadataJobPrivileges = await testAdminPool.query<{
+      contentUri: boolean;
+      id: boolean;
+      status: boolean;
+      table: boolean;
+    }>(
+      `SELECT has_table_privilege($1, $2, 'SELECT') AS table,
+              has_column_privilege($1, $2, 'id', 'SELECT') AS id,
+              has_column_privilege($1, $2, 'status', 'SELECT') AS status,
+              has_column_privilege($1, $2, 'content_uri', 'SELECT') AS "contentUri"`,
+      [API_OWNER_ROLE, 'chain_ethereum_mainnet.metadata_jobs'],
+    );
+    expect(metadataJobPrivileges.rows).toEqual([
+      { table: false, id: true, status: true, contentUri: false },
+    ]);
+
     const enums = await testAdminPool.query<{ schema: string; count: string }>(`
       SELECT n.nspname AS schema, count(*) AS count
       FROM pg_type t
@@ -2047,6 +2063,27 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     }
   });
 
+  it('rejects broader private-column access for the API view owner', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const qualifiedJobs = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('metadata_jobs')}`;
+
+    await testAdminPool.query(
+      `GRANT SELECT (content_uri) ON ${qualifiedJobs} TO ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `${ethereumNetwork.schema}.metadata_jobs.content_uri (column SELECT via ${API_OWNER_ROLE})`,
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE SELECT (content_uri) ON ${qualifiedJobs} FROM ${quotePostgresIdentifier(API_OWNER_ROLE)}`,
+      );
+    }
+  });
+
   it('requires the writer to own every expected chain object', async () => {
     const ethereumNetwork = migrationConfig.networks.find(
       ({ network }) => network.key === 'ethereum-mainnet',
@@ -2459,6 +2496,105 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         [hashFor(91), hashFor(92)],
       ),
     ).rejects.toMatchObject({ code: '42501' });
+  });
+
+  it('orders digital assets by the projection-first metadata values exposed by the API', async () => {
+    const fallbackAddress = addressFor(250);
+    const directAddress = addressFor(251);
+    const addresses = [fallbackAddress, directAddress];
+    const blockHash = hashFor(90);
+    const fallbackRevision = hashFor(250);
+    const directRevision = hashFor(251);
+    const metadataFixtures = [
+      {
+        address: fallbackAddress,
+        sourceRevision: fallbackRevision,
+        content: { LSP4Metadata: { name: 'Alpha metadata', symbol: 'ALPHA' } },
+      },
+      {
+        address: directAddress,
+        sourceRevision: directRevision,
+        content: { LSP4Metadata: { name: 'Ignored metadata', symbol: 'IGNORED' } },
+      },
+    ];
+    try {
+      await ethereumDb.insert(digitalAssets).values([
+        {
+          id: createAddressId('digital-asset', 1, fallbackAddress),
+          network: 'ethereum-mainnet',
+          chainId: 1,
+          address: fallbackAddress,
+          standard: 'lsp7',
+          verification: 'verified',
+          lastBlockNumber: 0,
+          lastBlockHash: blockHash,
+        },
+        {
+          id: createAddressId('digital-asset', 1, directAddress),
+          network: 'ethereum-mainnet',
+          chainId: 1,
+          address: directAddress,
+          standard: 'lsp7',
+          name: 'Zulu projection',
+          symbol: 'ZULU',
+          verification: 'verified',
+          lastBlockNumber: 0,
+          lastBlockHash: blockHash,
+        },
+      ]);
+      for (const fixture of metadataFixtures) {
+        const id = createMetadataRevisionId(
+          1,
+          fixture.address,
+          DATA_KEYS.lsp4Metadata,
+          fixture.sourceRevision,
+        );
+        await ethereumDb.insert(metadataJobs).values({
+          id,
+          network: 'ethereum-mainnet',
+          chainId: 1,
+          kind: 'lsp4_asset',
+          status: 'succeeded',
+          address: fixture.address,
+          dataKey: DATA_KEYS.lsp4Metadata,
+          sourceRevision: fixture.sourceRevision,
+          contentUri: `ipfs://${id}`,
+          sourceBlockNumber: 0,
+          sourceBlockHash: blockHash,
+        });
+        await ethereumDb.insert(metadataRevisions).values({
+          id,
+          network: 'ethereum-mainnet',
+          chainId: 1,
+          kind: 'lsp4_asset',
+          address: fixture.address,
+          dataKey: DATA_KEYS.lsp4Metadata,
+          sourceRevision: fixture.sourceRevision,
+          contentUri: `ipfs://${id}`,
+          content: fixture.content,
+          lastBlockNumber: 0,
+          lastBlockHash: blockHash,
+        });
+      }
+
+      const rows = await testAdminPool.query<{ address: string; name: string; symbol: string }>(
+        `SELECT address, name, symbol
+         FROM api.digital_assets
+         WHERE address = ANY($1::text[])
+         ORDER BY name ASC`,
+        [addresses],
+      );
+      expect(rows.rows).toEqual([
+        { address: fallbackAddress, name: 'Alpha metadata', symbol: 'ALPHA' },
+        { address: directAddress, name: 'Zulu projection', symbol: 'ZULU' },
+      ]);
+    } finally {
+      await ethereumDb
+        .delete(metadataRevisions)
+        .where(inArray(metadataRevisions.address, addresses));
+      await ethereumDb.delete(metadataJobs).where(inArray(metadataJobs.address, addresses));
+      await ethereumDb.delete(digitalAssets).where(inArray(digitalAssets.address, addresses));
+    }
   });
 
   it('grants the API login only the unified read-only views', async () => {
@@ -4380,6 +4516,11 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     const firstFetchedAt = firstPublishedRevisions[0]?.fetchedAt;
     if (firstFetchedAt == null) throw new Error('Expected a PostgreSQL fetch timestamp');
     expect(firstFetchedAt).toBeInstanceOf(Date);
+    const currentApiRevision = await testAdminPool.query<{ id: string; isCurrent: boolean }>(
+      `SELECT id, is_current AS "isCurrent" FROM api.metadata_revisions WHERE id = $1`,
+      [firstSource.id],
+    );
+    expect(currentApiRevision.rows).toEqual([{ id: firstSource.id, isCurrent: true }]);
 
     const repeatedAt = new Date(retryAt.getTime() + 1);
     await ethereumDb.transaction((tx) =>
@@ -4448,6 +4589,11 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
       now: secondClaimedAt,
     });
     if (secondClaim == null) throw new Error('Expected second metadata claim');
+    const supersededApiRevision = await testAdminPool.query<{ id: string; isCurrent: boolean }>(
+      `SELECT id, is_current AS "isCurrent" FROM api.metadata_revisions WHERE id = $1`,
+      [firstSource.id],
+    );
+    expect(supersededApiRevision.rows).toEqual([{ id: firstSource.id, isCurrent: false }]);
 
     const thirdValue = encodeVerifiableUri(
       { LSP3Profile: { name: 'Third profile revision' } },

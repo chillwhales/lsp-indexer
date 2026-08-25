@@ -3892,6 +3892,7 @@ type metadata_revision {
   digitalAsset: digital_asset
   fetched_at: timestamptz
   id: String
+  is_current: Boolean
   kind: metadata_kind
   last_block_hash: String
   last_block_number: bigint
@@ -3918,7 +3919,23 @@ type metadata_revision_aggregate {
 }
 
 input metadata_revision_aggregate_bool_exp {
+  bool_and: metadata_revision_aggregate_bool_exp_bool_and
+  bool_or: metadata_revision_aggregate_bool_exp_bool_or
   count: metadata_revision_aggregate_bool_exp_count
+}
+
+input metadata_revision_aggregate_bool_exp_bool_and {
+  arguments: metadata_revision_select_column_metadata_revision_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: metadata_revision_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input metadata_revision_aggregate_bool_exp_bool_or {
+  arguments: metadata_revision_select_column_metadata_revision_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: metadata_revision_bool_exp
+  predicate: Boolean_comparison_exp!
 }
 
 input metadata_revision_aggregate_bool_exp_count {
@@ -4000,6 +4017,7 @@ input metadata_revision_bool_exp {
   digitalAsset: digital_asset_bool_exp
   fetched_at: timestamptz_comparison_exp
   id: String_comparison_exp
+  is_current: Boolean_comparison_exp
   kind: metadata_kind_comparison_exp
   last_block_hash: String_comparison_exp
   last_block_number: bigint_comparison_exp
@@ -4118,6 +4136,7 @@ input metadata_revision_order_by {
   digitalAsset: digital_asset_order_by
   fetched_at: order_by
   id: order_by
+  is_current: order_by
   kind: order_by
   last_block_hash: order_by
   last_block_number: order_by
@@ -4166,6 +4185,9 @@ enum metadata_revision_select_column {
   id
 
   """column name"""
+  is_current
+
+  """column name"""
   kind
 
   """column name"""
@@ -4191,6 +4213,22 @@ enum metadata_revision_select_column {
 
   """column name"""
   token_id
+}
+
+"""
+select "metadata_revision_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api.metadata_revisions"
+"""
+enum metadata_revision_select_column_metadata_revision_aggregate_bool_exp_bool_and_arguments_columns {
+  """column name"""
+  is_current
+}
+
+"""
+select "metadata_revision_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api.metadata_revisions"
+"""
+enum metadata_revision_select_column_metadata_revision_aggregate_bool_exp_bool_or_arguments_columns {
+  """column name"""
+  is_current
 }
 
 """aggregate stddev on columns"""

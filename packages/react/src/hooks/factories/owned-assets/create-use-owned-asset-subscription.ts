@@ -19,7 +19,7 @@ export function createUseOwnedAssetSubscription(useSubscription: UseSubscription
     },
   ): UseSubscriptionReturn<OwnedAssetResult<I>>;
   function useOwnedAssetSubscription(
-    params?: Omit<UseOwnedAssetSubscriptionParams, 'include'> & {
+    params: Omit<UseOwnedAssetSubscriptionParams, 'include'> & {
       include?: never;
       onData?: (data: OwnedAsset[]) => void;
     },
@@ -34,9 +34,10 @@ export function createUseOwnedAssetSubscription(useSubscription: UseSubscription
   // between overloads. Only the overload signatures are visible to consumers.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function useOwnedAssetSubscription(
-    params: UseOwnedAssetSubscriptionParams & { onData?: (data: any[]) => void } = {},
+    params: UseOwnedAssetSubscriptionParams & { onData?: (data: any[]) => void },
   ): UseSubscriptionReturn<PartialOwnedAsset> {
     const {
+      network,
       filter,
       sort,
       limit = DEFAULT_SUBSCRIPTION_LIMIT,
@@ -48,12 +49,12 @@ export function createUseOwnedAssetSubscription(useSubscription: UseSubscription
     } = params;
 
     const queryClient = useQueryClient();
-    const config = buildOwnedAssetSubscriptionConfig({ filter, sort, limit, include });
+    const config = buildOwnedAssetSubscriptionConfig({ network, filter, sort, limit, include });
 
     return useSubscription(config, {
       enabled,
       invalidate,
-      invalidateKeys: invalidate ? [ownedAssetKeys.all] : undefined,
+      invalidateKeys: invalidate ? [ownedAssetKeys.all(network)] : undefined,
       queryClient: invalidate ? queryClient : undefined,
       onData,
       onReconnect,

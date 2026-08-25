@@ -1,2 +1,9 @@
-export { getClientUrl, getClientWsUrl, getServerUrl, getServerWsUrl } from './env';
+export {
+  getClientNetwork,
+  getClientUrl,
+  getClientWsUrl,
+  getServerNetwork,
+  getServerUrl,
+  getServerWsUrl,
+} from './env';
 export { execute } from './execute';
