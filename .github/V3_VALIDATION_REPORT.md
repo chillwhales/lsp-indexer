@@ -36,25 +36,25 @@ across the frozen Portal boundary. Production defaults remain 30 seconds and are
 
 ## CI and local checks
 
-Local and specialist-workspace checks below ran on 2026-08-25 between 05:54 and 06:13 UTC. CI and
+Local and specialist-workspace checks below ran on 2026-08-25 between 05:54 and 06:47 UTC. CI and
 review links are attached to the feature PR because those systems operate on the published commit.
 
-| Check                                                 | Result                                                                    |
-| ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| Frozen dependency install                             | Pass — `pnpm install --frozen-lockfile`                                   |
-| Lint                                                  | Pass — 0 errors; repository baseline warnings remain                      |
-| Indexer v3 typecheck                                  | Pass — `pnpm --filter @chillwhales/indexer-v3 typecheck`                  |
-| Indexer v3 unit/coverage suite                        | Pass — 39 files, 280 tests, 82.96% branch coverage                        |
-| PostgreSQL 17 migration/persistence/fault suite       | CI required — no local PostgreSQL server                                  |
-| Hasura consistency/query/subscription suite           | Static metadata pass; live endpoint suite required in CI                  |
-| Full monorepo build/typecheck/test/package validation | Pass — build, typecheck, 55 files/533 tests, publint, and package ATTW    |
-| Docs generation/build                                 | Pass — generated sidecars clean; 22 routes built                          |
-| Compose and operations assets                         | Pass — dev/prod render, shell syntax, dashboard JSON, and alert YAML      |
-| Helm lint/render                                      | Pass — Helm 3.16.4 strict lint; 20 default and 25 full resources rendered |
-| Full Helm kubeconform                                 | Pass — Kubernetes 1.30 schemas; 25 valid, 0 invalid/error/skipped         |
-| V3-only container build                               | CI required — no local container daemon                                   |
-| Production dependency license inventory               | Pass — 208 records across six declared SPDX families                      |
-| Codex review on final head                            | Required after feature PR publication                                     |
+| Check                                                 | Result                                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| Frozen dependency install                             | Pass — `pnpm install --frozen-lockfile`                                  |
+| Lint                                                  | Pass — 0 errors; repository baseline warnings remain                     |
+| Indexer v3 typecheck                                  | Pass — `pnpm --filter @chillwhales/indexer-v3 typecheck`                 |
+| Indexer v3 unit/coverage suite                        | Pass — 39 files, 289 tests, 82.97% branch coverage                       |
+| PostgreSQL 17 migration/persistence/fault suite       | CI required — no local PostgreSQL server                                 |
+| Hasura consistency/query/subscription suite           | Static metadata pass; live endpoint suite required in CI                 |
+| Full monorepo build/typecheck/test/package validation | Pass — build, typecheck, 55 files/542 tests, publint, and package ATTW   |
+| Docs generation/build                                 | Pass — generated sidecars clean; 22 routes built                         |
+| Compose and operations assets                         | Pass — dev/prod render, shell syntax, dashboard JSON, and alert YAML     |
+| Helm lint/render                                      | Pass — strict lint; 20/25 resources; migration input changes rehash Jobs |
+| Full Helm kubeconform                                 | Pass — Kubernetes 1.30 schemas; 25 valid, 0 invalid/error/skipped        |
+| V3-only container build                               | CI required — no local container daemon                                  |
+| Production dependency license inventory               | Pass — 208 records across six declared SPDX families                     |
+| Codex review on final head                            | Required after feature PR publication                                    |
 
 ## Production evidence still required
 

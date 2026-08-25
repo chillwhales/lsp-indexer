@@ -11,7 +11,10 @@ TypeORM indexer.
   metrics Service, and failure boundary.
 - A revision-named Job applies the idempotent Drizzle migrations for all enabled networks. Runtime
   init containers wait for its schema/role boundary before starting. Completed migration Jobs are
-  retained for one day for evidence and then removed by the Kubernetes TTL controller.
+  retained for one day for evidence and then removed by the Kubernetes TTL controller. The revision
+  hashes the chart version and every value that affects the immutable Job pod template, including
+  image-pull Secrets and database Secret keys, so an upgrade creates a new Job instead of attempting
+  an invalid in-place patch.
 - Hasura uses the CNPG owner only for its metadata database. Its `v3` data source uses the separate,
   read-only URL in `HASURA_GRAPHQL_V3_DATABASE_URL`.
 - A post-install/post-upgrade Job waits for Hasura, replaces only the generated `v3` source, and
@@ -124,8 +127,8 @@ Replace the network list as one complete value in overlays; Helm arrays do not m
 ## Observability
 
 With `monitoring.enabled=true`, the chart creates a ServiceMonitor, alerts, and the
-`LSP Indexer v3` Grafana dashboard. Alerts cover process/database availability, committed block
-lag, cursor drift, all-source stalls, source flapping, and old metadata work. Runtime gauges read
+`LSP Indexer v3` Grafana dashboard. Alerts cover process/database availability, committed-head
+absence and lag, cursor drift, all-source stalls, source flapping, and old metadata work. Runtime gauges read
 the committed PostgreSQL indexed head and Pipes cursor, so a processed-but-uncommitted batch never
 looks healthy. The dashboard shows both committed and diagnostic processed throughput plus
 per-process resident memory and CPU for every indexer and metadata worker. It expects the Prometheus

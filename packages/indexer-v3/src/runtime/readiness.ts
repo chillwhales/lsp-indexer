@@ -28,6 +28,22 @@ export interface ReadinessDependencies {
   rpc?: RpcReadinessClient;
 }
 
+async function readPortalReadiness(
+  runtime: RuntimeConfig,
+  fetchImplementation: typeof fetch,
+): Promise<PortalReadiness | undefined> {
+  if (runtime.sourceMode === 'rpc') return undefined;
+
+  let metadata: Awaited<ReturnType<typeof fetchPortalMetadata>>;
+  try {
+    metadata = await fetchPortalMetadata(runtime.portalUrl, fetchImplementation);
+  } catch (error: unknown) {
+    if (runtime.sourceMode === 'fallback') return undefined;
+    throw error;
+  }
+  return assertPortalReadiness(runtime, metadata);
+}
+
 /** Verify Portal and RPC capabilities before handing control to a pipe program. */
 export async function verifyNetworkReadiness(
   runtime: RuntimeConfig,
@@ -35,9 +51,7 @@ export async function verifyNetworkReadiness(
 ): Promise<NetworkReadiness> {
   const rpc = dependencies.rpc ?? createNetworkRpcClient(runtime);
   const [portalMetadata, rpcChainId, contracts] = await Promise.all([
-    runtime.sourceMode === 'rpc'
-      ? Promise.resolve(undefined)
-      : fetchPortalMetadata(runtime.portalUrl, dependencies.fetchImplementation ?? fetch),
+    readPortalReadiness(runtime, dependencies.fetchImplementation ?? fetch),
     assertRpcChain(rpc, runtime),
     assertConfiguredContracts(rpc, runtime),
   ]);
@@ -48,7 +62,7 @@ export async function verifyNetworkReadiness(
     streamId: runtime.streamId,
     databaseSchema: runtime.databaseSchema,
     sourceMode: runtime.sourceMode,
-    ...(portalMetadata == null ? {} : { portal: assertPortalReadiness(runtime, portalMetadata) }),
+    ...(portalMetadata == null ? {} : { portal: portalMetadata }),
     rpcChainId,
     contracts,
   };

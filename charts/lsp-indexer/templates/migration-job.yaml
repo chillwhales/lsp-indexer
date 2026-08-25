@@ -5,7 +5,7 @@
 {{- $enabledNetworks = append $enabledNetworks $network.key -}}
 {{- end -}}
 {{- end -}}
-{{- $migrationRevision := (dict "image" .Values.indexer.image "networks" .Values.indexer.networks "apiLogin" .Values.indexer.migration.apiLogin | toJson | sha256sum | trunc 10) -}}
+{{- $migrationRevision := (dict "chartVersion" .Chart.Version "global" .Values.global "image" .Values.indexer.image "migration" .Values.indexer.migration "networks" .Values.indexer.networks "secrets" .Values.secrets | toJson | sha256sum | trunc 10) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:

@@ -80,7 +80,8 @@ Prometheus evaluates `prometheus/alerts.yml`; connect an Alertmanager in the tar
 route notifications. Alloy also forwards container logs to Loki.
 
 Important signals include committed block lag, committed head/cursor drift, database availability,
-active Pipes source, fallback switches, throughput, and metadata backlog age.
+missing committed heads, active Pipes source, fallback switches, throughput, and metadata backlog
+age.
 
 ## Backups and restore
 

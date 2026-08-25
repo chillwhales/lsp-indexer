@@ -397,7 +397,9 @@ a contiguous continuation from an existing cursor; a fresh or reset projection d
 at the configured network start. Production still uses one isolated process per network; this
 command does not turn the local development runner into a supervisor. The runtime binds its health
 and metrics listener only after Portal/RPC and contract readiness pass, so an orchestrator cannot
-route to a process still in source preflight.
+route to a process still in source preflight. Fallback mode may start from a verified RPC while
+Portal metadata transport is unavailable; Portal-only mode remains fail-closed, and a reachable
+Portal that identifies the wrong dataset is always rejected.
 
 ### V3 metadata workers
 
@@ -499,7 +501,8 @@ The LUKSO Mainnet Portal metadata still reports `real_time: false`. Pipes alpha.
 official live EVM RPC source and fallback facade: v3 reads the finalized historical Portal first and
 continues through RPC when the Portal becomes stale. Direct LUKSO RPC and the Portal-to-RPC boundary
 have both passed bounded live probes. Explicit `portal` and `rpc` modes remain available for
-diagnostics.
+diagnostics. A fallback restart does not depend on Portal availability when its RPC and contracts
+are ready, while a semantically mismatched Portal dataset still blocks startup.
 
 Production cutover still requires a same-height mapped shared-field v2/v3 report plus the dedicated
 v3-only invariant evidence, a two-network 24-hour soak with per-network throughput, lag,
@@ -538,9 +541,11 @@ Each metrics target sets `network`, indexer `metricsUrl`, optional `metadataMetr
 committed blocks per second, maximum committed/source lag, maximum metadata age, resident-memory
 and p95 CPU budgets, and whether fallback evidence is required. A configured metadata endpoint
 must expose its oldest-age and process-resource metrics; its memory and CPU are added to the
-indexer's per-network totals. The full JSON example and evidence checklist live in the
-shadow-production acceptance runbook. A run shorter than the minimum is labeled `probe` and cannot
-satisfy the cutover gate.
+indexer's per-network totals. CPU rates are calculated independently for the indexer and worker
+before they are summed, so either process may restart without corrupting the resource result.
+Evidence time comes from the configured observation start/deadline rather than scrape completion
+jitter. The full JSON example and evidence checklist live in the shadow-production acceptance
+runbook. A run shorter than the minimum is labeled `probe` and cannot satisfy the cutover gate.
 
 The committed head, finalized head, and Pipes cursor metrics come from one joined PostgreSQL
 statement. A concurrent batch commit therefore cannot create a false cursor-drift sample by

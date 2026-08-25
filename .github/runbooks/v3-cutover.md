@@ -1,7 +1,8 @@
 # V3 cutover, rollback, and v2 retirement runbook
 
 Only repository owner `@b00ste` authorizes the public cutover, closes the rollback window, marks PR
-#391 ready, or merges it. An agent or release operator must never infer those decisions from green CI.
+`#391` ready, or merges it. An agent or release operator must never infer those decisions from green
+CI.
 
 ## Required cutover record
 

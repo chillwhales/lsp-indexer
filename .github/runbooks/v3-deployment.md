@@ -75,8 +75,10 @@ kubectl --context <cluster> --namespace <v3-namespace> logs \
   | tee <evidence>/migration.log
 ```
 
-The job must list every enabled network and complete once. Stop on drift, snapshot-preservation,
-role-boundary, or advisory-lock errors. Do not start runtimes against a partially migrated catalog.
+The revision-named job must list every enabled network and complete once. A change to the chart
+version or any immutable pod-template input must produce a new Job name; stop if a rollout instead
+tries to patch a retained completed Job. Stop on drift, snapshot-preservation, role-boundary, or
+advisory-lock errors. Do not start runtimes against a partially migrated catalog.
 
 Checkpoint 2 — network isolation:
 

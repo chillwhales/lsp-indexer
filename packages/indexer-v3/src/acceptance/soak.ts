@@ -1,34 +1,14 @@
-const PRODUCTION_SOAK_SECONDS = 86_400;
-const DEFAULT_INTERVAL_SECONDS = 30;
-const DEFAULT_TIMEOUT_MS = 10_000;
+import { PRODUCTION_SOAK_SECONDS, type SoakConfig, type SoakTarget } from './soak-config.js';
+import {
+  optionalMaximum,
+  parsePrometheusText,
+  requiredMaximum,
+  values,
+  type PrometheusSample,
+} from './soak-metrics.js';
 
-export interface SoakTarget {
-  network: string;
-  metricsUrl: string;
-  metadataMetricsUrl?: string;
-  minimumBlocksPerSecond: number;
-  maximumLagSeconds: number;
-  maximumSourceLagBlocks: number;
-  maximumMetadataAgeSeconds: number;
-  maximumResidentMemoryBytes: number;
-  maximumCpuCores: number;
-  requireFallback: boolean;
-}
-
-export interface SoakConfig {
-  targets: readonly SoakTarget[];
-  durationSeconds: number;
-  minimumEvidenceSeconds: number;
-  intervalSeconds: number;
-  requestTimeoutMs: number;
-  maximumScrapeFailures: number;
-}
-
-export interface PrometheusSample {
-  name: string;
-  labels: Readonly<Record<string, string>>;
-  value: number;
-}
+export { loadSoakConfig, type SoakConfig, type SoakTarget } from './soak-config.js';
+export { parsePrometheusText, type PrometheusSample } from './soak-metrics.js';
 
 interface RuntimeSample {
   observedAt: number;
@@ -42,7 +22,8 @@ interface RuntimeSample {
   fallbackLagBlocks: number | null;
   metadataOldestAgeSeconds: number | null;
   residentMemoryBytes: number;
-  cpuSeconds: number;
+  indexerCpuSeconds: number;
+  metadataCpuSeconds: number;
 }
 
 export interface SoakTargetReport {
@@ -80,227 +61,6 @@ export interface SoakDependencies {
   fetchText(url: string, timeoutMs: number): Promise<string>;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value != null && !Array.isArray(value);
-}
-
-function readFiniteNumber(value: unknown, name: string, minimum: number): number {
-  const number = typeof value === 'number' ? value : Number.NaN;
-  if (!Number.isFinite(number) || number < minimum) {
-    throw new Error(`${name} must be a finite number greater than or equal to ${minimum}`);
-  }
-  return number;
-}
-
-function readInteger(
-  value: string | undefined,
-  name: string,
-  fallback: number,
-  minimum: number,
-): number {
-  if (value == null || value.trim() === '') return fallback;
-  const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed) || parsed < minimum) {
-    throw new Error(`${name} must be a safe integer greater than or equal to ${minimum}`);
-  }
-  return parsed;
-}
-
-function readUrl(value: unknown, name: string): string {
-  if (typeof value !== 'string' || value.trim() === '') throw new Error(`${name} is required`);
-  let url: URL;
-  try {
-    url = new URL(value.trim());
-  } catch {
-    throw new Error(`${name} must be an absolute HTTP(S) URL`);
-  }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error(`${name} must use HTTP or HTTPS`);
-  }
-  if (url.username !== '' || url.password !== '') {
-    throw new Error(`${name} must not contain credentials`);
-  }
-  return url.toString();
-}
-
-function readTarget(value: unknown, index: number): SoakTarget {
-  if (!isRecord(value)) throw new Error(`ACCEPTANCE_METRICS_TARGETS[${index}] must be an object`);
-  const network = typeof value.network === 'string' ? value.network.trim() : '';
-  if (!network) throw new Error(`ACCEPTANCE_METRICS_TARGETS[${index}].network is required`);
-  const metadataMetricsUrl =
-    value.metadataMetricsUrl == null
-      ? undefined
-      : readUrl(
-          value.metadataMetricsUrl,
-          `ACCEPTANCE_METRICS_TARGETS[${index}].metadataMetricsUrl`,
-        );
-  return {
-    network,
-    metricsUrl: readUrl(value.metricsUrl, `ACCEPTANCE_METRICS_TARGETS[${index}].metricsUrl`),
-    ...(metadataMetricsUrl == null ? {} : { metadataMetricsUrl }),
-    minimumBlocksPerSecond: readFiniteNumber(
-      value.minimumBlocksPerSecond,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].minimumBlocksPerSecond`,
-      0,
-    ),
-    maximumLagSeconds: readFiniteNumber(
-      value.maximumLagSeconds,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].maximumLagSeconds`,
-      0,
-    ),
-    maximumSourceLagBlocks: readFiniteNumber(
-      value.maximumSourceLagBlocks,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].maximumSourceLagBlocks`,
-      0,
-    ),
-    maximumMetadataAgeSeconds: readFiniteNumber(
-      value.maximumMetadataAgeSeconds,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].maximumMetadataAgeSeconds`,
-      0,
-    ),
-    maximumResidentMemoryBytes: readFiniteNumber(
-      value.maximumResidentMemoryBytes,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].maximumResidentMemoryBytes`,
-      1,
-    ),
-    maximumCpuCores: readFiniteNumber(
-      value.maximumCpuCores,
-      `ACCEPTANCE_METRICS_TARGETS[${index}].maximumCpuCores`,
-      0,
-    ),
-    requireFallback: value.requireFallback !== false,
-  };
-}
-
-/** Load the multi-network metrics observation and performance budgets. */
-export function loadSoakConfig(env: NodeJS.ProcessEnv = process.env): SoakConfig {
-  if (env.ACCEPTANCE_METRICS_TARGETS == null) {
-    throw new Error('ACCEPTANCE_METRICS_TARGETS is required');
-  }
-  let rawTargets: unknown;
-  try {
-    rawTargets = JSON.parse(env.ACCEPTANCE_METRICS_TARGETS);
-  } catch {
-    throw new Error('ACCEPTANCE_METRICS_TARGETS must be valid JSON');
-  }
-  if (!Array.isArray(rawTargets) || rawTargets.length < 2) {
-    throw new Error('ACCEPTANCE_METRICS_TARGETS must contain at least two networks');
-  }
-  const targets = rawTargets.map(readTarget);
-  if (new Set(targets.map(({ network }) => network)).size !== targets.length) {
-    throw new Error('ACCEPTANCE_METRICS_TARGETS contains duplicate networks');
-  }
-  const durationSeconds = readInteger(
-    env.ACCEPTANCE_OBSERVATION_SECONDS,
-    'ACCEPTANCE_OBSERVATION_SECONDS',
-    PRODUCTION_SOAK_SECONDS,
-    1,
-  );
-  const intervalSeconds = readInteger(
-    env.ACCEPTANCE_SCRAPE_INTERVAL_SECONDS,
-    'ACCEPTANCE_SCRAPE_INTERVAL_SECONDS',
-    DEFAULT_INTERVAL_SECONDS,
-    1,
-  );
-  if (intervalSeconds > durationSeconds) {
-    throw new Error('ACCEPTANCE_SCRAPE_INTERVAL_SECONDS cannot exceed the observation duration');
-  }
-  return {
-    targets,
-    durationSeconds,
-    minimumEvidenceSeconds: readInteger(
-      env.ACCEPTANCE_MINIMUM_EVIDENCE_SECONDS,
-      'ACCEPTANCE_MINIMUM_EVIDENCE_SECONDS',
-      PRODUCTION_SOAK_SECONDS,
-      1,
-    ),
-    intervalSeconds,
-    requestTimeoutMs: readInteger(
-      env.ACCEPTANCE_REQUEST_TIMEOUT_MS,
-      'ACCEPTANCE_REQUEST_TIMEOUT_MS',
-      DEFAULT_TIMEOUT_MS,
-      1,
-    ),
-    maximumScrapeFailures: readInteger(
-      env.ACCEPTANCE_MAXIMUM_SCRAPE_FAILURES,
-      'ACCEPTANCE_MAXIMUM_SCRAPE_FAILURES',
-      0,
-      0,
-    ),
-  };
-}
-
-function unescapeLabel(value: string): string {
-  return value.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-}
-
-function parseLabels(value: string | undefined): Record<string, string> {
-  if (value == null || value === '') return {};
-  const labels: Record<string, string> = {};
-  const expression = /([A-Za-z_][A-Za-z0-9_]*)="((?:\\.|[^"\\])*)"(?:,|$)/gy;
-  let offset = 0;
-  while (offset < value.length) {
-    expression.lastIndex = offset;
-    const match = expression.exec(value);
-    if (match == null || match.index !== offset || match[1] == null || match[2] == null) {
-      throw new Error(`Invalid Prometheus labels: ${value}`);
-    }
-    labels[match[1]] = unescapeLabel(match[2]);
-    offset = expression.lastIndex;
-  }
-  return labels;
-}
-
-/** Parse the Prometheus text samples needed by the v3 acceptance observer. */
-export function parsePrometheusText(text: string): PrometheusSample[] {
-  const samples: PrometheusSample[] = [];
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (line === '' || line.startsWith('#')) continue;
-    const match = /^([A-Za-z_:][A-Za-z0-9_:]*)(?:\{(.*)\})?\s+([^\s]+)(?:\s+\d+)?$/.exec(line);
-    if (match == null || match[1] == null || match[3] == null) {
-      throw new Error(`Invalid Prometheus sample: ${line}`);
-    }
-    const value = Number(match[3]);
-    if (!Number.isFinite(value)) continue;
-    samples.push({ name: match[1], labels: parseLabels(match[2]), value });
-  }
-  return samples;
-}
-
-function values(
-  samples: readonly PrometheusSample[],
-  name: string,
-  labels: Readonly<Record<string, string>> = {},
-): number[] {
-  return samples
-    .filter(
-      (sample) =>
-        sample.name === name &&
-        Object.entries(labels).every(([key, value]) => sample.labels[key] === value),
-    )
-    .map(({ value }) => value);
-}
-
-function requiredMaximum(
-  samples: readonly PrometheusSample[],
-  metric: string,
-  labels: Readonly<Record<string, string>>,
-): number {
-  const matches = values(samples, metric, labels);
-  if (matches.length === 0) throw new Error(`Required metric ${metric} is absent`);
-  return Math.max(...matches);
-}
-
-function optionalMaximum(
-  samples: readonly PrometheusSample[],
-  metric: string,
-  labels: Readonly<Record<string, string>>,
-): number | null {
-  const matches = values(samples, metric, labels);
-  return matches.length === 0 ? null : Math.max(...matches);
-}
-
 async function defaultFetchText(url: string, timeoutMs: number): Promise<string> {
   const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!response.ok) throw new Error(`Metrics endpoint returned HTTP ${response.status}`);
@@ -314,6 +74,39 @@ const DEFAULT_DEPENDENCIES: SoakDependencies = {
   },
   fetchText: defaultFetchText,
 };
+
+interface MetadataMetrics {
+  oldestAgeSeconds: number | null;
+  residentMemoryBytes: number;
+  cpuSeconds: number;
+}
+
+function readMetadataMetrics(
+  target: SoakTarget,
+  samples: readonly PrometheusSample[],
+): MetadataMetrics {
+  if (target.metadataMetricsUrl == null) {
+    return { oldestAgeSeconds: null, residentMemoryBytes: 0, cpuSeconds: 0 };
+  }
+  const ages = [
+    ...values(samples, 'lsp_indexer_metadata_oldest_age_seconds', {
+      network: target.network,
+      status: 'pending',
+    }),
+    ...values(samples, 'lsp_indexer_metadata_oldest_age_seconds', {
+      network: target.network,
+      status: 'retry',
+    }),
+  ];
+  if (ages.length === 0) {
+    throw new Error('Required metric lsp_indexer_metadata_oldest_age_seconds is absent');
+  }
+  return {
+    oldestAgeSeconds: Math.max(0, ...ages),
+    residentMemoryBytes: requiredMaximum(samples, 'process_resident_memory_bytes', {}),
+    cpuSeconds: requiredMaximum(samples, 'process_cpu_seconds_total', {}),
+  };
+}
 
 async function scrapeTarget(
   target: SoakTarget,
@@ -333,27 +126,7 @@ async function scrapeTarget(
     state: 'healthy',
   }).filter((value) => value === 1).length;
   const fallbackStalled = optionalMaximum(indexer, 'sqd_fallback_chain_stalled', {});
-  const metadataAges = [
-    ...values(metadata, 'lsp_indexer_metadata_oldest_age_seconds', {
-      network: target.network,
-      status: 'pending',
-    }),
-    ...values(metadata, 'lsp_indexer_metadata_oldest_age_seconds', {
-      network: target.network,
-      status: 'retry',
-    }),
-  ];
-  if (target.metadataMetricsUrl != null && metadataAges.length === 0) {
-    throw new Error('Required metric lsp_indexer_metadata_oldest_age_seconds is absent');
-  }
-  const metadataResidentMemoryBytes =
-    target.metadataMetricsUrl == null
-      ? 0
-      : requiredMaximum(metadata, 'process_resident_memory_bytes', {});
-  const metadataCpuSeconds =
-    target.metadataMetricsUrl == null
-      ? 0
-      : requiredMaximum(metadata, 'process_cpu_seconds_total', {});
+  const metadataMetrics = readMetadataMetrics(target, metadata);
   return {
     observedAt: dependencies.now(),
     databaseUp: requiredMaximum(indexer, 'lsp_indexer_database_up', network),
@@ -364,11 +137,12 @@ async function scrapeTarget(
     fallbackHealthySources: fallbackStalled == null && healthySources === 0 ? null : healthySources,
     fallbackStalled,
     fallbackLagBlocks: optionalMaximum(indexer, 'sqd_fallback_lag_blocks', {}),
-    metadataOldestAgeSeconds:
-      target.metadataMetricsUrl == null ? null : Math.max(0, ...metadataAges),
+    metadataOldestAgeSeconds: metadataMetrics.oldestAgeSeconds,
     residentMemoryBytes:
-      requiredMaximum(indexer, 'process_resident_memory_bytes', {}) + metadataResidentMemoryBytes,
-    cpuSeconds: requiredMaximum(indexer, 'process_cpu_seconds_total', {}) + metadataCpuSeconds,
+      requiredMaximum(indexer, 'process_resident_memory_bytes', {}) +
+      metadataMetrics.residentMemoryBytes,
+    indexerCpuSeconds: requiredMaximum(indexer, 'process_cpu_seconds_total', {}),
+    metadataCpuSeconds: metadataMetrics.cpuSeconds,
   };
 }
 
@@ -414,13 +188,148 @@ function cpuRates(samples: readonly RuntimeSample[]): number[] {
     if (previous == null || current == null) continue;
     const elapsed = (current.observedAt - previous.observedAt) / 1_000;
     if (elapsed <= 0) continue;
-    const delta =
-      current.cpuSeconds >= previous.cpuSeconds
-        ? current.cpuSeconds - previous.cpuSeconds
-        : current.cpuSeconds;
-    rates.push(delta / elapsed);
+    const indexerDelta =
+      current.indexerCpuSeconds >= previous.indexerCpuSeconds
+        ? current.indexerCpuSeconds - previous.indexerCpuSeconds
+        : current.indexerCpuSeconds;
+    const metadataDelta =
+      current.metadataCpuSeconds >= previous.metadataCpuSeconds
+        ? current.metadataCpuSeconds - previous.metadataCpuSeconds
+        : current.metadataCpuSeconds;
+    rates.push((indexerDelta + metadataDelta) / elapsed);
   }
   return rates;
+}
+
+interface TargetMeasurements {
+  observedSeconds: number;
+  blocksPerSecond: number;
+  processedBlocksPerSecond: number;
+  lagP95Seconds: number;
+  sourceLagMaximumBlocks: number | null;
+  sourceLagSamples: number;
+  cursorDriftMaximum: number;
+  metadataOldestAgeMaximumSeconds: number | null;
+  residentMemoryMaximumBytes: number;
+  cpuCoresP95: number;
+  databaseHealthy: boolean;
+  fallbackHealthy: boolean;
+}
+
+function fallbackHealthy(target: SoakTarget, samples: readonly RuntimeSample[]): boolean {
+  if (!target.requireFallback) return true;
+  return (
+    samples.length > 1 &&
+    samples.every(
+      ({ fallbackHealthySources, fallbackStalled }) =>
+        fallbackHealthySources != null && fallbackHealthySources > 0 && fallbackStalled === 0,
+    )
+  );
+}
+
+function measureTarget(
+  target: SoakTarget,
+  samples: readonly RuntimeSample[],
+  observedWindowSeconds: number,
+): TargetMeasurements {
+  const sourceLags = samples.flatMap(({ fallbackLagBlocks }) =>
+    fallbackLagBlocks == null ? [] : [fallbackLagBlocks],
+  );
+  const metadataAges = samples.flatMap(({ metadataOldestAgeSeconds }) =>
+    metadataOldestAgeSeconds == null ? [] : [metadataOldestAgeSeconds],
+  );
+  return {
+    observedSeconds: observedWindowSeconds,
+    blocksPerSecond: committedBlockRate(samples),
+    processedBlocksPerSecond: counterRate(samples, ({ processedBlocks }) => processedBlocks),
+    lagP95Seconds: percentile(
+      samples.map(({ lagSeconds }) => lagSeconds),
+      0.95,
+    ),
+    sourceLagMaximumBlocks: sourceLags.length === 0 ? null : Math.max(...sourceLags),
+    sourceLagSamples: sourceLags.length,
+    cursorDriftMaximum: Math.max(0, ...samples.map(({ cursorDrift }) => cursorDrift)),
+    metadataOldestAgeMaximumSeconds: metadataAges.length === 0 ? null : Math.max(...metadataAges),
+    residentMemoryMaximumBytes: Math.max(
+      0,
+      ...samples.map(({ residentMemoryBytes }) => residentMemoryBytes),
+    ),
+    cpuCoresP95: percentile(cpuRates(samples), 0.95),
+    databaseHealthy: samples.length > 1 && samples.every(({ databaseUp }) => databaseUp === 1),
+    fallbackHealthy: fallbackHealthy(target, samples),
+  };
+}
+
+function evidenceFailures(
+  target: SoakTarget,
+  sampleCount: number,
+  scrapeFailures: number,
+  measurements: TargetMeasurements,
+  config: SoakConfig,
+): string[] {
+  const failures: string[] = [];
+  if (measurements.observedSeconds < config.minimumEvidenceSeconds) {
+    failures.push(
+      `observed ${measurements.observedSeconds}s, below the ${config.minimumEvidenceSeconds}s evidence minimum`,
+    );
+  }
+  if (scrapeFailures > config.maximumScrapeFailures) {
+    failures.push(
+      `${scrapeFailures} scrape failures exceed the ${config.maximumScrapeFailures} failure budget`,
+    );
+  }
+  if (!measurements.databaseHealthy) {
+    failures.push('database health was not continuously available');
+  }
+  if (!measurements.fallbackHealthy) {
+    failures.push('fallback health was absent, unhealthy, or stalled');
+  }
+  if (
+    target.requireFallback &&
+    (measurements.sourceLagSamples !== sampleCount ||
+      measurements.sourceLagMaximumBlocks == null ||
+      measurements.sourceLagMaximumBlocks > target.maximumSourceLagBlocks)
+  ) {
+    failures.push(
+      `source lag ${measurements.sourceLagMaximumBlocks ?? 'missing'} exceeds ${target.maximumSourceLagBlocks} blocks or was absent`,
+    );
+  }
+  return failures;
+}
+
+function budgetFailures(target: SoakTarget, measurements: TargetMeasurements): string[] {
+  const failures: string[] = [];
+  if (measurements.blocksPerSecond < target.minimumBlocksPerSecond) {
+    failures.push(
+      `${measurements.blocksPerSecond} blocks/s is below the ${target.minimumBlocksPerSecond} blocks/s budget`,
+    );
+  }
+  if (measurements.lagP95Seconds > target.maximumLagSeconds) {
+    failures.push(
+      `${measurements.lagP95Seconds}s p95 commit lag exceeds ${target.maximumLagSeconds}s`,
+    );
+  }
+  if (measurements.cursorDriftMaximum > 0) {
+    failures.push(`cursor drift reached ${measurements.cursorDriftMaximum} blocks`);
+  }
+  if (
+    target.metadataMetricsUrl != null &&
+    (measurements.metadataOldestAgeMaximumSeconds == null ||
+      measurements.metadataOldestAgeMaximumSeconds > target.maximumMetadataAgeSeconds)
+  ) {
+    failures.push(
+      `metadata age ${measurements.metadataOldestAgeMaximumSeconds ?? 'missing'} exceeds ${target.maximumMetadataAgeSeconds}s`,
+    );
+  }
+  if (measurements.residentMemoryMaximumBytes > target.maximumResidentMemoryBytes) {
+    failures.push(
+      `${measurements.residentMemoryMaximumBytes} resident bytes exceed ${target.maximumResidentMemoryBytes}`,
+    );
+  }
+  if (measurements.cpuCoresP95 > target.maximumCpuCores) {
+    failures.push(`${measurements.cpuCoresP95} p95 CPU cores exceed ${target.maximumCpuCores}`);
+  }
+  return failures;
 }
 
 function createTargetReport(
@@ -429,105 +338,29 @@ function createTargetReport(
   scrapeFailures: number,
   scrapeErrorMessages: readonly string[],
   config: SoakConfig,
+  observedWindowSeconds: number,
 ): SoakTargetReport {
-  const observedSeconds =
-    samples.length < 2
-      ? 0
-      : ((samples.at(-1)?.observedAt ?? 0) - (samples[0]?.observedAt ?? 0)) / 1_000;
-  const blocksPerSecond = committedBlockRate(samples);
-  const processedBlocksPerSecond = counterRate(samples, ({ processedBlocks }) => processedBlocks);
-  const lagP95Seconds = percentile(
-    samples.map(({ lagSeconds }) => lagSeconds),
-    0.95,
-  );
-  const cursorDriftMaximum = Math.max(0, ...samples.map(({ cursorDrift }) => cursorDrift));
-  const sourceLags = samples.flatMap(({ fallbackLagBlocks }) =>
-    fallbackLagBlocks == null ? [] : [fallbackLagBlocks],
-  );
-  const sourceLagMaximumBlocks = sourceLags.length === 0 ? null : Math.max(...sourceLags);
-  const metadataAges = samples.flatMap(({ metadataOldestAgeSeconds }) =>
-    metadataOldestAgeSeconds == null ? [] : [metadataOldestAgeSeconds],
-  );
-  const metadataOldestAgeMaximumSeconds =
-    metadataAges.length === 0 ? null : Math.max(...metadataAges);
-  const residentMemoryMaximumBytes = Math.max(
-    0,
-    ...samples.map(({ residentMemoryBytes }) => residentMemoryBytes),
-  );
-  const databaseHealthy = samples.length > 1 && samples.every(({ databaseUp }) => databaseUp === 1);
-  const fallbackHealthy =
-    !target.requireFallback ||
-    (samples.length > 1 &&
-      samples.every(
-        ({ fallbackHealthySources, fallbackStalled }) =>
-          fallbackHealthySources != null && fallbackHealthySources > 0 && fallbackStalled === 0,
-      ));
-  const failures: string[] = [];
-  if (observedSeconds < config.minimumEvidenceSeconds) {
-    failures.push(
-      `observed ${observedSeconds}s, below the ${config.minimumEvidenceSeconds}s evidence minimum`,
-    );
-  }
-  if (scrapeFailures > config.maximumScrapeFailures) {
-    failures.push(
-      `${scrapeFailures} scrape failures exceed the ${config.maximumScrapeFailures} failure budget`,
-    );
-  }
-  if (!databaseHealthy) failures.push('database health was not continuously available');
-  if (!fallbackHealthy) failures.push('fallback health was absent, unhealthy, or stalled');
-  if (
-    target.requireFallback &&
-    (sourceLags.length !== samples.length ||
-      sourceLagMaximumBlocks == null ||
-      sourceLagMaximumBlocks > target.maximumSourceLagBlocks)
-  ) {
-    failures.push(
-      `source lag ${sourceLagMaximumBlocks ?? 'missing'} exceeds ${target.maximumSourceLagBlocks} blocks or was absent`,
-    );
-  }
-  if (blocksPerSecond < target.minimumBlocksPerSecond) {
-    failures.push(
-      `${blocksPerSecond} blocks/s is below the ${target.minimumBlocksPerSecond} blocks/s budget`,
-    );
-  }
-  if (lagP95Seconds > target.maximumLagSeconds) {
-    failures.push(`${lagP95Seconds}s p95 commit lag exceeds ${target.maximumLagSeconds}s`);
-  }
-  if (cursorDriftMaximum > 0) failures.push(`cursor drift reached ${cursorDriftMaximum} blocks`);
-  if (
-    target.metadataMetricsUrl != null &&
-    (metadataOldestAgeMaximumSeconds == null ||
-      metadataOldestAgeMaximumSeconds > target.maximumMetadataAgeSeconds)
-  ) {
-    failures.push(
-      `metadata age ${metadataOldestAgeMaximumSeconds ?? 'missing'} exceeds ${target.maximumMetadataAgeSeconds}s`,
-    );
-  }
-  if (residentMemoryMaximumBytes > target.maximumResidentMemoryBytes) {
-    failures.push(
-      `${residentMemoryMaximumBytes} resident bytes exceed ${target.maximumResidentMemoryBytes}`,
-    );
-  }
-  const cpuCoresP95 = percentile(cpuRates(samples), 0.95);
-  if (cpuCoresP95 > target.maximumCpuCores) {
-    failures.push(`${cpuCoresP95} p95 CPU cores exceed ${target.maximumCpuCores}`);
-  }
+  const measurements = measureTarget(target, samples, observedWindowSeconds);
+  const failures = [
+    ...evidenceFailures(target, samples.length, scrapeFailures, measurements, config),
+    ...budgetFailures(target, measurements),
+  ];
   return {
     network: target.network,
     samples: samples.length,
     scrapeFailures,
     scrapeErrorMessages: [...scrapeErrorMessages],
-    observedSeconds,
-    blocksPerSecond,
-    processedBlocksPerSecond,
-    lagP95Seconds,
-    sourceLagMaximumBlocks,
-    cursorDriftMaximum,
-    metadataOldestAgeMaximumSeconds,
-    residentMemoryMaximumBytes,
-    cpuCoresP95,
-    databaseHealthy,
-    fallbackHealthy,
+    observedSeconds: measurements.observedSeconds,
+    blocksPerSecond: measurements.blocksPerSecond,
+    processedBlocksPerSecond: measurements.processedBlocksPerSecond,
+    lagP95Seconds: measurements.lagP95Seconds,
+    sourceLagMaximumBlocks: measurements.sourceLagMaximumBlocks,
+    cursorDriftMaximum: measurements.cursorDriftMaximum,
+    metadataOldestAgeMaximumSeconds: measurements.metadataOldestAgeMaximumSeconds,
+    residentMemoryMaximumBytes: measurements.residentMemoryMaximumBytes,
+    cpuCoresP95: measurements.cpuCoresP95,
+    databaseHealthy: measurements.databaseHealthy,
+    fallbackHealthy: measurements.fallbackHealthy,
     failures,
     passed: failures.length === 0,
   };
@@ -565,6 +398,7 @@ export async function runSoakObservation(
     await dependencies.sleep(Math.min(config.intervalSeconds * 1_000, remaining));
   }
 
+  const observedWindowSeconds = (Math.min(dependencies.now(), deadline) - startedAt) / 1_000;
   const targets = config.targets.map((target) =>
     createTargetReport(
       target,
@@ -572,6 +406,7 @@ export async function runSoakObservation(
       failures.get(target.network) ?? 0,
       scrapeErrors.get(target.network) ?? [],
       config,
+      observedWindowSeconds,
     ),
   );
   return {

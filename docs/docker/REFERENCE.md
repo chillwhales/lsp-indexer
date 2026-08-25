@@ -142,9 +142,10 @@ shared dashboard shows:
 - resident memory and CPU for every indexer and metadata worker
 - metadata job counts and oldest backlog age
 
-Prometheus evaluates availability, source-stall, lag, cursor-drift, source-flapping, and metadata-age
-rules. The Compose stack does not bundle notification credentials; connect Prometheus to the target
-Alertmanager. Alloy sends Docker logs to Loki. Grafana provides both datasources.
+Prometheus evaluates availability, missing-committed-head, source-stall, lag, cursor-drift,
+source-flapping, and metadata-age rules. The Compose stack does not bundle notification credentials;
+connect Prometheus to the target Alertmanager. Alloy sends Docker logs to Loki. Grafana provides
+both datasources.
 
 ## Backup and recovery
 

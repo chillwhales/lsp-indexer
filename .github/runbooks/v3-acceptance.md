@@ -87,7 +87,10 @@ The observer isolates scrape failures by network, retains up to ten distinct fai
 reports committed-head throughput, the diagnostic restart-safe processed-block counter rate,
 committed-state lag, exact cursor drift, source health/stall/lag state, metadata age, resident
 memory, and CPU cores at p95. When a metadata endpoint is configured, memory and CPU are the sum of
-the indexer and metadata-worker processes, and missing worker process metrics fail that scrape.
+the indexer and metadata-worker processes, and missing worker process metrics fail that scrape. Each
+process CPU counter is converted to a restart-safe rate before the two rates are summed. The evidence
+duration is the configured observation window from command start through its deadline, not the
+difference between first and last scrape completion times.
 Throughput, memory, and p95 CPU are enforced against the per-network budgets, and a configured
 metadata endpoint must expose its expected age metric. The throughput budget uses net committed
 head progress, so replayed or repeatedly failed work cannot inflate the result. A short run is

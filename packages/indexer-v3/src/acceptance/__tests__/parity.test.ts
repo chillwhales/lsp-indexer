@@ -74,6 +74,29 @@ function createSingleRowRequester(
   };
 }
 
+interface MalformedScalarCase {
+  kind: ShadowParityDomain['fields'][number]['kind'];
+  source: unknown;
+  target: unknown;
+  error: string;
+}
+
+async function expectMalformedScalar(candidate: MalformedScalarCase): Promise<void> {
+  const malformedDomain: ShadowParityDomain = {
+    name: `malformed-${candidate.kind}`,
+    source: { root: 'source', order: ['value'] },
+    target: { root: 'target', order: ['value'] },
+    fields: [{ name: 'value', source: 'value', target: 'value', kind: candidate.kind }],
+  };
+  await expect(
+    compareShadowDomain(
+      config,
+      malformedDomain,
+      createSingleRowRequester({ value: candidate.source }, { value: candidate.target }),
+    ),
+  ).rejects.toThrow(candidate.error);
+}
+
 describe('shadow parity acceptance', () => {
   it('loads a strict same-height configuration', () => {
     expect(
@@ -208,13 +231,8 @@ describe('shadow parity acceptance', () => {
     });
   });
 
-  it('rejects malformed shared scalar representations', async () => {
-    const cases: Array<{
-      kind: ShadowParityDomain['fields'][number]['kind'];
-      source: unknown;
-      target: unknown;
-      error: string;
-    }> = [
+  it('rejects malformed primitive shared scalar representations', async () => {
+    const cases: MalformedScalarCase[] = [
       { kind: 'boolean', source: 'true', target: true, error: 'must be a boolean' },
       { kind: 'integer', source: 'not-an-integer', target: '1', error: 'must be an integer' },
       { kind: 'string', source: {}, target: 'value', error: 'must be a scalar' },
@@ -225,6 +243,13 @@ describe('shadow parity acceptance', () => {
         target: 0,
         error: 'supported token ID format',
       },
+    ];
+
+    for (const candidate of cases) await expectMalformedScalar(candidate);
+  });
+
+  it('rejects malformed CompactBytesArray representations', async () => {
+    const cases: MalformedScalarCase[] = [
       {
         kind: 'compact-bytes',
         source: 'invalid',
@@ -251,21 +276,7 @@ describe('shadow parity acceptance', () => {
       },
     ];
 
-    for (const candidate of cases) {
-      const malformedDomain: ShadowParityDomain = {
-        name: `malformed-${candidate.kind}`,
-        source: { root: 'source', order: ['value'] },
-        target: { root: 'target', order: ['value'] },
-        fields: [{ name: 'value', source: 'value', target: 'value', kind: candidate.kind }],
-      };
-      await expect(
-        compareShadowDomain(
-          config,
-          malformedDomain,
-          createSingleRowRequester({ value: candidate.source }, { value: candidate.target }),
-        ),
-      ).rejects.toThrow(candidate.error);
-    }
+    for (const candidate of cases) await expectMalformedScalar(candidate);
   });
 
   it('covers shared owners, controller permissions, and asset scalar domains', () => {

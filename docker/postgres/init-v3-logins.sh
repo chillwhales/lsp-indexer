@@ -3,24 +3,24 @@ set -eu
 
 create_or_update_login() {
   role=$1
-  password=$2
+  credential=$2
 
-  if [ -z "$role" ] || [ -z "$password" ]; then
+  if [ -z "$role" ] || [ -z "$credential" ]; then
     echo 'Database login names and passwords must not be empty' >&2
     exit 1
   fi
 
-  psql --set=role="$role" --set=password="$password" <<'SQL'
+  psql --set=role="$role" --set=credential="$credential" <<'SQL'
 SELECT format(
   'CREATE ROLE %I LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
   :'role',
-  :'password'
+  :'credential'
 )
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role') \gexec
 
 ALTER ROLE :"role"
   LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS
-  PASSWORD :'password';
+  PASSWORD :'credential';
 SQL
 }
 

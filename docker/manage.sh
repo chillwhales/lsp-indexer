@@ -140,11 +140,13 @@ case $command_name in
     ;;
   db)
     require_env_file
+    # shellcheck disable=SC2016 -- these variables expand inside the PostgreSQL container.
     compose exec postgres sh -c 'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
     ;;
   db-dump)
     require_env_file
     destination=${1:-v3-backup-$(date -u +%Y%m%dT%H%M%SZ).dump}
+    # shellcheck disable=SC2016 -- these variables expand inside the PostgreSQL container.
     compose exec -T postgres sh -c \
       'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' >"$destination"
     printf 'Backup written to %s\n' "$destination"

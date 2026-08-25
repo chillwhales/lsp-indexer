@@ -64,6 +64,14 @@ spec:
           annotations:
             summary: "LSP Indexer v3 cannot read committed database state"
             description: "Database reads for {{`{{ $labels.network }}`}} have failed for two minutes."
+        - alert: LspIndexerV3CommittedHeadMissing
+          expr: (lsp_indexer_database_up == 1) unless on (network, chain_id) lsp_indexer_indexed_block
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "LSP Indexer v3 has no committed head"
+            description: "{{`{{ $labels.network }}`}} can read PostgreSQL but has not exposed a committed indexed head for five minutes."
         - alert: LspIndexerV3SourceUnavailable
           expr: sqd_fallback_chain_stalled == 1
           for: 5m

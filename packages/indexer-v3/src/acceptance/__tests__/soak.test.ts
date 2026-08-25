@@ -98,6 +98,36 @@ function createDependencies(): SoakDependencies {
   };
 }
 
+function createInitialLatencyDependencies(): SoakDependencies {
+  let now = 0;
+  let requests = 0;
+  return {
+    now(): number {
+      return now;
+    },
+    sleep(milliseconds): Promise<void> {
+      now += milliseconds;
+      return Promise.resolve();
+    },
+    fetchText(url): Promise<string> {
+      if (requests < 4) now += 1_000;
+      requests += 1;
+      const network = url.includes('lukso') ? 'lukso-mainnet' : 'ethereum-mainnet';
+      const seconds = now / 1_000;
+      if (url.includes('metadata')) return Promise.resolve(metadataMetrics(network, seconds));
+      return Promise.resolve(metrics(network, seconds, network === 'lukso-mainnet' ? 1 : 2));
+    },
+  };
+}
+
+type InvalidSoakConfig = [env: NodeJS.ProcessEnv, message: string];
+
+function expectInvalidSoakConfigs(cases: readonly InvalidSoakConfig[]): void {
+  for (const [env, message] of cases) {
+    expect(() => loadSoakConfig(env)).toThrow(message);
+  }
+}
+
 describe('multi-network soak acceptance', () => {
   it('parses escaped labels and finite samples', () => {
     expect(
@@ -138,7 +168,7 @@ describe('multi-network soak acceptance', () => {
     ).toThrow('must contain at least two networks');
   });
 
-  it('loads complete budgets and validates malformed acceptance configuration', () => {
+  it('loads complete acceptance budgets', () => {
     const targets = [rawTarget('lukso-mainnet'), rawTarget('ethereum-mainnet')];
     expect(
       loadSoakConfig({
@@ -166,8 +196,11 @@ describe('multi-network soak acceptance', () => {
         }),
       ],
     });
+  });
 
-    const invalidCases: Array<[NodeJS.ProcessEnv, string]> = [
+  it('rejects malformed or duplicate target collections', () => {
+    const targets = [rawTarget('lukso-mainnet'), rawTarget('ethereum-mainnet')];
+    expectInvalidSoakConfigs([
       [{}, 'ACCEPTANCE_METRICS_TARGETS is required'],
       [{ ACCEPTANCE_METRICS_TARGETS: '[' }, 'must be valid JSON'],
       [{ ACCEPTANCE_METRICS_TARGETS: '{}' }, 'must contain at least two networks'],
@@ -182,6 +215,12 @@ describe('multi-network soak acceptance', () => {
         },
         'network is required',
       ],
+    ]);
+  });
+
+  it('rejects unsafe metrics endpoints and malformed budgets', () => {
+    const targets = [rawTarget('lukso-mainnet'), rawTarget('ethereum-mainnet')];
+    expectInvalidSoakConfigs([
       [
         {
           ACCEPTANCE_METRICS_TARGETS: JSON.stringify([
@@ -218,6 +257,12 @@ describe('multi-network soak acceptance', () => {
         },
         'must be a finite number',
       ],
+    ]);
+  });
+
+  it('rejects invalid observation timing', () => {
+    const targets = [rawTarget('lukso-mainnet'), rawTarget('ethereum-mainnet')];
+    expectInvalidSoakConfigs([
       [
         {
           ACCEPTANCE_METRICS_TARGETS: JSON.stringify(targets),
@@ -233,10 +278,7 @@ describe('multi-network soak acceptance', () => {
         },
         'cannot exceed the observation duration',
       ],
-    ];
-    for (const [env, message] of invalidCases) {
-      expect(() => loadSoakConfig(env)).toThrow(message);
-    }
+    ]);
   });
 
   it('measures independent network throughput, health, lag, metadata, memory, and CPU', async () => {
@@ -265,6 +307,44 @@ describe('multi-network soak acceptance', () => {
         passed: true,
       }),
     ]);
+  });
+
+  it('measures evidence from the complete observation window despite scrape latency', async () => {
+    const report = await runSoakObservation(createConfig(), createInitialLatencyDependencies());
+
+    expect(report.targets.every(({ observedSeconds }) => observedSeconds === 60)).toBe(true);
+    expect(
+      report.targets.every(({ failures }) =>
+        failures.every((value) => !value.includes('evidence minimum')),
+      ),
+    ).toBe(true);
+  });
+
+  it('calculates indexer and worker CPU rates independently across one process restart', async () => {
+    const config = createConfig();
+    const firstTarget = config.targets[0];
+    if (firstTarget == null) throw new Error('fixture target is missing');
+    config.targets = [{ ...firstTarget, maximumCpuCores: 2.1 }, ...config.targets.slice(1)];
+    const dependencies = createDependencies();
+    const fetchText = dependencies.fetchText;
+    const calls = new Map<string, number>();
+    dependencies.fetchText = async (url, timeoutMs): Promise<string> => {
+      const body = await fetchText(url, timeoutMs);
+      if (!url.includes('lukso')) return body;
+      const call = calls.get(url) ?? 0;
+      calls.set(url, call + 1);
+      const counters = url.includes('metadata') ? [200, 230, 260] : [100, 130, 1];
+      return body.replace(
+        /process_cpu_seconds_total [^\s]+/,
+        `process_cpu_seconds_total ${counters[call] ?? counters.at(-1)}`,
+      );
+    };
+
+    const report = await runSoakObservation(config, dependencies);
+    const lukso = report.targets.find(({ network }) => network === 'lukso-mainnet');
+
+    expect(lukso?.cpuCoresP95).toBe(2);
+    expect(lukso?.passed).toBe(true);
   });
 
   it('fails only the network whose endpoint cannot be scraped', async () => {
