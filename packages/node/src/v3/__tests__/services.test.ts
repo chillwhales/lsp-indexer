@@ -179,20 +179,29 @@ describe('familiar v3 detail and list services', () => {
     await fetchProfiles(URL, { network: NETWORK, filter: { name: 'Alice' } });
     await fetchDigitalAssets(URL, { network: NETWORK, filter: { category: 'Collectible' } });
     await fetchNfts(URL, { network: NETWORK, filter: { name: 'NFT' } });
-    await fetchOwnedAssets(URL, { network: NETWORK, filter: { holderName: 'Alice' } });
+    await fetchOwnedAssets(URL, {
+      network: NETWORK,
+      filter: { holderName: 'Alice', assetName: 'Token' },
+    });
     await fetchOwnedTokens(URL, {
       network: NETWORK,
-      filter: { holderName: 'Alice', tokenName: 'NFT' },
+      filter: { holderName: 'Alice', assetName: 'Token', tokenName: 'NFT' },
     });
     await fetchFollows(URL, {
       network: NETWORK,
       filter: { followerName: 'Alice', followedName: 'Bob' },
     });
-    await fetchCreators(URL, { network: NETWORK, filter: { creatorName: 'Alice' } });
-    await fetchIssuedAssets(URL, { network: NETWORK, filter: { issuerName: 'Alice' } });
+    await fetchCreators(URL, {
+      network: NETWORK,
+      filter: { creatorName: 'Alice', digitalAssetName: 'Token' },
+    });
+    await fetchIssuedAssets(URL, {
+      network: NETWORK,
+      filter: { issuerName: 'Alice', digitalAssetName: 'Token' },
+    });
     await fetchDataChangedEvents(URL, {
       network: NETWORK,
-      filter: { universalProfileName: 'Alice' },
+      filter: { universalProfileName: 'Alice', digitalAssetName: 'Token' },
     });
     await fetchEncryptedAssets(URL, {
       network: NETWORK,
@@ -202,7 +211,7 @@ describe('familiar v3 detail and list services', () => {
     const metadataFilters = executeMock.mock.calls.flatMap((call) =>
       collectMetadataFilters(call[2]),
     );
-    expect(metadataFilters).toHaveLength(16);
+    expect(metadataFilters).toHaveLength(21);
     for (const metadataFilter of metadataFilters) {
       expect(metadataFilter).toEqual(expect.objectContaining({ is_current: { _eq: true } }));
     }
@@ -238,6 +247,55 @@ describe('familiar v3 detail and list services', () => {
                     kind: { _eq: 'lsp4_token' },
                     data_key: { _eq: LSP8_METADATA_BASE_URI_DATA_KEY },
                     content: { _contains: { LSP4Metadata: { name: 'Direct metadata' } } },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('matches digital-asset text filters against projection values before metadata fallback', async () => {
+    await fetchDigitalAssets(URL, {
+      network: NETWORK,
+      filter: { name: 'Metadata name', symbol: 'META' },
+    });
+
+    const variables = executeMock.mock.calls[0]?.[2];
+    const where = isUnknownRecord(variables) ? variables.where : undefined;
+    expect(where).toEqual({
+      _and: [
+        { network: { _eq: NETWORK } },
+        {
+          _or: [
+            { name: { _eq: 'Metadata name' } },
+            {
+              _and: [
+                { name: { _is_null: true } },
+                {
+                  metadataRevisions: {
+                    is_current: { _eq: true },
+                    kind: { _eq: 'lsp4_asset' },
+                    content: { _contains: { LSP4Metadata: { name: 'Metadata name' } } },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          _or: [
+            { symbol: { _eq: 'META' } },
+            {
+              _and: [
+                { symbol: { _is_null: true } },
+                {
+                  metadataRevisions: {
+                    is_current: { _eq: true },
+                    kind: { _eq: 'lsp4_asset' },
+                    content: { _contains: { LSP4Metadata: { symbol: 'META' } } },
                   },
                 },
               ],
@@ -653,6 +711,121 @@ describe('familiar v3 event and metadata services', () => {
 });
 
 describe('familiar v3 validation and subscription configs', () => {
+  const emptyAddressCases: Array<[string, () => Promise<unknown>]> = [
+    [
+      'profile followedBy',
+      () => fetchProfiles(URL, { network: NETWORK, filter: { followedBy: '' } }),
+    ],
+    [
+      'profile following',
+      () => fetchProfiles(URL, { network: NETWORK, filter: { following: '' } }),
+    ],
+    [
+      'profile token ownership',
+      () =>
+        fetchProfiles(URL, {
+          network: NETWORK,
+          filter: { tokenOwned: { address: '' } },
+        }),
+    ],
+    [
+      'asset owner',
+      () => fetchDigitalAssets(URL, { network: NETWORK, filter: { ownerAddress: '' } }),
+    ],
+    [
+      'asset holder',
+      () => fetchDigitalAssets(URL, { network: NETWORK, filter: { holderAddress: '' } }),
+    ],
+    [
+      'NFT collection',
+      () => fetchNfts(URL, { network: NETWORK, filter: { collectionAddress: '' } }),
+    ],
+    ['NFT holder', () => fetchNfts(URL, { network: NETWORK, filter: { holderAddress: '' } })],
+    [
+      'owned-asset holder',
+      () => fetchOwnedAssets(URL, { network: NETWORK, filter: { holderAddress: '' } }),
+    ],
+    [
+      'owned-asset contract',
+      () => fetchOwnedAssets(URL, { network: NETWORK, filter: { digitalAssetAddress: '' } }),
+    ],
+    [
+      'owned-token holder',
+      () => fetchOwnedTokens(URL, { network: NETWORK, filter: { holderAddress: '' } }),
+    ],
+    [
+      'owned-token contract',
+      () => fetchOwnedTokens(URL, { network: NETWORK, filter: { digitalAssetAddress: '' } }),
+    ],
+    [
+      'follower source',
+      () => fetchFollows(URL, { network: NETWORK, filter: { followerAddress: '' } }),
+    ],
+    [
+      'follower target',
+      () => fetchFollows(URL, { network: NETWORK, filter: { followedAddress: '' } }),
+    ],
+    ['creator', () => fetchCreators(URL, { network: NETWORK, filter: { creatorAddress: '' } })],
+    [
+      'created asset',
+      () => fetchCreators(URL, { network: NETWORK, filter: { digitalAssetAddress: '' } }),
+    ],
+    ['issuer', () => fetchIssuedAssets(URL, { network: NETWORK, filter: { issuerAddress: '' } })],
+    [
+      'issued asset',
+      () => fetchIssuedAssets(URL, { network: NETWORK, filter: { assetAddress: '' } }),
+    ],
+    [
+      'data-changed emitter',
+      () => fetchDataChangedEvents(URL, { network: NETWORK, filter: { address: '' } }),
+    ],
+    [
+      'receiver',
+      () => fetchUniversalReceiverEvents(URL, { network: NETWORK, filter: { address: '' } }),
+    ],
+    [
+      'receiver sender',
+      () => fetchUniversalReceiverEvents(URL, { network: NETWORK, filter: { from: '' } }),
+    ],
+    [
+      'encrypted-asset profile',
+      () => fetchEncryptedAssets(URL, { network: NETWORK, filter: { address: '' } }),
+    ],
+  ];
+
+  it.each(emptyAddressCases)(
+    'rejects an empty %s address filter',
+    async (_name, request): Promise<void> => {
+      await expect(request()).rejects.toMatchObject({
+        category: 'VALIDATION',
+        code: 'VALIDATION_FAILED',
+      });
+    },
+  );
+
+  it('rejects empty canonical hashes instead of dropping their filters', async () => {
+    const requests: Array<() => Promise<unknown>> = [
+      () =>
+        fetchProfiles(URL, {
+          network: NETWORK,
+          filter: { tokenOwned: { address: ADDRESS, tokenId: '' } },
+        }),
+      () => fetchNfts(URL, { network: NETWORK, filter: { tokenId: '' } }),
+      () => fetchNft(URL, { network: NETWORK, address: ADDRESS, tokenId: '' }),
+      () => fetchOwnedTokens(URL, { network: NETWORK, filter: { tokenId: '' } }),
+      () => fetchDataChangedEvents(URL, { network: NETWORK, filter: { dataKey: '' } }),
+      () => fetchTokenIdDataChangedEvents(URL, { network: NETWORK, filter: { tokenId: '' } }),
+      () => fetchUniversalReceiverEvents(URL, { network: NETWORK, filter: { typeId: '' } }),
+    ];
+
+    for (const request of requests) {
+      await expect(request()).rejects.toMatchObject({
+        category: 'VALIDATION',
+        code: 'VALIDATION_FAILED',
+      });
+    }
+  });
+
   it('rejects inputs that cannot be represented faithfully by the v3 API', async () => {
     await expect(
       fetchProfile(URL, { network: NETWORK, address: 'not-an-address' }),

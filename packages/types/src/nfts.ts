@@ -314,14 +314,14 @@ type ResolveNftCollection<I> = I extends { collection: infer C }
  * When `include` has `holder` as a `ProfileInclude` object, the holder field is
  * present with narrowed profile fields + `timestamp`. Otherwise, it's absent from the type.
  *
- * NftHolder = Profile & { timestamp: string }, so the holder type is:
- * `(ProfileResult<H> & { timestamp: string }) | null`
+ * `NftHolder = Profile & { timestamp: string | null }`, so the holder type is:
+ * `(ProfileResult<H> & { timestamp: string | null }) | null`
  */
 type ResolveNftHolder<I> = I extends { holder: infer H }
   ? H extends true
     ? { holder: NftHolder | null }
     : H extends ProfileInclude
-      ? { holder: (ProfileResult<H> & { timestamp: string }) | null }
+      ? { holder: (ProfileResult<H> & { timestamp: string | null }) | null }
       : {}
   : {};
 

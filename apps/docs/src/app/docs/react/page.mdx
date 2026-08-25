@@ -454,6 +454,8 @@ All NFT include fields: `formattedTokenId`, `name`, `description`, `category`, `
 `links`, `attributes`, `timestamp`, `blockNumber`, `transactionIndex`, `logIndex`, `score`, `rank`,
 `chillClaimed`, `orbsClaimed`, `level`, `cooldownExpiry`, `faction`. Relations: `collection`
 (accepts `boolean | DigitalAssetInclude`), `holder` (accepts `boolean | ProfileInclude`).
+Nested holder includes retain `timestamp: string | null`; v3 currently returns `null` because the
+read model has no acquisition timestamp.
 
 ---
 
@@ -484,9 +486,12 @@ const { digitalAssets } = useDigitalAssets({
 ```
 
 Familiar v3 text filters use exact, case-sensitive matching. Hexadecimal addresses and canonical
-hashes are validated and normalized before querying. Sort supports `asc`/`desc` direction and
-`first`/`last` null positioning; compatibility-only sort fields that v3 cannot represent fail with
-`VALIDATION_FAILED` rather than being ignored.
+hashes are validated and normalized before querying, and supplied empty hexadecimal values fail
+validation rather than disabling the filter. Digital-asset `name` and `symbol` filters use the
+projection value first and current LSP4 metadata only when that projection field is null, matching
+the returned record. Sort supports `asc`/`desc` direction and `first`/`last` null positioning;
+compatibility-only sort fields that v3 cannot represent fail with `VALIDATION_FAILED` rather than
+being ignored.
 
 ### NFT Filters and Sorting
 

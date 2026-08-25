@@ -378,6 +378,27 @@ function currentMetadataFilter(
   };
 }
 
+function digitalAssetTextCondition(
+  field: 'name' | 'symbol',
+  value: string,
+): Record<string, unknown> {
+  return {
+    _or: [
+      { [field]: { _eq: value } },
+      {
+        _and: [
+          { [field]: { _is_null: true } },
+          {
+            metadataRevisions: currentMetadataFilter('lsp4_asset', {
+              LSP4Metadata: { [field]: value },
+            }),
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function currentTokenMetadataSource(
   dataKey: string,
   content?: Record<string, unknown>,
@@ -412,14 +433,14 @@ function currentNftMetadataCondition(content: Record<string, unknown>): Record<s
 function profileVariables(params: UseProfilesParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.name) {
+  if (params.filter?.name != null) {
     conditions.push({
       metadataRevisions: currentMetadataFilter('lsp3_profile', {
         LSP3Profile: { name: params.filter.name },
       }),
     });
   }
-  if (params.filter?.followedBy) {
+  if (params.filter?.followedBy != null) {
     conditions.push({
       followedBy: {
         follower_address: { _eq: address(params.filter.followedBy) },
@@ -427,7 +448,7 @@ function profileVariables(params: UseProfilesParams): Record<string, unknown> {
       },
     });
   }
-  if (params.filter?.following) {
+  if (params.filter?.following != null) {
     conditions.push({
       followed: {
         followed_address: { _eq: address(params.filter.following) },
@@ -438,7 +459,7 @@ function profileVariables(params: UseProfilesParams): Record<string, unknown> {
   if (params.filter?.tokenOwned) {
     const owned = params.filter.tokenOwned;
     conditions.push(
-      owned.tokenId
+      owned.tokenId != null
         ? {
             ownedTokens: {
               asset_address: { _eq: address(owned.address) },
@@ -509,14 +530,18 @@ function tokenTypeValue(value: DigitalAssetFilter['tokenType']): number | undefi
 function digitalAssetVariables(params: UseDigitalAssetsParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.name) filter.name = { eq: params.filter.name };
-  if (params.filter?.symbol) filter.symbol = { eq: params.filter.symbol };
+  if (params.filter?.name != null) {
+    conditions.push(digitalAssetTextCondition('name', params.filter.name));
+  }
+  if (params.filter?.symbol != null) {
+    conditions.push(digitalAssetTextCondition('symbol', params.filter.symbol));
+  }
   const tokenType = tokenTypeValue(params.filter?.tokenType);
   if (tokenType != null) filter.tokenType = { eq: tokenType };
-  if (params.filter?.ownerAddress) {
+  if (params.filter?.ownerAddress != null) {
     filter.ownerAddress = { eq: address(params.filter.ownerAddress) };
   }
-  if (params.filter?.holderAddress) {
+  if (params.filter?.holderAddress != null) {
     conditions.push({
       ownedAssets: {
         owner_address: { _eq: address(params.filter.holderAddress) },
@@ -524,7 +549,7 @@ function digitalAssetVariables(params: UseDigitalAssetsParams): Record<string, u
       },
     });
   }
-  if (params.filter?.category) {
+  if (params.filter?.category != null) {
     conditions.push({
       metadataRevisions: currentMetadataFilter('lsp4_asset', {
         LSP4Metadata: { category: params.filter.category },
@@ -601,21 +626,21 @@ export async function fetchDigitalAssets<
 function nftVariables(params: UseNftsParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.collectionAddress) {
+  if (params.filter?.collectionAddress != null) {
     filter.address = { eq: address(params.filter.collectionAddress) };
   }
-  if (params.filter?.tokenId) {
+  if (params.filter?.tokenId != null) {
     filter.tokenId = { eq: hash(params.filter.tokenId, 'filter.tokenId') };
   }
-  if (params.filter?.formattedTokenId) {
+  if (params.filter?.formattedTokenId != null) {
     filter.formattedTokenId = { eq: params.filter.formattedTokenId };
   }
-  if (params.filter?.holderAddress) {
+  if (params.filter?.holderAddress != null) {
     filter.ownerAddress = { eq: address(params.filter.holderAddress) };
   }
   if (params.filter?.isBurned != null) filter.isBurned = { eq: params.filter.isBurned };
   if (params.filter?.isMinted != null) filter.isMinted = { eq: params.filter.isMinted };
-  if (params.filter?.name) {
+  if (params.filter?.name != null) {
     conditions.push(
       currentNftMetadataCondition({
         LSP4Metadata: { name: params.filter.name },
@@ -677,8 +702,8 @@ export async function fetchNft<const I extends NftInclude | undefined = undefine
     );
   }
   const filter: PackageFilter = { address: { eq: address(params.address) } };
-  if (params.tokenId) filter.tokenId = { eq: hash(params.tokenId, 'tokenId') };
-  if (params.formattedTokenId) filter.formattedTokenId = { eq: params.formattedTokenId };
+  if (params.tokenId != null) filter.tokenId = { eq: hash(params.tokenId, 'tokenId') };
+  if (params.formattedTokenId != null) filter.formattedTokenId = { eq: params.formattedTokenId };
   const variables = baseVariables(
     'nfts',
     { network: params.network, limit: 1 },
@@ -737,13 +762,13 @@ function ownershipSort(
 function ownedAssetVariables(params: UseOwnedAssetsParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.holderAddress) {
+  if (params.filter?.holderAddress != null) {
     filter.ownerAddress = { eq: address(params.filter.holderAddress) };
   }
-  if (params.filter?.digitalAssetAddress) {
+  if (params.filter?.digitalAssetAddress != null) {
     filter.assetAddress = { eq: address(params.filter.digitalAssetAddress) };
   }
-  if (params.filter?.holderName) {
+  if (params.filter?.holderName != null) {
     conditions.push({
       universalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -752,9 +777,9 @@ function ownedAssetVariables(params: UseOwnedAssetsParams): Record<string, unkno
       },
     });
   }
-  if (params.filter?.assetName) {
+  if (params.filter?.assetName != null) {
     conditions.push({
-      digitalAsset: { name: { _eq: params.filter.assetName } },
+      digitalAsset: digitalAssetTextCondition('name', params.filter.assetName),
     });
   }
   return addConditions(
@@ -797,16 +822,16 @@ export async function fetchOwnedAssets<const I extends OwnedAssetInclude | undef
 function ownedTokenVariables(params: UseOwnedTokensParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.holderAddress) {
+  if (params.filter?.holderAddress != null) {
     filter.ownerAddress = { eq: address(params.filter.holderAddress) };
   }
-  if (params.filter?.digitalAssetAddress) {
+  if (params.filter?.digitalAssetAddress != null) {
     filter.assetAddress = { eq: address(params.filter.digitalAssetAddress) };
   }
-  if (params.filter?.tokenId) {
+  if (params.filter?.tokenId != null) {
     filter.tokenId = { eq: hash(params.filter.tokenId, 'filter.tokenId') };
   }
-  if (params.filter?.holderName) {
+  if (params.filter?.holderName != null) {
     conditions.push({
       universalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -815,10 +840,12 @@ function ownedTokenVariables(params: UseOwnedTokensParams): Record<string, unkno
       },
     });
   }
-  if (params.filter?.assetName) {
-    conditions.push({ digitalAsset: { name: { _eq: params.filter.assetName } } });
+  if (params.filter?.assetName != null) {
+    conditions.push({
+      digitalAsset: digitalAssetTextCondition('name', params.filter.assetName),
+    });
   }
-  if (params.filter?.tokenName) {
+  if (params.filter?.tokenName != null) {
     conditions.push({
       nft: currentNftMetadataCondition({
         LSP4Metadata: { name: params.filter.tokenName },
@@ -865,10 +892,10 @@ export async function fetchOwnedTokens<const I extends OwnedTokenInclude | undef
 function followerVariables(params: UseFollowsParams): Record<string, unknown> {
   const filter: PackageFilter = { isFollowing: { eq: true } };
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.followerAddress) {
+  if (params.filter?.followerAddress != null) {
     filter.followerAddress = { eq: address(params.filter.followerAddress) };
   }
-  if (params.filter?.followedAddress) {
+  if (params.filter?.followedAddress != null) {
     filter.followedAddress = { eq: address(params.filter.followedAddress) };
   }
   if (params.filter?.timestampFrom != null || params.filter?.timestampTo != null) {
@@ -883,7 +910,7 @@ function followerVariables(params: UseFollowsParams): Record<string, unknown> {
           : normalizeTimestampFilter(params.filter.timestampTo),
     };
   }
-  if (params.filter?.followerName) {
+  if (params.filter?.followerName != null) {
     conditions.push({
       followerUniversalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -892,7 +919,7 @@ function followerVariables(params: UseFollowsParams): Record<string, unknown> {
       },
     });
   }
-  if (params.filter?.followedName) {
+  if (params.filter?.followedName != null) {
     conditions.push({
       followedUniversalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -1040,17 +1067,17 @@ export async function fetchIsFollowingBatch(
 function creatorVariables(params: UseCreatorsParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.creatorAddress) {
+  if (params.filter?.creatorAddress != null) {
     filter.creatorAddress = { eq: address(params.filter.creatorAddress) };
   }
-  if (params.filter?.digitalAssetAddress) {
+  if (params.filter?.digitalAssetAddress != null) {
     filter.assetAddress = { eq: address(params.filter.digitalAssetAddress) };
   }
-  if (params.filter?.interfaceId) filter.interfaceId = { eq: params.filter.interfaceId };
+  if (params.filter?.interfaceId != null) filter.interfaceId = { eq: params.filter.interfaceId };
   if (params.filter?.timestampFrom != null || params.filter?.timestampTo != null) {
     unsupportedFeature('creators', 'filter.timestamp', 'Creator timestamp filtering');
   }
-  if (params.filter?.creatorName) {
+  if (params.filter?.creatorName != null) {
     conditions.push({
       creatorProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -1059,8 +1086,10 @@ function creatorVariables(params: UseCreatorsParams): Record<string, unknown> {
       },
     });
   }
-  if (params.filter?.digitalAssetName) {
-    conditions.push({ digitalAsset: { name: { _eq: params.filter.digitalAssetName } } });
+  if (params.filter?.digitalAssetName != null) {
+    conditions.push({
+      digitalAsset: digitalAssetTextCondition('name', params.filter.digitalAssetName),
+    });
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
@@ -1115,17 +1144,17 @@ export async function fetchCreators<const I extends CreatorInclude | undefined =
 function issuedAssetVariables(params: UseIssuedAssetsParams): Record<string, unknown> {
   const filter: PackageFilter = {};
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.issuerAddress) {
+  if (params.filter?.issuerAddress != null) {
     filter.issuerAddress = { eq: address(params.filter.issuerAddress) };
   }
-  if (params.filter?.assetAddress) {
+  if (params.filter?.assetAddress != null) {
     filter.assetAddress = { eq: address(params.filter.assetAddress) };
   }
-  if (params.filter?.interfaceId) filter.interfaceId = { eq: params.filter.interfaceId };
+  if (params.filter?.interfaceId != null) filter.interfaceId = { eq: params.filter.interfaceId };
   if (params.filter?.timestampFrom != null || params.filter?.timestampTo != null) {
     unsupportedFeature('issued assets', 'filter.timestamp', 'Issued-asset timestamp filtering');
   }
-  if (params.filter?.issuerName) {
+  if (params.filter?.issuerName != null) {
     conditions.push({
       universalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -1134,8 +1163,10 @@ function issuedAssetVariables(params: UseIssuedAssetsParams): Record<string, unk
       },
     });
   }
-  if (params.filter?.digitalAssetName) {
-    conditions.push({ digitalAsset: { name: { _eq: params.filter.digitalAssetName } } });
+  if (params.filter?.digitalAssetName != null) {
+    conditions.push({
+      digitalAsset: digitalAssetTextCondition('name', params.filter.digitalAssetName),
+    });
   }
   let sort: PackageSort[] | undefined;
   if (params.sort) {
@@ -1225,7 +1256,7 @@ function eventVariables(
 ): Record<string, unknown> {
   const direct: PackageFilter = { eventName: { eq: eventName } };
   const conditions: Record<string, unknown>[] = [{ decoded: { _is_null: false } }];
-  if (filter?.address) direct.address = { eq: address(filter.address) };
+  if (filter?.address != null) direct.address = { eq: address(filter.address) };
   if (filter?.blockNumberFrom != null || filter?.blockNumberTo != null) {
     direct.blockNumber = { gte: filter.blockNumberFrom, lte: filter.blockNumberTo };
   }
@@ -1247,16 +1278,16 @@ function eventVariables(
     const dataKey =
       dataFilter.dataKey ??
       (dataFilter.dataKeyName == null ? undefined : resolveDataKeyHex(dataFilter.dataKeyName));
-    if (dataKey) {
+    if (dataKey != null) {
       conditions.push({ decoded: { _contains: { dataKey: hash(dataKey, 'filter.dataKey') } } });
     }
   }
-  if ('tokenId' in (filter ?? {}) && filter && 'tokenId' in filter && filter.tokenId) {
+  if (filter && 'tokenId' in filter && filter.tokenId != null) {
     conditions.push({
       decoded: { _contains: { tokenId: hash(filter.tokenId, 'filter.tokenId') } },
     });
   }
-  if ('from' in (filter ?? {}) && filter && 'from' in filter && filter.from) {
+  if (filter && 'from' in filter && filter.from != null) {
     conditions.push({ decoded: { _contains: { from: address(filter.from) } } });
   }
   if ('typeId' in (filter ?? {}) || 'typeIdName' in (filter ?? {})) {
@@ -1264,11 +1295,11 @@ function eventVariables(
     const typeId =
       receiverFilter.typeId ??
       (receiverFilter.typeIdName == null ? undefined : resolveTypeIdHex(receiverFilter.typeIdName));
-    if (typeId) {
+    if (typeId != null) {
       conditions.push({ decoded: { _contains: { typeId: hash(typeId, 'filter.typeId') } } });
     }
   }
-  if (filter && 'universalProfileName' in filter && filter.universalProfileName) {
+  if (filter && 'universalProfileName' in filter && filter.universalProfileName != null) {
     conditions.push({
       universalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {
@@ -1277,20 +1308,22 @@ function eventVariables(
       },
     });
   }
-  if (filter && 'digitalAssetName' in filter && filter.digitalAssetName) {
-    conditions.push({ digitalAsset: { name: { _eq: filter.digitalAssetName } } });
+  if (filter && 'digitalAssetName' in filter && filter.digitalAssetName != null) {
+    conditions.push({
+      digitalAsset: digitalAssetTextCondition('name', filter.digitalAssetName),
+    });
   }
-  if (filter && 'nftName' in filter && filter.nftName) {
+  if (filter && 'nftName' in filter && filter.nftName != null) {
     unsupportedFeature('token ID data changed events', 'filter.nftName', 'NFT name filtering');
   }
-  if (filter && 'fromProfileName' in filter && filter.fromProfileName) {
+  if (filter && 'fromProfileName' in filter && filter.fromProfileName != null) {
     unsupportedFeature(
       'universal receiver events',
       'filter.fromProfileName',
       'Sender profile name filtering',
     );
   }
-  if (filter && 'fromAssetName' in filter && filter.fromAssetName) {
+  if (filter && 'fromAssetName' in filter && filter.fromAssetName != null) {
     unsupportedFeature(
       'universal receiver events',
       'filter.fromAssetName',
@@ -1408,17 +1441,17 @@ export async function fetchUniversalReceiverEvents<
 function encryptedAssetVariables(params: UseEncryptedAssetsParams): Record<string, unknown> {
   const filter: PackageFilter = { kind: { eq: 'lsp29_encrypted_asset' } };
   const conditions: Record<string, unknown>[] = [];
-  if (params.filter?.address) filter.address = { eq: address(params.filter.address) };
+  if (params.filter?.address != null) filter.address = { eq: address(params.filter.address) };
   if (params.filter?.timestamp != null) {
     filter.fetchedAt = { gte: normalizeTimestampFilter(params.filter.timestamp) };
   }
   const encrypted: Record<string, unknown> = {};
-  if (params.filter?.contentId) encrypted.id = params.filter.contentId;
+  if (params.filter?.contentId != null) encrypted.id = params.filter.contentId;
   if (params.filter?.revision != null) encrypted.revision = params.filter.revision;
-  if (params.filter?.encryptionMethod) {
+  if (params.filter?.encryptionMethod != null) {
     encrypted.encryption = { method: params.filter.encryptionMethod };
   }
-  if (params.filter?.fileType) encrypted.file = { type: params.filter.fileType };
+  if (params.filter?.fileType != null) encrypted.file = { type: params.filter.fileType };
   if (params.filter?.fileSize != null) {
     unsupportedFeature(
       'encrypted assets',
@@ -1429,7 +1462,7 @@ function encryptedAssetVariables(params: UseEncryptedAssetsParams): Record<strin
   if (Object.keys(encrypted).length > 0) {
     conditions.push({ content: { _contains: { LSP29EncryptedAsset: encrypted } } });
   }
-  if (params.filter?.universalProfileName) {
+  if (params.filter?.universalProfileName != null) {
     conditions.push({
       universalProfile: {
         metadataRevisions: currentMetadataFilter('lsp3_profile', {

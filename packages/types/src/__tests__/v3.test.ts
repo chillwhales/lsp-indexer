@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import {
   AddressSchema,
@@ -25,6 +25,7 @@ import {
   V3OwnedAssetSchema,
   V3OwnedTokenSchema,
   V3UniversalProfileSchema,
+  type NftResult,
 } from '../index';
 
 const ADDRESS = `0x${'11'.repeat(20)}`;
@@ -299,6 +300,12 @@ describe('@lsp-indexer/types v3', () => {
     expect(
       V3UniversalProfileSchema.safeParse({ ...fixtures[2]?.value, chainId: null }).success,
     ).toBe(false);
+  });
+
+  it('preserves nullable timestamps on nested NFT holder includes', () => {
+    type IncludedHolder = NonNullable<NftResult<{ holder: { name: true } }>['holder']>;
+
+    expectTypeOf<IncludedHolder['timestamp']>().toEqualTypeOf<string | null>();
   });
 
   it('rejects lossy safe-integer provenance and scalar values', () => {

@@ -159,10 +159,12 @@ for the exact disposition.
 
 Familiar text filters use exact, case-sensitive matching in v3. Address, token ID, data-key, and
 type-ID inputs are validated and normalized before querying. This replaces v2's substring `_ilike`
-behavior and prevents malformed hexadecimal input from silently broadening a request. Familiar
-name and category filters also require the related metadata revision's `isCurrent` marker, so an
-immutable superseded revision cannot match current profile, asset, NFT, holder, issuer, creator, or
-event results.
+behavior and prevents malformed or empty hexadecimal input from silently broadening a request.
+Digital-asset name and symbol filters match the projection value first, then current LSP4 metadata
+only when the projection field is null—the same precedence used in returned records. Familiar name
+and category filters also require the related metadata revision's `isCurrent` marker, so an immutable
+superseded revision cannot match current profile, asset, NFT, holder, issuer, creator, or event
+results.
 
 NFT results, name filters, and collection attribute facets use only current token metadata. When
 both direct LSP4 metadata and base-URI-derived metadata are available, direct metadata takes
@@ -172,7 +174,8 @@ Some nullable compatibility fields have no v3.0 read-model source and therefore 
 including projection `timestamp` values, digital-asset `owner`, NFT `score`/`rank`, token-event
 `nft`, universal-receiver sender relations, and encrypted-asset `arrayIndex`. The migration guide
 contains the complete field disposition; use canonical `lastBlock*`/`lastTransaction*` provenance
-instead of inferring missing values.
+instead of inferring missing values. A nested NFT holder include preserves `timestamp: string | null`
+and currently returns `null` rather than claiming a non-null acquisition timestamp.
 
 ## Subscriptions
 
