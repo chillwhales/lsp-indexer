@@ -114,6 +114,15 @@ function isUnknownRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function containsDecodedNonNullCondition(value: unknown): boolean {
+  if (isUnknownArray(value)) return value.some(containsDecodedNonNullCondition);
+  if (!isUnknownRecord(value)) return false;
+
+  const decoded = value.decoded;
+  if (isUnknownRecord(decoded) && decoded._is_null === false) return true;
+  return Object.values(value).some(containsDecodedNonNullCondition);
+}
+
 function queryResponse(_url: unknown, document: unknown, variables: unknown): Promise<unknown> {
   const source = String(document);
   const input = JSON.stringify(variables);
@@ -409,6 +418,25 @@ describe('familiar v3 detail and list services', () => {
 });
 
 describe('familiar v3 event and metadata services', () => {
+  it('excludes malformed decoded rows from every familiar event query and subscription', async () => {
+    await fetchDataChangedEvents(URL, { network: NETWORK });
+    await fetchLatestDataChangedEvent(URL, { network: NETWORK });
+    await fetchTokenIdDataChangedEvents(URL, { network: NETWORK });
+    await fetchLatestTokenIdDataChangedEvent(URL, { network: NETWORK });
+    await fetchUniversalReceiverEvents(URL, { network: NETWORK });
+
+    const queryVariables = executeMock.mock.calls.map((call) => call[2]);
+    const subscriptionVariables = [
+      buildDataChangedEventSubscriptionConfig({ network: NETWORK }).variables,
+      buildTokenIdDataChangedEventSubscriptionConfig({ network: NETWORK }).variables,
+      buildUniversalReceiverEventSubscriptionConfig({ network: NETWORK }).variables,
+    ];
+
+    for (const variables of [...queryVariables, ...subscriptionVariables]) {
+      expect(containsDecodedNonNullCondition(variables)).toBe(true);
+    }
+  });
+
   it('queries data-changed histories and latest records', async () => {
     const params = {
       network: NETWORK,
@@ -662,5 +690,12 @@ describe('familiar v3 validation and subscription configs', () => {
       expect(config.variables).toHaveProperty('where._and.0.network._eq', NETWORK);
       expect(config.parser(config.extract({ items: [row] }))).toHaveLength(1);
     }
+
+    expect(buildProfileSubscriptionConfig({ network: NETWORK }).document).toBe(
+      buildProfileSubscriptionConfig({ network: NETWORK }).document,
+    );
+    expect(buildDataChangedEventSubscriptionConfig({ network: NETWORK }).document).toBe(
+      buildUniversalReceiverEventSubscriptionConfig({ network: NETWORK }).document,
+    );
   });
 });

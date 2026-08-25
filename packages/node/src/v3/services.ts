@@ -1193,7 +1193,7 @@ function eventVariables(
   sort: DataChangedEventSort | TokenIdDataChangedEventSort | UniversalReceiverEventSort | undefined,
 ): Record<string, unknown> {
   const direct: PackageFilter = { eventName: { eq: eventName } };
-  const conditions: Record<string, unknown>[] = [];
+  const conditions: Record<string, unknown>[] = [{ decoded: { _is_null: false } }];
   if (filter?.address) direct.address = { eq: address(filter.address) };
   if (filter?.blockNumberFrom != null || filter?.blockNumberTo != null) {
     direct.blockNumber = { gte: filter.blockNumberFrom, lte: filter.blockNumberTo };
@@ -1702,15 +1702,34 @@ type RichSubscriptionParams<Filter, Sort, Include> = {
   include?: Include;
 };
 
+type SubscriptionDocumentSource = object & { toString(): string };
+
+const richSubscriptionDocuments = new WeakMap<
+  SubscriptionDocumentSource,
+  TypedDocumentString<RichSubscriptionEnvelope, Record<string, unknown>>
+>();
+
+function richSubscriptionDocument(
+  source: SubscriptionDocumentSource,
+): TypedDocumentString<RichSubscriptionEnvelope, Record<string, unknown>> {
+  const cached = richSubscriptionDocuments.get(source);
+  if (cached) return cached;
+
+  const document = new RuntimeTypedDocumentString<
+    RichSubscriptionEnvelope,
+    Record<string, unknown>
+  >(source.toString());
+  richSubscriptionDocuments.set(source, document);
+  return document;
+}
+
 function richSubscriptionConfig<T>(
-  source: { toString(): string },
+  source: SubscriptionDocumentSource,
   variables: Record<string, unknown>,
   parser: (raw: unknown) => T,
 ): RichSubscriptionConfig<T> {
   return {
-    document: new RuntimeTypedDocumentString<RichSubscriptionEnvelope, Record<string, unknown>>(
-      source.toString(),
-    ),
+    document: richSubscriptionDocument(source),
     variables,
     extract(result) {
       return result.items;

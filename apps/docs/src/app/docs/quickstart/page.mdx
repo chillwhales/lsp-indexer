@@ -186,6 +186,10 @@ NEXT_PUBLIC_INDEXER_NETWORK=lukso-mainnet
 INDEXER_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
+When the server-only pair is omitted, server helpers and the docs playground fall back to
+`NEXT_PUBLIC_INDEXER_URL` and `NEXT_PUBLIC_INDEXER_NETWORK`. Set `INDEXER_URL` and
+`INDEXER_NETWORK` when the server should use a private endpoint or a different network.
+
 ### Both modes
 
 Set both HTTP variables to enable toggling between client and server mode:

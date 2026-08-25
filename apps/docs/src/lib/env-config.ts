@@ -37,9 +37,10 @@ export interface EnvAvailability {
 export function getEnvAvailability(): EnvAvailability {
   const clientNetwork = process.env.NEXT_PUBLIC_INDEXER_NETWORK ?? null;
   const serverNetwork = process.env.INDEXER_NETWORK ?? clientNetwork;
+  const serverUrl = process.env.INDEXER_URL ?? process.env.NEXT_PUBLIC_INDEXER_URL;
   return {
     hasClientUrl: Boolean(process.env.NEXT_PUBLIC_INDEXER_URL && clientNetwork),
-    hasServerUrl: Boolean(process.env.INDEXER_URL && serverNetwork),
+    hasServerUrl: Boolean(serverUrl && serverNetwork),
     clientNetwork,
     serverNetwork,
   };

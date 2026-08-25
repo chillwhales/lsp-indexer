@@ -57,7 +57,7 @@ export const V3ProfileFields = graphql(`
     lastTransactionIndex: last_transaction_index
     lastLogIndex: last_log_index
     metadataRevisions(
-      where: { kind: { _eq: lsp3_profile } }
+      where: { is_current: { _eq: true }, kind: { _eq: lsp3_profile } }
       order_by: [{ last_block_number: desc }, { chain_id: asc }, { id: asc }]
       limit: 1
     ) {
@@ -99,7 +99,7 @@ export const V3DigitalAssetFields = graphql(`
     lastTransactionIndex: last_transaction_index
     lastLogIndex: last_log_index
     metadataRevisions(
-      where: { kind: { _eq: lsp4_asset } }
+      where: { is_current: { _eq: true }, kind: { _eq: lsp4_asset } }
       order_by: [{ last_block_number: desc }, { chain_id: asc }, { id: asc }]
       limit: 1
     ) {
@@ -137,7 +137,7 @@ export const V3NftFields = graphql(`
     lastTransactionIndex: last_transaction_index
     lastLogIndex: last_log_index
     metadataRevisions(
-      where: { kind: { _eq: lsp4_token } }
+      where: { is_current: { _eq: true }, kind: { _eq: lsp4_token } }
       order_by: [{ last_block_number: desc }, { chain_id: asc }, { id: asc }]
       limit: 1
     ) {
