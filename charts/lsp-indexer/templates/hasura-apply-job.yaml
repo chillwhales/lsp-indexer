@@ -38,6 +38,20 @@ spec:
           command: [/bin/sh, -ec]
           args:
             - |
+              migration_deadline=$(( $(date +%s) + {{ .Values.indexer.migration.activeDeadlineSeconds }} ))
+              {{ range $network := .Values.indexer.networks }}
+              {{ if $network.enabled }}
+              until INDEXER_NETWORK={{ $network.key | quote }} \
+                {{ printf "DATABASE_URL=\"$DATABASE_URL_%s\"" ($network.key | upper | replace "-" "_") }} \
+                /app/entrypoint.sh check-database >/dev/null; do
+                if [ "$(date +%s)" -ge "$migration_deadline" ]; then
+                  echo "V3 database migration did not become ready for {{ $network.key }} before the deadline" >&2
+                  exit 1
+                fi
+                sleep 5
+              done
+              {{ end }}
+              {{ end }}
               elapsed=0
               until wget -q -T 2 -O /dev/null "${HASURA_GRAPHQL_ENDPOINT}/healthz"; do
                 if [ "$elapsed" -ge 180 ]; then
@@ -56,6 +70,15 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingSecret }}
                   key: {{ .Values.secrets.keys.hasuraAdminSecret }}
+            {{- range $network := .Values.indexer.networks }}
+            {{- if $network.enabled }}
+            - name: {{ printf "DATABASE_URL_%s" ($network.key | upper | replace "-" "_") }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.secrets.existingSecret }}
+                  key: {{ $network.databaseSecretKey }}
+            {{- end }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

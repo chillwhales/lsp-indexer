@@ -54,6 +54,12 @@ Review the diff for exactly one indexer and worker per enabled network, distinct
 alerts, dashboard, and runtime egress policy. Stop on an unexpected deletion, shared login, mutable
 image tag, missing network, or resource outside the v3 namespace.
 
+For Argo CD, verify the optional reflected object-store Secret is in sync wave `-3`, the CNPG
+Cluster is in wave `-2`, migration is in wave `-1`, and Hasura metadata is in wave `1`. Verify the
+ServiceMonitor writes `helm_release` and `kubernetes_namespace`, and every rendered alert rule is
+scoped to those labels. This prevents another namespace or shadow release from satisfying this
+release's missing-target rules.
+
 ## Apply and checkpoints
 
 ```bash
@@ -103,6 +109,9 @@ kubectl --context <cluster> --namespace <v3-namespace> logs \
 
 The job must report consistent v3 metadata. Query `indexed_head` for every enabled network through
 the internal shadow endpoint; confirm the public role has queries/subscriptions and no mutations.
+Its log must show no database-readiness timeout: the Helm hook checks every enabled runtime login
+before it polls Hasura, so a plain Helm install cannot apply metadata against a partially migrated
+catalog.
 
 Checkpoint 4 — operations:
 

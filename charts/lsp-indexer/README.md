@@ -17,8 +17,9 @@ TypeORM indexer.
   an invalid in-place patch.
 - Hasura uses the CNPG owner only for its metadata database. Its `v3` data source uses the separate,
   read-only URL in `HASURA_GRAPHQL_V3_DATABASE_URL`.
-- A post-install/post-upgrade Job waits for Hasura, replaces only the generated `v3` source, and
-  rejects inconsistent metadata.
+- A post-install/post-upgrade Job first proves every enabled network schema and runtime-role boundary
+  is migrated, then waits for Hasura, replaces only the generated `v3` source, and rejects
+  inconsistent metadata. This database gate also protects plain Helm installs that omit `--wait`.
 - Docs are served at the configured ingress root. Only `/v1/graphql` is routed to Hasura; the
   console, metadata API, and health endpoint remain internal.
 - The default `sha-operator-required` image tags are sentinels. A deployment overlay must select
@@ -63,7 +64,9 @@ database URL from this Secret.
 
 When object-store backups are enabled, `cnpg.backup.existingSecret` contains the keys selected by
 `accessKeyIdKey` and `secretAccessKeyKey`. The optional Reflector shell copies that Secret from the
-configured infrastructure namespace.
+configured infrastructure namespace. Under Argo CD, the reflected Secret is submitted in sync wave
+`-3`, before the CNPG Cluster in wave `-2`, so the referenced credential object exists before CNPG
+starts its instances.
 
 ## Production overlay
 
@@ -134,7 +137,10 @@ absence and lag, cursor drift, all-source stalls, source flapping, and old metad
 the committed PostgreSQL indexed head and Pipes cursor, so a processed-but-uncommitted batch never
 looks healthy. The dashboard shows both committed and diagnostic processed throughput plus
 per-process resident memory and CPU for every indexer and metadata worker. It expects the Prometheus
-Grafana datasource UID to be `prometheus`.
+Grafana datasource UID to be `prometheus`. ServiceMonitor relabeling stamps the Helm release and
+Kubernetes namespace onto every sample; each chart rule selects those labels, so a healthy shadow
+release cannot hide a missing target in another release. Source-switch alerts use counter-aware
+`increase()` arithmetic across pod restarts.
 
 The Prometheus Operator CRDs must exist before enabling monitoring. CNPG and ScheduledBackup CRDs
 must exist before enabling their resources.

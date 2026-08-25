@@ -24,6 +24,10 @@ spec:
           targetLabel: deployment_network
         - sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_component]
           targetLabel: component
+        - sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_instance]
+          targetLabel: helm_release
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: kubernetes_namespace
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -39,7 +43,7 @@ spec:
         {{- range $network := .Values.indexer.networks }}
         {{- if $network.enabled }}
         - alert: LspIndexerV3MetricsMissing
-          expr: absent(up{component="indexer", deployment_network={{ $network.key | quote }}}) or absent(up{component="metadata-worker", deployment_network={{ $network.key | quote }}})
+          expr: absent(up{component="indexer", deployment_network={{ $network.key | quote }}, helm_release={{ $.Release.Name | quote }}, kubernetes_namespace={{ $.Release.Namespace | quote }}}) or absent(up{component="metadata-worker", deployment_network={{ $network.key | quote }}, helm_release={{ $.Release.Name | quote }}, kubernetes_namespace={{ $.Release.Namespace | quote }}})
           for: 5m
           labels:
             severity: critical
@@ -49,7 +53,7 @@ spec:
         {{- end }}
         {{- end }}
         - alert: LspIndexerV3ProcessDown
-          expr: up{component=~"indexer|metadata-worker"} == 0
+          expr: up{component=~"indexer|metadata-worker", helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} == 0
           for: 5m
           labels:
             severity: critical
@@ -57,7 +61,7 @@ spec:
             summary: "LSP Indexer v3 {{`{{ $labels.component }}`}} is down"
             description: "No metrics scrape has succeeded for {{`{{ $labels.deployment_network }}`}} in five minutes."
         - alert: LspIndexerV3DatabaseUnavailable
-          expr: lsp_indexer_database_up == 0
+          expr: lsp_indexer_database_up{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} == 0
           for: 2m
           labels:
             severity: critical
@@ -65,7 +69,7 @@ spec:
             summary: "LSP Indexer v3 cannot read committed database state"
             description: "Database reads for {{`{{ $labels.network }}`}} have failed for two minutes."
         - alert: LspIndexerV3CommittedHeadMissing
-          expr: (lsp_indexer_database_up == 1) unless on (network, chain_id) lsp_indexer_indexed_block
+          expr: (lsp_indexer_database_up{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} == 1) unless on (network, chain_id, helm_release, kubernetes_namespace) lsp_indexer_indexed_block{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}}
           for: 5m
           labels:
             severity: critical
@@ -73,7 +77,7 @@ spec:
             summary: "LSP Indexer v3 has no committed head"
             description: "{{`{{ $labels.network }}`}} can read PostgreSQL but has not exposed a committed indexed head for five minutes."
         - alert: LspIndexerV3SourceUnavailable
-          expr: sqd_fallback_chain_stalled == 1
+          expr: sqd_fallback_chain_stalled{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} == 1
           for: 5m
           labels:
             severity: critical
@@ -83,7 +87,7 @@ spec:
     - name: lsp-indexer-v3.freshness
       rules:
         - alert: LspIndexerV3CommitLagHigh
-          expr: lsp_indexer_block_to_commit_lag_seconds > {{ .Values.monitoring.alerts.lagSeconds }}
+          expr: lsp_indexer_block_to_commit_lag_seconds{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} > {{ .Values.monitoring.alerts.lagSeconds }}
           for: 10m
           labels:
             severity: warning
@@ -91,7 +95,7 @@ spec:
             summary: "LSP Indexer v3 commit lag exceeds its budget"
             description: "{{`{{ $labels.network }}`}} has remained {{`{{ $value | humanizeDuration }}`}} behind wall clock."
         - alert: LspIndexerV3CursorDrift
-          expr: lsp_indexer_cursor_drift_blocks > 0
+          expr: lsp_indexer_cursor_drift_blocks{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} > 0
           for: 2m
           labels:
             severity: critical
@@ -99,7 +103,7 @@ spec:
             summary: "Pipes cursor and committed projection head differ"
             description: "{{`{{ $labels.network }}`}} has a durable cursor drift of {{`{{ $value }}`}} blocks."
         - alert: LspIndexerV3SourceSwitching
-          expr: delta(sqd_fallback_switches[15m]) > 3
+          expr: increase(sqd_fallback_switches{helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}}[15m]) > 3
           for: 5m
           labels:
             severity: warning
@@ -107,7 +111,7 @@ spec:
             summary: "LSP Indexer v3 sources are flapping"
             description: "Fallback stream {{`{{ $labels.id }}`}} switched sources more than three times in 15 minutes."
         - alert: LspIndexerV3MetadataBacklogOld
-          expr: lsp_indexer_metadata_oldest_age_seconds{status=~"pending|retry"} > {{ .Values.monitoring.alerts.metadataOldestAgeSeconds }}
+          expr: lsp_indexer_metadata_oldest_age_seconds{status=~"pending|retry", helm_release={{ .Release.Name | quote }}, kubernetes_namespace={{ .Release.Namespace | quote }}} > {{ .Values.monitoring.alerts.metadataOldestAgeSeconds }}
           for: 10m
           labels:
             severity: warning

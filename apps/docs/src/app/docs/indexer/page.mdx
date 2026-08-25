@@ -401,6 +401,13 @@ Portal metadata is unavailable or unusable; that process runs RPC-only instead o
 unverified Portal in its source list. Portal-only mode remains fail-closed.
 The Helm startup probe reserves three minutes for that preflight before readiness or liveness can
 restart or receive traffic from the pod.
+The Helm metadata hook independently checks the migrated schema and least-privilege runtime role for
+every enabled network before polling Hasura, so `helm install` does not race metadata application
+against the migration Job even without `--wait`. In Argo CD, an optional reflected backup Secret is
+created in wave `-3`, before the CNPG Cluster in wave `-2`. Prometheus samples carry Helm-release and
+Kubernetes-namespace labels, and every chart alert is scoped to them; a healthy shadow release
+cannot conceal a missing target in another release. Source-switch alerts use restart-safe counter
+increases rather than raw deltas.
 
 ### V3 metadata workers
 

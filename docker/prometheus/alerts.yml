@@ -60,7 +60,7 @@ groups:
           summary: Pipes cursor and committed projection head differ
           description: '{{ $labels.network }} has a durable cursor drift of {{ $value }} blocks.'
       - alert: LspIndexerV3SourceSwitching
-        expr: delta(sqd_fallback_switches[15m]) > 3
+        expr: increase(sqd_fallback_switches[15m]) > 3
         for: 5m
         labels:
           severity: warning

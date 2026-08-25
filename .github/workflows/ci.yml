@@ -212,6 +212,21 @@ jobs:
             --set cnpg.backup.enabled=true \
             --set cnpg.backup.reflector.enabled=true \
             > /tmp/lsp-indexer-production.yaml
+      - name: Assert production rollout and alert semantics
+        run: |
+          grep --fixed-strings --quiet 'argocd.argoproj.io/sync-wave: "-3"' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: helm_release' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'targetLabel: kubernetes_namespace' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'absent(up{component="indexer", deployment_network="lukso-mainnet", helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"})' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'increase(sqd_fallback_switches{helm_release="lsp-indexer", kubernetes_namespace="lsp-indexer"}[15m])' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for lukso-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'V3 database migration did not become ready for ethereum-mainnet before the deadline' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_LUKSO_MAINNET' /tmp/lsp-indexer-production.yaml
+          grep --fixed-strings --quiet 'name: DATABASE_URL_ETHEREUM_MAINNET' /tmp/lsp-indexer-production.yaml
+          if grep --fixed-strings --quiet 'delta(sqd_fallback_switches' /tmp/lsp-indexer-production.yaml; then
+            echo 'Source-switch alerts must use counter-aware increase()' >&2
+            exit 1
+          fi
       - name: Install kubeconform
         env:
           KUBECONFORM_VERSION: v0.6.7
