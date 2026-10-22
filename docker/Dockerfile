@@ -3,7 +3,7 @@
 # Optimized for production with proper layer caching and minimal image size
 # ==============================================================================
 
-FROM node:22-alpine AS base
+FROM node:22.23.4-alpine AS base
 
 # Install git (required for pnpm dependency resolution)
 RUN apk add --no-cache git
