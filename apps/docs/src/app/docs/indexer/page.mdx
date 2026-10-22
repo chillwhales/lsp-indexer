@@ -52,6 +52,9 @@ the update; changing a local Node installation does not update a running contain
 For development outside Docker, use Node.js **22.23.4** or **24.22.1**, matching
 the versions checked in CI.
 
+The shared CI workflows receive exact versions through `node-version-spec`;
+their legacy numeric `node-version` input accepts only a major-version selector.
+
 ### Prerequisites
 
 - Docker 24+ and Docker Compose v2

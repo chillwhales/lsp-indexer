@@ -15,9 +15,10 @@ jobs:
   # Build, lint, test pipeline (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   build-test:
-    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
+    # Exact Node version input: kethalia/workflows#53
+    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@40e011bea3dd2807ec7a85c9790386374cc9e905
     with:
-      node-version: 22.23.4
+      node-version-spec: '22.23.4'
       build-command: pnpm build
       lint-command: pnpm lint
       format-command: pnpm format:check && pnpm --filter docs generate:check
@@ -37,8 +38,10 @@ jobs:
   # ---------------------------------------------------------------------------
   quality:
     needs: [build-test]
-    uses: kethalia/workflows/.github/workflows/ci-quality.yml@v4
+    # Exact Node version input: kethalia/workflows#53
+    uses: kethalia/workflows/.github/workflows/ci-quality.yml@40e011bea3dd2807ec7a85c9790386374cc9e905
     with:
+      node-version-spec: '22.23.4'
       verify-command: pnpm validate:publish
       changeset-check: ${{ github.base_ref == 'main' }}
       base-branch: main
