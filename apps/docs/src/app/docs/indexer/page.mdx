@@ -54,6 +54,9 @@ the versions checked in CI.
 
 The shared CI workflows receive exact versions through `node-version-spec`;
 their legacy numeric `node-version` input accepts only a major-version selector.
+Run `pnpm format:check` before submitting changes. Helm Go templates under
+`charts/**/templates/` are checked by Helm CI; Prettier checks the chart metadata,
+values and documentation alongside the application source.
 
 ### Prerequisites
 
