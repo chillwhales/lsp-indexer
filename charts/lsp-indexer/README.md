@@ -19,11 +19,11 @@ Umbrella chart for running the LSP Indexer on Kubernetes.
 
 `secrets.existingSecret` is read by the indexer and Hasura:
 
-| Key | Purpose |
-| --- | --- |
-| `HASURA_GRAPHQL_ADMIN_SECRET` | Hasura admin secret used by Hasura and the indexer entrypoint |
-| `RPC_URL` | LUKSO RPC endpoint consumed by the indexer |
-| `SQD_API_KEY` | Optional SQD legacy gateway API key consumed by the indexer when `secrets.keys.sqdApiKey` is set |
+| Key                           | Purpose                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `HASURA_GRAPHQL_ADMIN_SECRET` | Hasura admin secret used by Hasura and the indexer entrypoint                                    |
+| `RPC_URL`                     | LUKSO RPC endpoint consumed by the indexer                                                       |
+| `SQD_API_KEY`                 | Optional SQD legacy gateway API key consumed by the indexer when `secrets.keys.sqdApiKey` is set |
 
 `cnpg.bootstrap.secretName` is an existing `kubernetes.io/basic-auth` Secret
 used by CloudNativePG during `initdb`. By default, Hasura and the indexer also
@@ -31,10 +31,10 @@ read the username and password keys specified by `postgres.passwordSecret` from
 this Secret for their database URLs so runtime credentials cannot drift from the
 database owner credentials. It must contain:
 
-| Key | Purpose |
-| --- | --- |
+| Key        | Purpose                                                    |
+| ---------- | ---------------------------------------------------------- |
 | `username` | Database owner username; must match `cnpg.bootstrap.owner` |
-| `password` | Database owner password |
+| `password` | Database owner password                                    |
 
 The rendered deployments read credentials from Secrets at pod startup and
 percent-encode `POSTGRES_PASSWORD` before constructing database URLs. Generated

@@ -13,3 +13,6 @@ pnpm-lock.yaml
 .planning/
 .gsd/
 dist/
+
+# Helm Go templates are validated by the Helm CI job, not the YAML formatter.
+charts/**/templates/**

@@ -46,6 +46,18 @@ graph LR
 
 ## Running with Docker
 
+The indexer image pins Node.js **22.23.4** in both build and runtime stages to
+include the October 2026 security fixes. Rebuild and redeploy the image to apply
+the update; changing a local Node installation does not update a running container.
+For development outside Docker, use Node.js **22.23.4** or **24.22.1**, matching
+the versions checked in CI.
+
+The shared CI workflows receive exact versions through `node-version-spec`;
+their legacy numeric `node-version` input accepts only a major-version selector.
+Run `pnpm format:check` before submitting changes. Helm Go templates under
+`charts/**/templates/` are checked by Helm CI; Prettier checks the chart metadata,
+values and documentation alongside the application source.
+
 ### Prerequisites
 
 - Docker 24+ and Docker Compose v2

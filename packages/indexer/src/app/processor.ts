@@ -1,4 +1,10 @@
-import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_API_KEY, SQD_GATEWAY } from '@/constants';
+import {
+  FINALITY_CONFIRMATION,
+  RPC_RATE_LIMIT,
+  RPC_URL,
+  SQD_API_KEY,
+  SQD_GATEWAY,
+} from '@/constants';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 /**
