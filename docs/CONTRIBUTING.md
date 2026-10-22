@@ -89,3 +89,11 @@ We welcome feature requests! To request a new feature:
 ## Thank You!
 
 Thank you for contributing to LSP Indexer!
+
+## Security runtime baseline
+
+Use a patched Node.js LTS runtime (22.23.4 or 24.22.1). CI tests these exact
+patched versions; the old Node 20 test entry has been retired. The Next.js documentation
+app and SDK development dependency require Next.js 16.4.1 or newer in the 16.x
+line for the October 2026 security fixes. Keep `pnpm-lock.yaml` synchronized when
+updating these dependencies and validate the docs build before deployment.
