@@ -1,159 +1,101 @@
-# Quick Start: Run Indexer with Full Logs
+# Run the development indexer stack
 
-**Goal:** Get the indexer running in Docker with complete log capture for debugging.
+This guide runs the default-branch implementation from source with PostgreSQL, Hasura and
+monitoring. For released-image deployment and its required credentials, use the
+[production guide](../../docker/README.md#production-deployment).
 
-## 1. Setup (One-time)
+## Prerequisites
+
+- Docker with the Compose plugin and enough memory/disk for the indexer and monitoring services.
+- A reachable LUKSO RPC endpoint.
+- A Hasura admin secret; the current development Compose file requires this value.
+- Archive access and `SQD_API_KEY` when required by the selected `SQD_GATEWAY`.
+
+Commands assume a clone of this repository. Published ports are on the Docker engine host; if
+using a remote engine, use its host or forwarding rather than assuming agent-local `localhost`.
+
+## 1. Configure
+
+From the repository root:
 
 ```bash
-# Navigate to docker/
+cp .env.example .env
+```
+
+Edit `.env` before starting:
+
+```dotenv
+RPC_URL=https://your-lukso-rpc.example.com
+HASURA_GRAPHQL_ADMIN_SECRET=replace-with-a-generated-secret
+```
+
+Replace the example endpoint and secret with real configuration. Set `SQD_GATEWAY` and
+`SQD_API_KEY` for your archive provider. The root template is shared with production, so it also
+contains fields that production requires; development Compose has different defaults.
+
+## 2. Start
+
+```bash
 cd docker
-
-# Create .env file (in repository root)
-cp ../.env.example ../.env
-
-# Edit .env — REQUIRED: Set your RPC endpoint
-nano ../.env
-# Update: RPC_URL=https://your-rpc-endpoint.io
-# Everything else has sane defaults
-
-# Optional: Enable Hasura GraphQL API
-# Add to .env: ENABLE_HASURA=true
-```
-
-## 2. Start Services
-
-```bash
-# Recommended: Use helper script (auto-detects Hasura from .env)
 ./manage.sh start
-
-# OR using docker compose directly (MUST specify --env-file):
-docker compose --env-file ../.env up -d
-
-# With Hasura enabled:
-# If ENABLE_HASURA=true in .env, ./manage.sh start will automatically
-# start Hasura at http://localhost:8080
-#
-# Or manually with docker compose:
-docker compose --env-file ../.env --profile hasura up -d
 ```
 
-## 3. Monitor Logs (Real-time)
+The helper selects `docker-compose.yml` and passes `../.env` to Compose. Hasura is always included;
+there is no need to set `ENABLE_HASURA` or select a Hasura profile.
+
+The equivalent Compose command, also suitable for rebuilding after source changes, is:
 
 ```bash
-# Follow logs from all services
-./manage.sh logs indexer all
-
-# OR docker compose directly:
-docker compose --env-file ../.env logs -f indexer
+docker compose --env-file ../.env up -d --build
 ```
 
-## 4. Export Complete Logs for Analysis
+The container entrypoint generates and applies migrations, waits for Hasura, applies its metadata,
+and starts indexing. These steps can take time; do not run a second migration process manually.
+
+## 3. Check startup and progress
 
 ```bash
-# Method 1: Using helper script (recommended)
-./manage.sh logs-export ./my-logs
-
-# Method 2: Copy directly from container
-docker cp lsp-indexer:/app/packages/indexer/logs ./my-logs
-
-# Method 3: Export Docker daemon logs (stdout/stderr)
-docker logs lsp-indexer > docker-stdout.log 2>&1
-```
-
-This gives you **three log sources**:
-
-1. **JSON logs** (pino, daily rotation): `./my-logs/indexer-YYYY-MM-DD.log`
-2. **Docker stdout**: What you see in `docker logs`
-3. **Docker compose logs**: Same as #2 but managed by compose
-
-## 5. Check Service Health
-
-```bash
-# Quick health check
-./manage.sh health
-
-# Detailed status
 ./manage.sh status
-
-# OR:
-docker compose --env-file ../.env ps
-```
-
-## 6. Common Issues
-
-### Indexer not starting?
-
-```bash
-# View last 50 lines
+./manage.sh health
 ./manage.sh logs indexer 50
-
-# Check if RPC_URL is set
-./manage.sh env | grep RPC_URL
 ```
 
-### Database connection failed?
+Check PostgreSQL and Hasura logs when the indexer cannot initialize:
 
 ```bash
-# Check postgres health
-docker exec lsp-indexer-postgres pg_isready -U postgres
-
-# View postgres logs
-./manage.sh logs postgres 50
+docker compose --env-file ../.env logs --tail=50 postgres hasura
 ```
 
-### Build failed?
+Hasura is published on port 8080 and Grafana on port 3000 by default. Check the selected Compose
+file and environment for custom ports. Container health and a reachable GraphQL API are startup
+checks; inspect indexer logs and database progress to confirm that chain ingestion is advancing.
+
+## 4. Troubleshoot without resetting data
+
+- **Environment interpolation error:** set `HASURA_GRAPHQL_ADMIN_SECRET` and confirm Compose is
+  reading the repository-root `.env` through `--env-file ../.env`.
+- **RPC/archive error:** verify endpoint access and any required `SQD_API_KEY`. Public RPC defaults
+  may be rate-limited; configure `RPC_RATE_LIMIT` for your provider.
+- **Hasura readiness or metadata error:** inspect both `hasura` and `indexer` logs and verify the
+  admin secret matches. The entrypoint stops when Hasura does not become ready within its timeout.
+- **Dependency/build error:** keep `pnpm-lock.yaml`; inspect the build output and use the pinned
+  Node.js/pnpm versions. Rebuild the image after source or dependency changes.
+
+## 5. Export logs or stop
 
 ```bash
-# Rebuild from scratch
-./manage.sh rebuild
-
-# OR:
-docker compose --env-file ../.env build --no-cache
-docker compose --env-file ../.env up -d --force-recreate
-```
-
-## 7. Stop Services
-
-```bash
-# Stop (keeps containers)
+./manage.sh logs-export ./my-logs
 ./manage.sh stop
-
-# Stop and remove containers (keeps data)
-./manage.sh down
-
-# Nuclear option: remove everything including data
-docker compose --env-file ../.env down -v
 ```
 
-## Log Locations
-
-| Source        | Location                                     | Format            | Rotation         |
-| ------------- | -------------------------------------------- | ----------------- | ---------------- |
-| File logs     | `/app/packages/indexer/logs/` (in container) | JSON (pino)       | Daily            |
-| Docker logs   | Docker daemon                                | Plain text        | 100MB × 10 files |
-| Exported logs | `./my-logs/` (on host)                       | Same as file logs | Manual           |
-
-## Next Steps
-
-- See **REFERENCE.md** for comprehensive documentation
-- Use `./manage.sh help` for all available commands
-- Query database: `./manage.sh db`
-- View env vars: `./manage.sh env`
-
-## TL;DR — Get Logs NOW
+`stop` keeps containers and data. To remove this development stack's containers while retaining
+its named volumes, run from `docker/`:
 
 ```bash
-# 1. Start
-./manage.sh start
-
-# 2. Wait 30 seconds for initialization
-
-# 3. Export all logs
-./manage.sh logs-export ./complete-logs
-docker logs lsp-indexer > ./complete-logs/docker-stdout.log 2>&1
-
-# 4. Share ./complete-logs/ directory
-tar czf complete-logs.tar.gz ./complete-logs
+docker compose --env-file ../.env down
 ```
 
-You now have **complete logs** from both file logger and Docker stdout.
+Do not add `-v` when the database and other persistent volumes must be retained.
+
+Next: [Docker configuration](../../docker/README.md), [reference](REFERENCE.md),
+[indexer architecture](../ARCHITECTURE.md) and [client quickstart](../../apps/docs/src/app/docs/quickstart/page.mdx).

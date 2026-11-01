@@ -1,134 +1,113 @@
-# Docker Configuration
+# Docker configuration
 
-Docker deployment for LSP Indexer.
+Run the current default-branch LSP Indexer with PostgreSQL, Hasura and monitoring. The development
+stack builds from source; the production stack uses the configured GHCR image tag. The v3 rewrite
+is tracked separately in [#391](https://github.com/chillwhales/lsp-indexer/pull/391).
 
 ## Files
 
-- **`Dockerfile`** — Multi-stage optimized build (~400MB)
-- **`docker-compose.yml`** — Development orchestration (builds from source)
-- **`docker-compose.prod.yml`** — Production orchestration with released Docker image
-- **`.env.prod.example`** — Production environment template
-- **`manage.sh`** — Management script (35+ commands)
-- **`entrypoint.sh`** — Container entrypoint (migrations + Hasura config + start)
+| File                                                 | Purpose                                               |
+| ---------------------------------------------------- | ----------------------------------------------------- |
+| [`Dockerfile`](Dockerfile)                           | Multi-stage indexer build                             |
+| [`docker-compose.yml`](docker-compose.yml)           | Development stack built from source                   |
+| [`docker-compose.prod.yml`](docker-compose.prod.yml) | Production stack using a released image               |
+| [`../.env.example`](../.env.example)                 | Shared template for root `.env` or `.env.prod`        |
+| [`manage.sh`](manage.sh)                             | Development-stack management commands                 |
+| [`entrypoint.sh`](entrypoint.sh)                     | Database migrations, Hasura setup and indexer startup |
 
-## Features
+## Development
 
-- Multi-stage build with layer caching
-- Dual logging (Docker stdout + pino JSON)
-- Health monitoring (postgres + indexer process)
-- Auto-restart policies
-- Resource limits (4GB indexer, 2GB postgres)
-- Persistent volumes (database + logs)
-- Non-root user for security
-- Production-ready defaults
-
-## Quick Start
+From the repository root:
 
 ```bash
-cd docker
-
-# Setup
-cp ../.env.example ../.env
-nano ../.env  # Configure RPC_URL
-
-# Start
-./manage.sh start
-
-# Monitor
-./manage.sh logs indexer all
-
-# Export logs
-./manage.sh logs-export ./logs
-```
-
-## Production Deployment
-
-The production compose file uses the pre-built Docker image from GitHub Container Registry instead of building from source.
-
-### Setup
-
-```bash
-cd docker
-
-# Copy and configure production environment
-cp .env.prod.example ../.env.prod
-nano ../.env.prod  # Set REQUIRED: POSTGRES_PASSWORD, HASURA_GRAPHQL_ADMIN_SECRET, RPC_URL
-
-# Start production stack
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
-
-# Monitor logs
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs -f indexer
-
-# Stop
-docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
-```
-
-### Production vs Development
-
-| Aspect          | Development                                    | Production                                      |
-| --------------- | ---------------------------------------------- | ----------------------------------------------- |
-| Indexer         | Built from source                              | `ghcr.io/chillwhales/lsp-indexer:latest`        |
-| PostgreSQL port | Exposed (5432)                                 | Not exposed                                     |
-| Hasura console  | Enabled                                        | Disabled                                        |
-| Hasura dev mode | Enabled                                        | Disabled                                        |
-| Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus  |
-| Secrets         | Optional defaults                              | Required (no defaults, including Grafana admin) |
-
-## Monitoring
-
-The production compose includes a full monitoring stack (Grafana, Loki, Alloy, cAdvisor, Prometheus). Dashboards are available at `GRAFANA_PORT` (default 3000) with anonymous read-only access enabled. Admin login (default `admin`/`admin`) is required for editing dashboards — change the password via `GRAFANA_ADMIN_PASSWORD` in your `.env.prod`.
-
-Logs from all containers are collected by Grafana Alloy and stored in Loki (14-day retention). Container metrics (CPU, memory, network, disk I/O) are scraped from cAdvisor and pushed to Prometheus.
-
-## Management Commands
-
-```bash
-./manage.sh help              # See all commands
-
-# Service management
-./manage.sh start             # Start services
-./manage.sh stop              # Stop services
-./manage.sh restart           # Restart services
-./manage.sh status            # Check status
-./manage.sh health            # Run health checks
-
-# Logs
-./manage.sh logs              # View logs
-./manage.sh logs-export ./dir # Export to directory
-./manage.sh logs-cleanup 7    # Remove >7 days old
-
-# Database
-./manage.sh db                # Open psql
-./manage.sh db-dump           # Backup
-./manage.sh db-restore file   # Restore
-
-# System
-./manage.sh stats             # Resource usage
-./manage.sh env               # Show environment
-./manage.sh shell             # Open shell
-```
-
-## Documentation
-
-See [../docs/docker/](../docs/docker/):
-
-- [QUICKSTART.md](../docs/docker/QUICKSTART.md) — Get started in 5 minutes
-- [REFERENCE.md](../docs/docker/REFERENCE.md) — Complete guide
-- [ARCHITECTURE.md](../docs/docker/ARCHITECTURE.md) — Design overview
-
-## Environment Configuration
-
-Uses `.env` file from repository root.
-
-```bash
-# Copy template
 cp .env.example .env
-
-# Configure (REQUIRED)
-nano .env
-# Set: RPC_URL=https://your-rpc-endpoint.io
-
-# Optional: Customize other settings
-# See .env.example for all options
+# Edit .env: set RPC_URL and HASURA_GRAPHQL_ADMIN_SECRET.
+# Set SQD_API_KEY if your archive endpoint requires it.
+cd docker
+./manage.sh start
+./manage.sh status
+./manage.sh logs indexer 50
 ```
+
+`manage.sh` uses `docker-compose.yml` and `../.env`. Hasura is part of the current stack and is
+required by the entrypoint; it is not an optional profile. PostgreSQL, Hasura and monitoring ports
+are published for local development. Configure your environment for that intended audience.
+
+After source changes, rebuild from `docker/` with:
+
+```bash
+docker compose --env-file ../.env up -d --build
+```
+
+See the [Docker quickstart](../docs/docker/QUICKSTART.md) for readiness checks and teardown.
+
+## Production deployment
+
+From the repository root, create a separate environment file using the existing root template:
+
+```bash
+cp .env.example .env.prod
+```
+
+Set all six required values before starting:
+
+| Variable                      | Purpose                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `POSTGRES_PASSWORD`           | Database password                              |
+| `HASURA_GRAPHQL_ADMIN_SECRET` | Hasura administration credential               |
+| `RPC_URL`                     | LUKSO RPC endpoint                             |
+| `SQD_API_KEY`                 | Credential for the configured Subsquid archive |
+| `GRAFANA_ADMIN_USER`          | Grafana administrator name                     |
+| `GRAFANA_ADMIN_PASSWORD`      | Grafana administrator password                 |
+
+The template leaves secret values empty. Use independently generated credentials and configure
+the data endpoints for your deployment. Set `INDEXER_VERSION` to the intended image tag rather
+than relying on a moving `latest` tag when reproducibility is required.
+
+Start and inspect the production stack from the repository root:
+
+```bash
+docker compose -f docker/docker-compose.prod.yml --env-file .env.prod up -d
+docker compose -f docker/docker-compose.prod.yml --env-file .env.prod ps
+docker compose -f docker/docker-compose.prod.yml --env-file .env.prod logs --tail=50 indexer
+```
+
+`manage.sh` always operates on the development file; use explicit `docker compose -f` commands for
+production. Hasura administration and Grafana access must be configured for the deployment's
+network boundary. Production disables the Hasura console by default; Grafana is configured with
+anonymous read-only dashboard access.
+
+Before upgrading, back up the database and review the image/schema changes. To stop the stack
+without deleting persistent volumes:
+
+```bash
+docker compose -f docker/docker-compose.prod.yml --env-file .env.prod down
+```
+
+## Startup sequence
+
+The indexer entrypoint generates and applies database migrations, waits for Hasura, generates and
+applies Hasura metadata, then starts the indexer process. Startup failures should be investigated
+in the indexer, PostgreSQL and Hasura logs; a running container alone does not prove indexing is
+progressing. Do not repeat the container's migration steps manually as part of normal startup.
+
+## Management and monitoring
+
+Run these development commands from `docker/`:
+
+```bash
+./manage.sh help
+./manage.sh health
+./manage.sh logs indexer 50
+./manage.sh logs-export ./logs
+./manage.sh stop
+```
+
+The Compose files include Grafana, Loki, Alloy, cAdvisor and Prometheus. The default host ports
+are 8080 for Hasura and 3000 for Grafana; inspect the selected Compose file and environment for
+other published ports. `docker compose ps` and service logs are the starting points for checking
+availability; indexer logs and database progress are needed to assess ingestion.
+
+Further details: [quickstart](../docs/docker/QUICKSTART.md),
+[reference](../docs/docker/REFERENCE.md), [architecture](../docs/ARCHITECTURE.md),
+and the [indexer guide](../apps/docs/src/app/docs/indexer/page.mdx).

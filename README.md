@@ -1,183 +1,112 @@
 # LSP Indexer
 
-The LSP Indexer is an open-source project designed to listen for important events on the LUKSO blockchain and extract valuable information from them. This indexer focuses on events like `DataChanged`, `Executed`, `UniversalReceiver`, `OwnershipTransferred`, `TokenIdDataChanged`, LSP7 & LSP8 `Transfer`, `Follow`, `Unfollow`, and decodes information such as `LSP3Profile`, `LSP4Metadata`, `LSP6Permissions` and more.
+LSP Indexer turns LUKSO events into queryable profiles, digital assets, metadata and social
+relationships. It combines event ingestion, PostgreSQL storage and Hasura GraphQL with typed
+Node.js, React and Next.js client packages.
 
-## 📁 Repository Structure
+## Status
 
-```
-lsp-indexer/
-├── packages/              # Monorepo packages
-│   ├── abi/               # Contract ABIs (Subsquid typegen)
-│   ├── typeorm/           # Database entities & migrations
-│   └── indexer/           # Blockchain indexer (plugin architecture)
-│
-├── docs/                  # Documentation
-│   ├── ARCHITECTURE.md    # System architecture
-│   ├── CONTRIBUTING.md    # Contribution guide
-│   ├── AGENTS.md          # AI agent guidelines
-│   └── docker/            # Docker deployment docs
-│
-├── docker/                # Docker configurations
-│   ├── docker-compose.yml # Orchestration with postgres
-│   ├── Dockerfile         # Multi-stage optimized build
-│   ├── manage.sh          # Management script (35+ commands)
-│   └── entrypoint.sh      # Container entrypoint
-│
-├── sql/                   # SQL resources
-│   └── views/             # View definitions
-│
-├── .planning/             # GSD project planning
-├── .github/               # GitHub Actions & workflows
-├── scripts/               # Build & utility scripts
-└── .env.example           # Environment template
-```
+The default branch contains the Subsquid/TypeORM implementation. The multi-chain v3 rewrite is
+in development on `lsp-indexer-v3`, tracked in [#391](https://github.com/chillwhales/lsp-indexer/pull/391).
+That development branch is separate from the implementation and client packages documented here.
 
-This monorepo uses **pnpm workspaces** for package management. See [docs/](./docs/) for detailed documentation.
+## Choose your starting point
 
-## 🚀 Quick Start
+| Goal                      | Start here                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Query an existing indexer | Install a client package and follow the [client quickstart](apps/docs/src/app/docs/quickstart/page.mdx). You need a configured Hasura GraphQL endpoint. |
+| Run an indexer            | Follow the [Docker quickstart](docs/docker/QUICKSTART.md) for local development, or the [production setup](docker/README.md#production-deployment).     |
+| Contribute                | Read [CONTRIBUTING](docs/CONTRIBUTING.md), the [architecture](docs/ARCHITECTURE.md) and the [indexer guide](apps/docs/src/app/docs/indexer/page.mdx).   |
 
-### Option 1: Docker (Recommended for Production)
+## Client packages
+
+| Package                                | Purpose                                    |
+| -------------------------------------- | ------------------------------------------ |
+| [`@lsp-indexer/types`](packages/types) | Shared schemas and types                   |
+| [`@lsp-indexer/node`](packages/node)   | Typed queries, services and parsers        |
+| [`@lsp-indexer/react`](packages/react) | React providers, queries and subscriptions |
+| [`@lsp-indexer/next`](packages/next)   | Next.js server integration and hooks       |
+
+For a Node.js consumer:
 
 ```bash
-# Setup
-cd docker
-cp ../.env.example ../.env
-nano ../.env  # Set RPC_URL
-
-# Start services
-./manage.sh start
-
-# Monitor logs
-./manage.sh logs indexer all
+pnpm add @lsp-indexer/node
 ```
 
-See [docs/docker/QUICKSTART.md](./docs/docker/QUICKSTART.md) for details.
+See the [Node.js guide](apps/docs/src/app/docs/node/page.mdx) for client configuration and queries.
+Configure public clients with the appropriate read-only access; Hasura admin credentials belong
+in operator configuration, not browser bundles.
 
-### Option 2: Local Development
+## Run locally with Docker
+
+You need Docker with Compose, a working LUKSO RPC endpoint and a Hasura admin secret. From a clone
+of this repository:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Setup environment
 cp .env.example .env
-nano .env  # Configure variables
-
-# Run migrations
-pnpm migration:generate
-pnpm migration:apply
-
-# Start indexer
-pnpm start
+# Edit .env: set RPC_URL and HASURA_GRAPHQL_ADMIN_SECRET.
+# Set SQD_API_KEY if the configured archive requires it.
+cd docker
+./manage.sh start
+./manage.sh status
+./manage.sh logs indexer 50
 ```
 
-## 📦 Project Architecture
+This starts the development stack, including PostgreSQL, Hasura and monitoring. Hasura is required
+by the current container entrypoint. The development Compose file builds the indexer from source;
+use `docker compose --env-file ../.env up -d --build` from `docker/` to rebuild after source changes.
+See the [quickstart](docs/docker/QUICKSTART.md) for startup checks and teardown.
 
-The project is organized into several packages that handle different aspects of the indexer's functionality:
+For production, copy the same root template to `.env.prod` and set all six variables enforced by
+[production Compose](docker/docker-compose.prod.yml): `POSTGRES_PASSWORD`,
+`HASURA_GRAPHQL_ADMIN_SECRET`, `RPC_URL`, `SQD_API_KEY`, `GRAFANA_ADMIN_USER` and
+`GRAFANA_ADMIN_PASSWORD`. Choose an indexer image tag for the intended release. Follow the
+[production deployment guide](docker/README.md#production-deployment); the development command
+above does not select the production Compose file.
 
-- **abi** — ABI definitions for LUKSO smart contracts (LSP0-LSP8, etc.)
-- **typeorm** — Database entities generated from `schema.graphql` and migrations
-- **indexer** — Blockchain indexer with plugin architecture, enrichment queue, and metadata workers
+The container generates and applies database migrations, waits for Hasura, applies its metadata,
+and then starts indexing. You do not need to repeat those steps manually when using the container.
+Back up existing data and review schema changes before upgrading an existing deployment.
 
-Each package has its own `package.json` file with dependencies and scripts. The project uses a monorepo structure managed by pnpm workspaces.
+## Repository layout
 
-## What It Does
-
-- Listens to important blockchain events
-- Extracts and decodes valuable information from those events
-- Indexes data for easy querying and analysis
-
-## List of Events
-
-The indexer listens for the following events:
-
-- `Executed(uint256,address,uint256,bytes4)`
-- `DataChanged(bytes32,bytes)`
-- `UniversalReceiver(address,uint256,bytes32,bytes,bytes)`
-- `OwnershipTransferred(address,address)`
-- `TokenIdDataChanged(bytes32,bytes32,bytes)`
-- `Transfer(address,address,address,uint256,bool,bytes)` (LSP7 Transfer)
-- `Transfer(address,address,address,bytes32,bool,bytes)` (LSP8 Transfer)
-- `Follow(address,address)`
-- `Unfollow(address,address)`
-
-## Installation
-
-To get started with the LSP Indexer, follow these steps:
-
-1. Clone the repository:
-
-   ```
-   git clone https://github.com/chillwhales/lsp-indexer.git
-   cd lsp-indexer
-   ```
-
-2. Install dependencies:
-
-   ```
-   pnpm install
-   ```
-
-3. Set up environment variables by copying `.env.example` to `.env` and filling in the required values.
-
-## Environment Variables
-
-The following table lists the environment variables that can be configured for this project, along with their default values:
-
-| Variable Name           | Description                                     | Default Value                                           |
-| ----------------------- | ----------------------------------------------- | ------------------------------------------------------- |
-| `DB_URL`                | The PostgreSQL database URL                     | `postgresql://postgres:postgres@postgres:5432/postgres` |
-| `SQD_GATEWAY`           | The Subsquid Gateway URL                        | `https://v2.archive.subsquid.io/network/lukso-mainnet`  |
-| `RPC_URL`               | The RPC URL for EVM blockchain                  | `https://rpc.lukso.sigmacore.io`                        |
-| `RPC_RATE_LIMIT`        | Rate limit for RPC calls (requests per seconds) | 10                                                      |
-| `FINALITY_CONFIRMATION` | Confirmation threshold for finality (blocks)    | 75 (approximately 15 minutes to finality)               |
-| `IPFS_GATEWAY`          | The IPFS Gateway URL                            | `https://api.universalprofile.cloud/ipfs/`              |
-| `FETCH_LIMIT`           | Maximum number of items to fetch at once        | 10,000                                                  |
-| `FETCH_BATCH_SIZE`      | Number of items per fetch batch                 | 1,000                                                   |
-| `FETCH_RETRY_COUNT`     | Maximum retry attempts for fetching data        | 5                                                       |
-
-## Usage
-
-Before running the indexer, you need to build the project:
-
-```
-pnpm build
+```text
+packages/
+  indexer/          Event pipeline, integrated ABI/entity codegen and migrations
+  types/            Shared client schemas and types
+  node/             Typed GraphQL client services and parsers
+  react/            React queries and subscriptions
+  next/             Next.js integration
+  comparison-tool/  Indexer comparison tooling
+apps/docs/          Next.js documentation and playground
+charts/lsp-indexer/ Kubernetes Helm chart
+docker/             Images, development/production Compose and management scripts
+docs/               Architecture, contribution and deployment guides
+sql/                SQL resources
 ```
 
-If you have a fresh database, you also need to run migrations:
+ABI definitions and generated TypeORM entities live inside `packages/indexer`; there are no
+separate `packages/abi` or `packages/typeorm` workspaces.
 
+## Development
+
+Use the Node.js versions pinned in [CI](.github/workflows/ci.yml) and the
+[indexer Dockerfile](docker/Dockerfile), and the pnpm version pinned in [package.json](package.json).
+For the indexer package:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm --filter @chillwhales/indexer build
 ```
-pnpm migration:generate
-pnpm migration:apply
-```
 
-To start the indexer, use the following command:
+The build runs ABI/entity code generation before compiling TypeScript. The client packages have
+additional GraphQL code-generation configuration; consult the [contribution guide](docs/CONTRIBUTING.md)
+and their manifests when working on those packages. Keep `pnpm-lock.yaml` when troubleshooting
+installs so dependency resolution remains reproducible.
 
-```
-pnpm start
-```
-
-This will start the indexer, which will begin listening for events on the LUKSO blockchain.
-
-## Contributing
-
-We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.md) for more details.
-
-## Troubleshooting
-
-If you encounter issues while setting up or running the indexer, here are some common problems and their solutions:
-
-1. **Missing environment variables**: Make sure all required environment variables in `.env` are set correctly. You can copy the example file using `cp .env.example .env`.
-
-2. **Dependency issues**: If you have trouble installing dependencies, try deleting the `node_modules` directory and the lock files (`pnpm-lock.yaml`), then run `pnpm install` again.
-
-3. **Database connection problems**: Ensure that your database is running and accessible at the URL specified in your environment variables.
-
-4. **Migration errors**: If migrations fail, check the error message for clues. You might need to manually inspect or modify the generated migration files.
+Supported standards, environment settings and pipeline details are documented in the
+[indexer guide](apps/docs/src/app/docs/indexer/page.mdx) and [architecture](docs/ARCHITECTURE.md).
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+[MIT](LICENSE).
