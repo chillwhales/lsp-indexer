@@ -1,5 +1,8 @@
 # LSP Indexer
 
+[Documentation](https://indexer.chillwhales.dev/) ·
+[Quickstart](https://indexer.chillwhales.dev/docs/quickstart)
+
 LSP Indexer turns LUKSO events into queryable profiles, digital assets, metadata and social
 relationships. It combines event ingestion, PostgreSQL storage and Hasura GraphQL with typed
 Node.js, React and Next.js client packages.
@@ -12,11 +15,11 @@ That development branch is separate from the implementation and client packages 
 
 ## Choose your starting point
 
-| Goal                      | Start here                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Query an existing indexer | Install a client package and follow the [client quickstart](apps/docs/src/app/docs/quickstart/page.mdx). You need a configured Hasura GraphQL endpoint. |
-| Run an indexer            | Follow the [Docker quickstart](docs/docker/QUICKSTART.md) for local development, or the [production setup](docker/README.md#production-deployment).     |
-| Contribute                | Read [CONTRIBUTING](docs/CONTRIBUTING.md), the [architecture](docs/ARCHITECTURE.md) and the [indexer guide](apps/docs/src/app/docs/indexer/page.mdx).   |
+| Goal                      | Start here                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Query an existing indexer | Install a client package and follow the [client quickstart](https://indexer.chillwhales.dev/docs/quickstart). You need a configured Hasura GraphQL endpoint. |
+| Run an indexer            | Follow the [Docker quickstart](docs/docker/QUICKSTART.md) for local development, or the [production setup](docker/README.md#production-deployment).          |
+| Contribute                | Read [CONTRIBUTING](docs/CONTRIBUTING.md), the [architecture](docs/ARCHITECTURE.md) and the [indexer guide](apps/docs/src/app/docs/indexer/page.mdx).        |
 
 ## Client packages
 
@@ -33,7 +36,9 @@ For a Node.js consumer:
 pnpm add @lsp-indexer/node
 ```
 
-See the [Node.js guide](apps/docs/src/app/docs/node/page.mdx) for client configuration and queries.
+See the [Node.js guide](https://indexer.chillwhales.dev/docs/node) for client configuration and queries.
+The hosted [React guide](https://indexer.chillwhales.dev/docs/react) and
+[Next.js guide](https://indexer.chillwhales.dev/docs/next) cover the corresponding consumer packages.
 Configure public clients with the appropriate read-only access; Hasura admin credentials belong
 in operator configuration, not browser bundles.
 
